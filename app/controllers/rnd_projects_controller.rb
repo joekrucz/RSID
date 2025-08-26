@@ -1,6 +1,6 @@
 class RndProjectsController < ApplicationController
   before_action :require_login
-  before_action :require_feature, 'rnd_projects'
+  before_action :require_rnd_projects_feature
   before_action :set_rnd_project, only: [:show, :edit, :update, :destroy]
 
   def index
@@ -167,8 +167,12 @@ class RndProjectsController < ApplicationController
     end
   end
 
-  private
-
+    private
+  
+  def require_rnd_projects_feature
+    require_feature('rnd_projects')
+  end
+  
   def set_rnd_project
     @rnd_project = RndProject.find(params[:id])
   end
