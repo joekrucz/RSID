@@ -35,26 +35,32 @@
             </svg>
           </div>
           <ul class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-            <li><button onclick={() => navigateTo('/dashboard')} class:active={isActive('dashboard')}>Dashboard</button></li>
-            <li><button onclick={() => navigateTo('/notes')} class:active={isActive('notes')}>Notes</button></li>
-            <li><button onclick={() => navigateTo('/todos')} class:active={isActive('todos')}>Todo List</button></li>
-            <li><button onclick={() => navigateTo('/file_items')} class:active={isActive('files')}>Files</button></li>
-            
-            <!-- Employee/Admin only features -->
-            {#if user.isEmployee || user.isAdmin}
-              <li><button onclick={() => navigateTo('/messages')} class:active={isActive('messages')}>Messages</button></li>
+            {#if user}
+              <li><button onclick={() => navigateTo('/dashboard')} class:active={isActive('dashboard')}>Dashboard</button></li>
+              <li><button onclick={() => navigateTo('/notes')} class:active={isActive('notes')}>Notes</button></li>
+              <li><button onclick={() => navigateTo('/todos')} class:active={isActive('todos')}>Todo List</button></li>
+              <li><button onclick={() => navigateTo('/file_items')} class:active={isActive('files')}>Files</button></li>
+              
+              <!-- Employee/Admin only features -->
+              {#if user.isEmployee || user.isAdmin}
+                <li><button onclick={() => navigateTo('/messages')} class:active={isActive('messages')}>Messages</button></li>
+              {/if}
+              
+              <li><button onclick={() => navigateTo('/grant_applications')} class:active={isActive('grant_applications')}>Grant Applications</button></li>
+              <li><button onclick={() => navigateTo('/rnd_projects')} class:active={isActive('rnd_projects')}>R&D Projects</button></li>
+              
+              <!-- Admin only features -->
+              {#if user.isAdmin}
+                <li><button onclick={() => navigateTo('/people')} class:active={isActive('people')}>People</button></li>
+                <li><button onclick={() => navigateTo('/admin/feature_flags')} class:active={isActive('feature_flags')}>Feature Flags</button></li>
+              {/if}
+              
+              <li><button onclick={() => navigateTo('/settings')} class:active={isActive('settings')}>Settings</button></li>
+            {:else}
+              <!-- Show minimal navigation for logged out users -->
+              <li><button onclick={() => navigateTo('/login')}>Login</button></li>
+              <li><button onclick={() => navigateTo('/signup')}>Sign Up</button></li>
             {/if}
-            
-            <li><button onclick={() => navigateTo('/grant_applications')} class:active={isActive('grant_applications')}>Grant Applications</button></li>
-            <li><button onclick={() => navigateTo('/rnd_projects')} class:active={isActive('rnd_projects')}>R&D Projects</button></li>
-            
-            <!-- Admin only features -->
-            {#if user.isAdmin}
-              <li><button onclick={() => navigateTo('/people')} class:active={isActive('people')}>People</button></li>
-              <li><button onclick={() => navigateTo('/admin/feature_flags')} class:active={isActive('feature_flags')}>Feature Flags</button></li>
-            {/if}
-            
-            <li><button onclick={() => navigateTo('/settings')} class:active={isActive('settings')}>Settings</button></li>
           </ul>
         </div>
         
@@ -62,28 +68,36 @@
         <button class="btn btn-ghost text-xl ml-2" onclick={() => navigateTo('/dashboard')}>RSID App</button>
         
         <!-- Debug indicator for admin -->
-        {#if user.isAdmin}
+        {#if user?.isAdmin}
           <div class="badge badge-primary ml-2">ADMIN</div>
         {/if}
       </div>
 
       <!-- Right side -->
       <div class="flex items-center">
-        <div class="dropdown dropdown-end">
-          <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
-            <div class="avatar placeholder">
-              <div class="bg-neutral text-neutral-content rounded-full w-10">
-                <span class="text-xs">{user.name.split(' ').map(n => n[0]).join('')}</span>
+        {#if user}
+          <div class="dropdown dropdown-end">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+              <div class="avatar placeholder">
+                <div class="bg-neutral text-neutral-content rounded-full w-10">
+                  <span class="text-xs">{user.name.split(' ').map(n => n[0]).join('')}</span>
+                </div>
               </div>
             </div>
+            <ul class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+              <li><span class="text-xs opacity-70">{user.role} {user.isAdmin ? '(Admin)' : ''}</span></li>
+              <li><button onclick={() => navigateTo('/settings')}>Profile</button></li>
+              <li><button onclick={() => navigateTo('/settings')}>Settings</button></li>
+              <li><button onclick={handleLogout}>Logout</button></li>
+            </ul>
           </div>
-          <ul class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-            <li><span class="text-xs opacity-70">{user.role} {user.isAdmin ? '(Admin)' : ''}</span></li>
-            <li><button onclick={() => navigateTo('/settings')}>Profile</button></li>
-            <li><button onclick={() => navigateTo('/settings')}>Settings</button></li>
-            <li><button onclick={handleLogout}>Logout</button></li>
-          </ul>
-        </div>
+        {:else}
+          <!-- Show login/signup buttons for logged out users -->
+          <div class="flex space-x-2">
+            <button class="btn btn-ghost btn-sm" onclick={() => navigateTo('/login')}>Login</button>
+            <button class="btn btn-primary btn-sm" onclick={() => navigateTo('/signup')}>Sign Up</button>
+          </div>
+        {/if}
       </div>
     </div>
   </div>
