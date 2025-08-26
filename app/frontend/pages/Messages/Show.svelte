@@ -6,12 +6,7 @@
   let { user, message } = $props();
   
   function goBack() {
-    router.visit('/messages', {
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
-    });
+    router.visit('/messages');
   }
 </script>
 

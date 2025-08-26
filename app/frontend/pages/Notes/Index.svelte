@@ -75,11 +75,7 @@
   function cancelEdit() {
     // Reset editing state by refreshing the page
     router.visit('/notes', { 
-      preserveState: false,
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
+      preserveState: false
     });
   }
   

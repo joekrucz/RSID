@@ -21,11 +21,7 @@
       sort_order: currentSortOrder
     }, {
       preserveState: true,
-      preserveScroll: true,
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
+      preserveScroll: true
     });
   }
   
@@ -37,11 +33,7 @@
       sort_order: currentSortOrder
     }, {
       preserveState: true,
-      preserveScroll: true,
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
+      preserveScroll: true
     });
   }
   
@@ -61,11 +53,7 @@
       sort_order: currentSortOrder
     }, {
       preserveState: true,
-      preserveScroll: true,
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
+      preserveScroll: true
     });
   }
   
@@ -109,12 +97,7 @@
   }
   
   function navigateTo(path) {
-    router.visit(path, {
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
-    });
+    router.visit(path);
   }
   
   function getRoleBadgeClass(role) {

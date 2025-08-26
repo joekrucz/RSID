@@ -43,12 +43,7 @@
   function handleLogout() {
     if (confirm('Are you sure you want to log out?')) {
       toast.info('Logging out...');
-      router.delete('/logout', {
-        onSuccess: () => {
-          // Refresh the page after successful logout
-          window.location.reload();
-        }
-      });
+      router.delete('/logout');
     }
   }
 </script>

@@ -85,12 +85,7 @@
   }
   
   function navigateTo(path) {
-    router.visit(path, {
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
-    });
+    router.visit(path);
   }
 </script>
 
@@ -102,12 +97,7 @@
                 <h1 class="text-3xl font-bold text-base-content mb-2">Grant Applications</h1>
       <p class="text-base-content/70">Track and manage your grant applications from start to finish</p>
         </div>
-        <Button variant="primary" onclick={() => router.visit('/grant_applications/new', {
-          onSuccess: () => {
-            // Refresh the page after navigation
-            window.location.reload();
-          }
-        })}>
+        <Button variant="primary" onclick={() => router.visit('/grant_applications/new')}>
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
           </svg>
@@ -337,12 +327,7 @@
             <p class="text-base-content/70 mb-6">
               Get started by creating your first grant application
             </p>
-            <Button variant="primary" onclick={() => router.visit('/grant_applications/new', {
-              onSuccess: () => {
-                // Refresh the page after navigation
-                window.location.reload();
-              }
-            })}>
+            <Button variant="primary" onclick={() => router.visit('/grant_applications/new')}>
               Create Your First Application
             </Button>
           </div>

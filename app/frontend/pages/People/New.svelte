@@ -18,20 +18,10 @@
   
   function goBack() {
     if (user) {
-      router.visit('/people', {
-        onSuccess: () => {
-          // Refresh the page after navigation
-          window.location.reload();
-        }
-      });
+      router.visit('/people');
     } else {
       // For signup, go to login page
-      router.visit('/login', {
-        onSuccess: () => {
-          // Refresh the page after navigation
-          window.location.reload();
-        }
-      });
+      router.visit('/login');
     }
   }
   

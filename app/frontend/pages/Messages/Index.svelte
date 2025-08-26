@@ -187,12 +187,7 @@
                   <Button 
                     variant="secondary" 
                     size="sm"
-                    on:click={() => router.visit(`/messages/${message.id}`, {
-                      onSuccess: () => {
-                        // Refresh the page after navigation
-                        window.location.reload();
-                      }
-                    })}
+                    on:click={() => router.visit(`/messages/${message.id}`)}
                   >
                     View
                   </Button>

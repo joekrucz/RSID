@@ -17,12 +17,7 @@
   });
   
   function goBack() {
-    router.visit('/people', {
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
-    });
+    router.visit('/people');
   }
   
   function startEdit() {
