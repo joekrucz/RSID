@@ -59,7 +59,7 @@ Rails.application.routes.draw do
          
          # Admin Feature Flags
          namespace :admin do
-           resources :feature_flags do
+           resources :feature_flags, only: [:index, :new, :create, :edit, :update, :destroy] do
              member do
                patch :update_user_access
              end

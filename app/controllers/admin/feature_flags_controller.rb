@@ -1,6 +1,6 @@
 class Admin::FeatureFlagsController < ApplicationController
   before_action :require_admin
-  before_action :set_feature_flag, only: [:show, :edit, :update, :destroy]
+  before_action :set_feature_flag, only: [:edit, :update, :destroy]
   
   def index
     @feature_flags = FeatureFlag.all.order(:name)
