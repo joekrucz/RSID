@@ -12,34 +12,15 @@ class FileItemsController < ApplicationController
     sort_by = params[:sort_by] || 'created_at'
     sort_order = params[:sort_order] || 'desc'
     
-    # Start with user's files
-    files = @current_user.file_items
+    files = FileItem.filtered_and_sorted(@current_user, search: search, sort_by: sort_by, sort_order: sort_order)
     
-    # Apply search filter if provided
-    if search.present?
-      files = files.search_by_name(search)
-    end
-    
-    # Apply category filter
+    # Apply additional filters that aren't in the model method yet
     if category.present? && FileItem::CATEGORIES.include?(category)
       files = files.by_category(category)
     end
     
-    # Apply file type filter
     if file_type.present?
       files = files.by_file_type(file_type)
-    end
-    
-    # Apply sorting
-    case sort_by
-    when 'name'
-      files = files.order("name #{sort_order.upcase}")
-    when 'file_size'
-      files = files.order("file_size #{sort_order.upcase}")
-    when 'updated_at'
-      files = files.order("updated_at #{sort_order.upcase}")
-    else # default to created_at
-      files = files.order("created_at #{sort_order.upcase}")
     end
     
     render inertia: 'FileItems/Index', props: {

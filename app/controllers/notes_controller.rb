@@ -10,23 +10,7 @@ class NotesController < ApplicationController
     sort_by = params[:sort_by] || 'created_at'
     sort_order = params[:sort_order] || 'desc'
     
-    # Start with user's notes
-    notes = @current_user.notes
-    
-    # Apply search filter if provided
-    if search.present?
-      notes = notes.where("title LIKE ? OR content LIKE ?", "%#{search}%", "%#{search}%")
-    end
-    
-    # Apply sorting
-    case sort_by
-    when 'title'
-      notes = notes.order("title #{sort_order.upcase}")
-    when 'updated_at'
-      notes = notes.order("updated_at #{sort_order.upcase}")
-    else # default to created_at
-      notes = notes.order("created_at #{sort_order.upcase}")
-    end
+    notes = Note.filtered_and_sorted(@current_user, search: search, sort_by: sort_by, sort_order: sort_order)
     
     render inertia: 'Notes/Index', props: {
       user: user_props,

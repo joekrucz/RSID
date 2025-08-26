@@ -12,36 +12,7 @@ class TodosController < ApplicationController
     filter = params[:filter] || 'all'
     
     # Start with user's todos
-    todos = @current_user.todos
-    
-    # Apply search filter if provided
-    if search.present?
-      todos = todos.where("title LIKE ? OR description LIKE ?", "%#{search}%", "%#{search}%")
-    end
-    
-    # Apply status filter
-    case filter
-    when 'active'
-      todos = todos.where(completed: false)
-    when 'completed'
-      todos = todos.where(completed: true)
-    end
-    
-    # Apply sorting
-    case sort_by
-    when 'title'
-      todos = todos.order("title #{sort_order.upcase}")
-    when 'priority'
-      todos = todos.order("priority #{sort_order.upcase}")
-    when 'due_date'
-      todos = todos.order("due_date #{sort_order.upcase} NULLS LAST")
-    when 'completed'
-      todos = todos.order("completed #{sort_order.upcase}")
-    when 'updated_at'
-      todos = todos.order("updated_at #{sort_order.upcase}")
-    else # default to created_at
-      todos = todos.order("created_at #{sort_order.upcase}")
-    end
+    todos = Todo.filtered_and_sorted(@current_user, search: search, filter: filter, sort_by: sort_by, sort_order: sort_order)
     
     render inertia: 'Todos/Index', props: {
       user: user_props,

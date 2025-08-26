@@ -12,31 +12,7 @@ class PeopleController < ApplicationController
     sort_order = params[:sort_order] || 'asc'
     
     # Get accessible people based on user role
-    people = get_accessible_people
-    
-    # Apply search filter if provided
-    if search.present?
-      people = people.where("name ILIKE ? OR email ILIKE ?", "%#{search}%", "%#{search}%")
-    end
-    
-    # Apply role filter if provided
-    if role_filter.present?
-      people = people.where(role: role_filter)
-    end
-    
-    # Apply sorting
-    case sort_by
-    when 'name'
-      people = people.order("name #{sort_order.upcase}")
-    when 'email'
-      people = people.order("email #{sort_order.upcase}")
-    when 'role'
-      people = people.order("role #{sort_order.upcase}")
-    when 'created_at'
-      people = people.order("created_at #{sort_order.upcase}")
-    else
-      people = people.order("name #{sort_order.upcase}")
-    end
+    people = User.filtered_and_sorted(@current_user, search: search, role_filter: role_filter, sort_by: sort_by, sort_order: sort_order)
     
     render inertia: 'People/Index', props: {
       user: user_props,
@@ -164,15 +140,7 @@ class PeopleController < ApplicationController
     params.require(:person).permit(:name, :email, :password, :password_confirmation)
   end
 
-  def get_accessible_people
-    if @current_user.admin?
-      User.all
-    elsif @current_user.employee?
-      User.all # Employees can see all users
-    else
-      User.where(id: @current_user.id) # Clients can only see themselves
-    end
-  end
+
 
   def can_view_person?(person)
     @current_user.admin? || 

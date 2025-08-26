@@ -20,6 +20,29 @@ class RndProject < ApplicationRecord
   scope :by_client, ->(client_id) { where(client_id: client_id) }
   scope :active_projects, -> { where(status: [:active, :completed, :ready_for_claim]) }
   
+  # Search scope
+  scope :search_by_content, ->(query) {
+    where("title ILIKE ? OR description ILIKE ?", "%#{query}%", "%#{query}%")
+  }
+  
+  # Sort scope
+  scope :sorted_by, ->(field, direction = 'ASC') {
+    case field
+    when 'title'
+      order("title #{direction.upcase}")
+    when 'client'
+      joins(:client).order("users.name #{direction.upcase}")
+    when 'start_date'
+      order("start_date #{direction.upcase}")
+    when 'total_expenditure'
+      left_joins(:rnd_expenditures)
+        .group(:id)
+        .order("SUM(rnd_expenditures.amount) #{direction.upcase}")
+    else
+      order("created_at #{direction.upcase}")
+    end
+  }
+  
   # Helper methods
   def total_expenditure
     rnd_expenditures.sum(:amount)
@@ -40,6 +63,22 @@ class RndProject < ApplicationRecord
   
   def can_be_claimed?
     ready_for_claim? && total_expenditure > 0
+  end
+  
+  # Class method for complex filtering and sorting
+  def self.filtered_and_sorted(current_user, search: nil, status_filter: nil, client_filter: nil, sort_by: 'created_at', sort_order: 'DESC')
+    projects = if current_user.admin?
+                 all
+               elsif current_user.employee?
+                 all
+               else
+                 where(client: current_user) # Clients can only see their own projects
+               end
+    
+    projects = projects.search_by_content(search) if search.present?
+    projects = projects.by_status(status_filter) if status_filter.present?
+    projects = projects.by_client(client_filter) if client_filter.present?
+    projects.sorted_by(sort_by, sort_order)
   end
   
   private

@@ -23,6 +23,11 @@ class GrantApplication < ApplicationRecord
   scope :overdue, -> { where('deadline < ? AND status IN (?)', Time.current, [0, 1, 2]) }
   scope :by_status, ->(status) { where(status: status) }
   
+  # Search scope
+  scope :search_by_content, ->(query) {
+    where("title ILIKE ? OR description ILIKE ?", "%#{query}%", "%#{query}%")
+  }
+  
   # Helper methods
   def overdue?
     deadline < Time.current && ['draft', 'submitted', 'under_review'].include?(status)

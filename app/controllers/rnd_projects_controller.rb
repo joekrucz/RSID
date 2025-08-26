@@ -13,39 +13,7 @@ class RndProjectsController < ApplicationController
     sort_by = params[:sort_by] || 'created_at'
     sort_order = params[:sort_order] || 'desc'
     
-    # Get accessible projects based on user role
-    projects = get_accessible_projects
-    
-    # Apply search filter if provided
-    if search.present?
-      projects = projects.where("title ILIKE ? OR description ILIKE ?", "%#{search}%", "%#{search}%")
-    end
-    
-    # Apply status filter if provided
-    if status_filter.present?
-      projects = projects.where(status: status_filter)
-    end
-    
-    # Apply client filter if provided
-    if client_filter.present?
-      projects = projects.where(client_id: client_filter)
-    end
-    
-    # Apply sorting
-    case sort_by
-    when 'title'
-      projects = projects.order("title #{sort_order.upcase}")
-    when 'client'
-      projects = projects.joins(:client).order("users.name #{sort_order.upcase}")
-    when 'start_date'
-      projects = projects.order("start_date #{sort_order.upcase}")
-    when 'total_expenditure'
-      projects = projects.left_joins(:rnd_expenditures)
-                        .group(:id)
-                        .order("SUM(rnd_expenditures.amount) #{sort_order.upcase}")
-    else
-      projects = projects.order("created_at #{sort_order.upcase}")
-    end
+    projects = RndProject.filtered_and_sorted(@current_user, search: search, status_filter: status_filter, client_filter: client_filter, sort_by: sort_by, sort_order: sort_order)
     
     render inertia: 'RndProjects/Index', props: {
       user: user_props,
@@ -183,15 +151,7 @@ class RndProjectsController < ApplicationController
     params.require(:rnd_project).permit(*permitted_params)
   end
 
-  def get_accessible_projects
-    if @current_user.admin?
-      RndProject.all
-    elsif @current_user.employee?
-      RndProject.all # Employees can see all projects
-    else
-      RndProject.where(client: @current_user) # Clients can only see their own projects
-    end
-  end
+
 
   def can_view_project?(project)
     @current_user.admin? || 
@@ -207,12 +167,12 @@ class RndProjectsController < ApplicationController
 
   def get_available_clients
     if @current_user.admin?
-      User.where(role: 'client').order(:name)
+      User.clients.ordered_by_name
     elsif @current_user.employee?
-      User.where(role: 'client').order(:name)
+      User.clients.ordered_by_name
     else
       # Clients can only see themselves
-      User.where(id: @current_user.id).order(:name)
+      User.where(id: @current_user.id).ordered_by_name
     end
   end
 

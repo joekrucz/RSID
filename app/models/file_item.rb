@@ -13,6 +13,20 @@ class FileItem < ApplicationRecord
   scope :recent, -> { order(created_at: :desc) }
   scope :search_by_name, ->(query) { where("name LIKE ? OR description LIKE ?", "%#{query}%", "%#{query}%") }
   
+  # Sort scope
+  scope :sorted_by, ->(field, direction = 'ASC') {
+    case field
+    when 'name'
+      order("name #{direction.upcase}")
+    when 'file_size'
+      order("file_size #{direction.upcase}")
+    when 'updated_at'
+      order("updated_at #{direction.upcase}")
+    else
+      order("created_at #{direction.upcase}")
+    end
+  }
+  
   # File type categories
   FILE_TYPES = {
     'image' => %w[jpg jpeg png gif bmp svg webp],
@@ -53,6 +67,14 @@ class FileItem < ApplicationRecord
   
   def text?
     file_type_category == 'text'
+  end
+  
+  # Class method for complex filtering and sorting
+  def self.filtered_and_sorted(user, search: nil, sort_by: 'created_at', sort_order: 'DESC')
+    files = by_user(user)
+    
+    files = files.search_by_name(search) if search.present?
+    files.sorted_by(sort_by, sort_order)
   end
   
 

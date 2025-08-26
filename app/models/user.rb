@@ -36,6 +36,34 @@ class User < ApplicationRecord
   validates :password, length: { minimum: 6 }, if: -> { password.present? }
   validates :role, presence: true
   
+  # Scopes
+  scope :by_role, ->(role) { where(role: role) }
+  scope :clients, -> { where(role: 'client') }
+  scope :employees, -> { where(role: 'employee') }
+  scope :admins, -> { where(role: 'admin') }
+  scope :ordered_by_name, -> { order(:name) }
+  
+  # Search scope
+  scope :search_by_name_or_email, ->(query) {
+    where("name ILIKE ? OR email ILIKE ?", "%#{query}%", "%#{query}%")
+  }
+  
+  # Sort scope
+  scope :sorted_by, ->(field, direction = 'ASC') {
+    case field
+    when 'name'
+      order("name #{direction.upcase}")
+    when 'email'
+      order("email #{direction.upcase}")
+    when 'role'
+      order("role #{direction.upcase}")
+    when 'created_at'
+      order("created_at #{direction.upcase}")
+    else
+      order("name #{direction.upcase}")
+    end
+  }
+  
   # Role-based helper methods
   def employee?
     role == 'employee' || role == 'admin'
@@ -97,5 +125,20 @@ class User < ApplicationRecord
     else
       Message.none
     end
+  end
+  
+  # Class method for complex filtering and sorting
+  def self.filtered_and_sorted(current_user, search: nil, role_filter: nil, sort_by: 'name', sort_order: 'ASC')
+    people = if current_user.admin?
+               all
+             elsif current_user.employee?
+               all
+             else
+               where(id: current_user.id) # Clients can only see themselves
+             end
+    
+    people = people.search_by_name_or_email(search) if search.present?
+    people = people.by_role(role_filter) if role_filter.present?
+    people.sorted_by(sort_by, sort_order)
   end
 end
