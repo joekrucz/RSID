@@ -1,5 +1,5 @@
 class PeopleController < ApplicationController
-  before_action :require_login
+  before_action :require_login, except: [:new, :create]
   before_action :set_person, only: [:show, :update, :destroy, :update_role]
 
   def index
