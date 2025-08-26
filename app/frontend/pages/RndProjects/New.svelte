@@ -57,12 +57,7 @@
   }
   
   function goBack() {
-    router.visit('/rnd_projects', {
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
-    });
+    router.visit('/rnd_projects');
   }
   
   function formatCurrency(amount) {

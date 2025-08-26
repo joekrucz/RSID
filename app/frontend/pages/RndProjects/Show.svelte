@@ -18,12 +18,7 @@
   let loading = $state(false);
   
   function goBack() {
-    router.visit('/rnd_projects', {
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
-    });
+    router.visit('/rnd_projects');
   }
   
   function handleAddExpenditure() {
@@ -57,12 +52,7 @@
   }
   
   function navigateTo(path) {
-    router.visit(path, {
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
-    });
+    router.visit(path);
   }
   
   function getStatusBadgeClass(status) {

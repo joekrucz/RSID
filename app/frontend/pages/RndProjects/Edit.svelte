@@ -48,12 +48,7 @@
   }
   
   function goBack() {
-    router.visit(`/rnd_projects/${rnd_project.id}`, {
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
-    });
+    router.visit(`/rnd_projects/${rnd_project.id}`);
   }
   
   function formatCurrency(amount) {

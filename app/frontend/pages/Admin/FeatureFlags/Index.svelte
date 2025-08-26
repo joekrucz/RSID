@@ -33,11 +33,7 @@
   }
   
   function navigateTo(path) {
-    router.visit(path, {
-      onSuccess: () => {
-        window.location.reload();
-      }
-    });
+    router.visit(path);
   }
   
   function getStatusBadgeClass(enabled) {

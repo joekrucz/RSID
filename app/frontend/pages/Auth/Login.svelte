@@ -54,8 +54,6 @@
       preserveState: false,
       onSuccess: () => {
         loading = false;
-        // Refresh the page after successful login
-        window.location.reload();
       },
       onError: (errors) => {
         loading = false;

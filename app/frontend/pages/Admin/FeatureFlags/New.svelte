@@ -45,11 +45,7 @@
   }
   
   function goBack() {
-    router.visit('/admin/feature_flags', {
-      onSuccess: () => {
-        window.location.reload();
-      }
-    });
+    router.visit('/admin/feature_flags');
   }
 </script>
 
