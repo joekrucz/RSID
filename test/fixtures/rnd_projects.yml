@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  title: MyString
+  description: MyText
+  client: one
+  start_date: 2025-08-25
+  end_date: 2025-08-25
+  status: 1
+  qualifying_activities: MyText
+  technical_challenges: MyText
+
+two:
+  title: MyString
+  description: MyText
+  client: two
+  start_date: 2025-08-25
+  end_date: 2025-08-25
+  status: 1
+  qualifying_activities: MyText
+  technical_challenges: MyText

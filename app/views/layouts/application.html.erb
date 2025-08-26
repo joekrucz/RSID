@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Blank Codebase" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= vite_stylesheet_tag "application" %>
+    <%= vite_client_tag %>
+    <%= vite_javascript_tag "inertia" %>
+    <%= inertia_ssr_head %>
+    <%= vite_javascript_tag 'application' %>
+    <!--
+      If using a TypeScript entrypoint file:
+        vite_typescript_tag 'application'
+
+      If using a .jsx or .tsx entrypoint, add the extension:
+        vite_javascript_tag 'application.jsx'
+
+      Visit the guide for more information: https://vite-ruby.netlify.app/guide/rails
+    -->
+
+  </head>
+
+  <body>
+    <% if notice %>
+      <div id="flash-notice" class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-md shadow-lg">
+        <%= notice %>
+      </div>
+    <% end %>
+    
+    <% if alert %>
+      <div id="flash-alert" class="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-md shadow-lg">
+        <%= alert %>
+      </div>
+    <% end %>
+    
+            <%= yield %>
+        
+        <div id="toast-container"></div>
+        
+        <script>
+          // Apply theme on page load
+          (function() {
+            const savedTheme = localStorage.getItem('daisyui-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+          })();
+          
+          // Auto-hide flash messages after 5 seconds
+          setTimeout(() => {
+            const notices = document.querySelectorAll('#flash-notice, #flash-alert');
+            notices.forEach(notice => {
+              notice.style.transition = 'opacity 0.5s ease-out';
+              notice.style.opacity = '0';
+              setTimeout(() => notice.remove(), 500);
+            });
+          }, 5000);
+        </script>
+  </body>
+</html>
