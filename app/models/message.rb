@@ -19,9 +19,7 @@ class Message < ApplicationRecord
   scope :internal_only, -> { where(message_type: 'internal') }
   scope :client_visible, -> { where(message_type: 'client_communication') }
   
-  def created_at_formatted
-    created_at.strftime("%B %d, %Y at %I:%M %p")
-  end
+
   
   def is_internal?
     message_type == 'internal'

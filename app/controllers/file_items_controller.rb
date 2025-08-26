@@ -200,15 +200,15 @@ class FileItemsController < ApplicationController
       description: file.description,
       original_filename: file.original_filename,
       file_type: file.file_type_category,
-      file_size: file.file_size_formatted,
+      file_size: format_file_size(file.file_size),
       category: file.category,
       content_type: file.content_type,
       previewable: file.previewable?,
       image: file.image?,
       document: file.document?,
       text: file.text?,
-      created_at: file.created_at_formatted,
-      updated_at: file.updated_at_formatted
+      created_at: format_date(file.created_at),
+      updated_at: format_date(file.updated_at)
     }
   end
 end 

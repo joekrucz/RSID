@@ -81,7 +81,7 @@ class MessagesController < ApplicationController
       subject: message.subject,
       content: message.content,
       message_type: message.message_type,
-      created_at: message.created_at_formatted,
+      created_at: format_datetime(message.created_at),
       sender_name: message.sender.name,
       sender_id: message.sender.id,
       recipient_name: message.recipient.name,

@@ -113,8 +113,8 @@ class NotesController < ApplicationController
       id: note.id,
       title: note.title,
       content: note.content,
-      created_at: note.created_at_formatted,
-      updated_at: note.updated_at_formatted
+      created_at: format_date(note.created_at),
+      updated_at: format_date(note.updated_at)
     }
   end
 end 

@@ -144,8 +144,8 @@ class DashboardController < ApplicationController
       id: note.id,
       title: note.title,
       content: note.content.truncate(100),
-      created_at: note.created_at_formatted,
-      updated_at: note.updated_at_formatted
+      created_at: format_date(note.created_at),
+      updated_at: format_date(note.updated_at)
     }
   end
 
@@ -155,10 +155,10 @@ class DashboardController < ApplicationController
       title: todo.title,
       completed: todo.completed,
       priority: todo.priority,
-      due_date: todo.due_date_formatted,
+      due_date: format_due_date(todo.due_date),
       overdue: todo.overdue?,
       due_soon: todo.due_soon?,
-      created_at: todo.created_at_formatted
+      created_at: format_date(todo.created_at)
     }
   end
 
@@ -168,11 +168,11 @@ class DashboardController < ApplicationController
       name: file.name,
       original_filename: file.original_filename,
       file_type: file.file_type_category,
-      file_size: file.file_size_formatted,
+      file_size: format_file_size(file.file_size),
       category: file.category,
       previewable: file.previewable?,
       image: file.image?,
-      created_at: file.created_at_formatted
+      created_at: format_date(file.created_at)
     }
   end
 
@@ -183,7 +183,7 @@ class DashboardController < ApplicationController
       email: client.email,
       company: client.company,
       sector: client.sector,
-      created_at: client.created_at_formatted
+      created_at: format_date(client.created_at)
     }
   end
   
@@ -192,11 +192,11 @@ class DashboardController < ApplicationController
       id: application.id,
       title: application.title,
       status: application.status,
-      status_color: application.status_color,
-      deadline: application.deadline&.strftime("%B %d, %Y"),
+      status_color: grant_application_status_color(application.status),
+      deadline: format_date(application.deadline),
       days_until_deadline: application.days_until_deadline,
       overdue: application.overdue?,
-      created_at: application.created_at.strftime("%B %d, %Y")
+      created_at: format_date(application.created_at)
     }
   end
 
@@ -205,10 +205,10 @@ class DashboardController < ApplicationController
       id: project.id,
       title: project.title,
       status: project.status,
-      status_color: get_rnd_project_status_color(project.status),
+      status_color: rnd_project_status_color(project.status),
       total_expenditure: project.total_expenditure,
       client_name: project.client.name,
-      created_at: project.created_at.strftime("%B %d, %Y")
+      created_at: format_date(project.created_at)
     }
   end
 
@@ -222,20 +222,7 @@ class DashboardController < ApplicationController
     end
   end
 
-  def get_rnd_project_status_color(status)
-    case status
-    when 'draft'
-      'badge-neutral'
-    when 'active'
-      'badge-info'
-    when 'completed'
-      'badge-success'
-    when 'ready_for_claim'
-      'badge-warning'
-    else
-      'badge-neutral'
-    end
-  end
+
 
   def format_storage(bytes)
     return '0 B' if bytes.nil? || bytes == 0

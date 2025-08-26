@@ -125,7 +125,7 @@ class GrantApplicationsController < ApplicationController
       title: application.title,
       description: application.description,
       status: application.status,
-      status_color: application.status_color,
+      status_color: grant_application_status_color(application.status),
       deadline: application.deadline&.strftime("%B %d, %Y at %I:%M %p"),
       deadline_date: application.deadline&.strftime("%Y-%m-%d"),
       deadline_time: application.deadline&.strftime("%H:%M"),
@@ -144,7 +144,7 @@ class GrantApplicationsController < ApplicationController
       id: document.id,
       name: document.name,
       file_type: document.file_type,
-      file_size: document.file_size_formatted,
+      file_size: format_file_size(document.file_size),
       icon_class: document.icon_class,
       created_at: document.created_at.strftime("%B %d, %Y")
     }

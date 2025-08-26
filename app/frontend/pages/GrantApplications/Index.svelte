@@ -56,33 +56,7 @@
     }
   }
   
-  function getStatusBadgeClass(status) {
-    switch (status) {
-      case 'draft':
-        return 'badge-neutral';
-      case 'submitted':
-        return 'badge-info';
-      case 'under_review':
-        return 'badge-warning';
-      case 'approved':
-        return 'badge-success';
-      case 'rejected':
-        return 'badge-error';
-      case 'completed':
-        return 'badge-success';
-      default:
-        return 'badge-neutral';
-    }
-  }
-  
-  function getStatusDisplayName(status) {
-    return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-  }
-  
-  function formatDeadline(deadline) {
-    if (!deadline) return 'No deadline set';
-    return deadline;
-  }
+
   
   function navigateTo(path) {
     router.visit(path);
@@ -243,7 +217,7 @@
                   </td>
                   <td>
                     <div class="badge {application.status_color}">
-                      {getStatusDisplayName(application.status)}
+                      {application.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     </div>
                     {#if application.overdue}
                       <div class="badge badge-error badge-sm mt-1">Overdue</div>
@@ -251,7 +225,7 @@
                   </td>
                   <td>
                     <div class="text-sm">
-                      {formatDeadline(application.deadline)}
+                      {application.deadline || 'No deadline set'}
                     </div>
                     {#if application.days_until_deadline !== null}
                       <div class="text-xs opacity-50">
@@ -273,43 +247,51 @@
                     <div class="text-sm">{application.created_at}</div>
                   </td>
                   <td>
-                    <div class="dropdown dropdown-end">
-                      <div tabindex="0" role="button" class="btn btn-sm btn-ghost">
-                        Actions
+                    <div class="flex items-center space-x-2">
+                      <button 
+                        onclick={() => navigateTo(`/grant_applications/${application.id}`)}
+                        class="btn btn-sm btn-ghost"
+                        title="View Details"
+                      >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                         </svg>
-                      </div>
-                      <ul class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-                        <li>
-                          <button onclick={() => navigateTo(`/grant_applications/${application.id}`)} class="w-full text-left">View Details</button>
-                        </li>
-                        {#if application.can_edit}
-                          <li>
-                            <button onclick={() => navigateTo(`/grant_applications/${application.id}/edit`)} class="w-full text-left">Edit</button>
-                          </li>
-                        {/if}
-                        {#if application.can_submit}
-                          <li>
-                            <button 
-                              onclick={() => handleSubmit(application.id)}
-                              class="w-full text-left"
-                            >
-                              Submit
-                            </button>
-                          </li>
-                        {/if}
-                        {#if application.can_edit}
-                          <li>
-                            <button 
-                              onclick={() => handleDelete(application.id)}
-                              class="w-full text-left text-error"
-                            >
-                              Delete
-                            </button>
-                          </li>
-                        {/if}
-                      </ul>
+                      </button>
+                      {#if application.can_edit}
+                        <button 
+                          onclick={() => navigateTo(`/grant_applications/${application.id}/edit`)}
+                          class="btn btn-sm btn-ghost"
+                          title="Edit Application"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                          </svg>
+                        </button>
+                      {/if}
+                      {#if application.can_submit}
+                        <button 
+                          onclick={() => handleSubmit(application.id)}
+                          class="btn btn-sm btn-ghost"
+                          title="Submit Application"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                          </svg>
+                        </button>
+                      {/if}
+                      {#if application.can_edit}
+                        <button 
+                          onclick={() => handleDelete(application.id)}
+                          class="btn btn-sm btn-ghost text-error"
+                          title="Delete Application"
+                        >
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                        </button>
+                      {/if}
                     </div>
                   </td>
                 </tr>

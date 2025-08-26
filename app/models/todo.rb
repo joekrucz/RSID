@@ -23,13 +23,7 @@ class Todo < ApplicationRecord
     due_date && due_date <= 7.days.from_now && due_date >= Date.current && !completed
   end
   
-  def created_at_formatted
-    created_at.strftime("%B %d, %Y")
-  end
-  
-  def due_date_formatted
-    due_date&.strftime("%B %d, %Y")
-  end
+
   
   private
   

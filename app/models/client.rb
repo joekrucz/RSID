@@ -17,13 +17,7 @@ class Client < ApplicationRecord
   scope :assigned_to_employee, ->(employee) { where(employee: employee) }
   scope :unassigned, -> { where(employee: nil) }
   
-  def created_at_formatted
-    created_at.strftime("%B %d, %Y")
-  end
-  
-  def updated_at_formatted
-    updated_at.strftime("%B %d, %Y")
-  end
+
   
   def assigned?
     employee.present?

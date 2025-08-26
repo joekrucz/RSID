@@ -158,8 +158,8 @@ class TodosController < ApplicationController
       completed: todo.completed,
       priority: todo.priority,
       due_date: todo.due_date&.strftime("%Y-%m-%d"),
-      created_at: todo.created_at_formatted,
-      due_date_formatted: todo.due_date_formatted,
+      created_at: format_date(todo.created_at),
+      due_date_formatted: format_due_date(todo.due_date),
       overdue: todo.overdue?,
       due_soon: todo.due_soon?
     }

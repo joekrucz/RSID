@@ -8,11 +8,5 @@ class Note < ApplicationRecord
   scope :recent, -> { order(created_at: :desc) }
   scope :by_user, ->(user) { where(user: user) }
   
-  def created_at_formatted
-    created_at.strftime("%B %d, %Y")
-  end
-  
-  def updated_at_formatted
-    updated_at.strftime("%B %d, %Y")
-  end
+
 end

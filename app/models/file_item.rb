@@ -55,28 +55,7 @@ class FileItem < ApplicationRecord
     file_type_category == 'text'
   end
   
-  def file_size_formatted
-    return 'Unknown' unless file_size
-    
-    units = %w[B KB MB GB TB]
-    size = file_size.to_f
-    unit_index = 0
-    
-    while size >= 1024 && unit_index < units.length - 1
-      size /= 1024
-      unit_index += 1
-    end
-    
-    "#{size.round(1)} #{units[unit_index]}"
-  end
-  
-  def created_at_formatted
-    created_at.strftime("%B %d, %Y")
-  end
-  
-  def updated_at_formatted
-    updated_at.strftime("%B %d, %Y")
-  end
+
   
   def safe_filename
     # Generate a safe filename for storage

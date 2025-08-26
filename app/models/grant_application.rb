@@ -33,24 +33,7 @@ class GrantApplication < ApplicationRecord
     (deadline.to_date - Date.current).to_i
   end
   
-  def status_color
-    case status
-    when 'draft'
-      'badge-neutral'
-    when 'submitted'
-      'badge-info'
-    when 'under_review'
-      'badge-warning'
-    when 'approved'
-      'badge-success'
-    when 'rejected'
-      'badge-error'
-    when 'completed'
-      'badge-success'
-    else
-      'badge-neutral'
-    end
-  end
+
   
   def can_edit?
     ['draft'].include?(status)
