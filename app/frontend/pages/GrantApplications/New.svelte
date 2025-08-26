@@ -88,12 +88,7 @@
   }
   
   function goBack() {
-    router.visit('/grant_applications', {
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
-    });
+    router.visit('/grant_applications');
   }
 </script>
 

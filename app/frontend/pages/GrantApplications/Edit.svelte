@@ -42,12 +42,7 @@
   }
   
   function goBack() {
-    router.visit(`/grant_applications/${grant_application.id}`, {
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
-    });
+    router.visit(`/grant_applications/${grant_application.id}`);
   }
 </script>
 

@@ -56,12 +56,7 @@
   }
   
   function goBack() {
-    router.visit('/grant_applications', {
-      onSuccess: () => {
-        // Refresh the page after navigation
-        window.location.reload();
-      }
-    });
+    router.visit('/grant_applications');
   }
   
   function getStatusDisplayName(status) {
@@ -90,12 +85,7 @@
           
           <div class="flex space-x-2">
             {#if grant_application.can_edit}
-              <Button variant="secondary" onclick={() => router.visit(`/grant_applications/${grant_application.id}/edit`, {
-                onSuccess: () => {
-                  // Refresh the page after navigation
-                  window.location.reload();
-                }
-              })}>
+              <Button variant="secondary" onclick={() => router.visit(`/grant_applications/${grant_application.id}/edit`)}>
                 Edit
               </Button>
             {/if}
