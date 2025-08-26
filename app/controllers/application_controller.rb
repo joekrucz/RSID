@@ -1,4 +1,6 @@
 class ApplicationController < ActionController::Base
+  require_relative '../services/feature_flag_service'
+  
   before_action :set_current_user
   before_action :check_feature_access
   
