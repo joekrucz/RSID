@@ -56,6 +56,15 @@ Rails.application.routes.draw do
              patch :change_status
            end
          end
+         
+         # Admin Feature Flags
+         namespace :admin do
+           resources :feature_flags do
+             member do
+               patch :update_user_access
+             end
+           end
+         end
   
   # Pages
   get 'home', to: 'pages#home'

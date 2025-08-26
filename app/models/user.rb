@@ -22,6 +22,10 @@ class User < ApplicationRecord
          
          # R&D Project associations
          has_many :rnd_projects, dependent: :destroy
+         
+         # Feature flag associations
+         has_many :user_feature_accesses, dependent: :destroy
+         has_many :feature_flags, through: :user_feature_accesses
   
   # Role enum with explicit type
   attribute :role, :integer, default: 0
@@ -55,6 +59,18 @@ class User < ApplicationRecord
   
   def can_view_internal_notes?
     employee?
+  end
+  
+  # Feature flag methods
+  def feature_enabled?(feature_name)
+    feature_flag = FeatureFlag.find_by(name: feature_name)
+    return false unless feature_flag
+    
+    feature_flag.enabled_for_user?(self)
+  end
+  
+  def available_features
+    FeatureFlag.enabled.select { |flag| feature_enabled?(flag.name) }
   end
   
   # Get accessible clients based on role

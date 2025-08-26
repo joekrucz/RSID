@@ -1,5 +1,6 @@
 class ApplicationController < ActionController::Base
   before_action :set_current_user
+  before_action :check_feature_access
   
   private
   
@@ -48,6 +49,27 @@ class ApplicationController < ActionController::Base
     false
   end
   
+  # Feature flag methods
+  def check_feature_access
+    return unless @current_user
+    
+    # Store available features in session for quick access
+    session[:available_features] = @current_user.available_features.map(&:name)
+  end
+  
+  def require_feature(feature_name)
+    unless FeatureFlagService.enabled?(feature_name, @current_user)
+      redirect_to dashboard_path, 
+        alert: "This feature is not available for your account."
+    end
+  end
+  
+  def feature_enabled?(feature_name)
+    FeatureFlagService.enabled?(feature_name, @current_user)
+  end
+  
+  helper_method :feature_enabled?
+  
   def user_props
     return nil unless @current_user
     
@@ -61,7 +83,8 @@ class ApplicationController < ActionController::Base
       isClient: @current_user.client?,
       canManageClients: @current_user.can_manage_clients?,
       canAccessGrantPipeline: @current_user.can_access_grant_pipeline?,
-      canViewInternalNotes: @current_user.can_view_internal_notes?
+      canViewInternalNotes: @current_user.can_view_internal_notes?,
+      availableFeatures: @current_user.available_features.map(&:name)
     }
   end
 end

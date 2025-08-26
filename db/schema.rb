@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_25_120820) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_26_161759) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -26,6 +26,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_25_120820) do
     t.integer "employee_id"
     t.index ["employee_id"], name: "index_clients_on_employee_id"
     t.index ["user_id"], name: "index_clients_on_user_id"
+  end
+
+  create_table "feature_flags", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.boolean "enabled", default: false
+    t.json "settings", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_feature_flags_on_name", unique: true
   end
 
   create_table "file_items", force: :cascade do |t|
@@ -129,6 +139,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_25_120820) do
     t.index ["user_id"], name: "index_todos_on_user_id"
   end
 
+  create_table "user_feature_accesses", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.integer "feature_flag_id", null: false
+    t.boolean "enabled", default: false
+    t.json "settings", default: {}
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["feature_flag_id"], name: "index_user_feature_accesses_on_feature_flag_id"
+    t.index ["user_id", "feature_flag_id"], name: "index_user_feature_accesses_on_user_id_and_feature_flag_id", unique: true
+    t.index ["user_id"], name: "index_user_feature_accesses_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.string "password_digest"
@@ -151,4 +173,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_25_120820) do
   add_foreign_key "rnd_expenditures", "rnd_projects"
   add_foreign_key "rnd_projects", "users", column: "client_id"
   add_foreign_key "todos", "users"
+  add_foreign_key "user_feature_accesses", "feature_flags"
+  add_foreign_key "user_feature_accesses", "users"
 end

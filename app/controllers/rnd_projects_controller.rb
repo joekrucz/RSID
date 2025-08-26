@@ -1,7 +1,7 @@
 class RndProjectsController < ApplicationController
   before_action :require_login
+  before_action :require_feature, 'rnd_projects'
   before_action :set_rnd_project, only: [:show, :edit, :update, :destroy]
-  before_action :require_employee, only: []  # Remove employee requirement for CRUD operations
 
   def index
     Rails.logger.info "R&D Projects accessed by user: #{@current_user.name} (Role: #{@current_user.role})"

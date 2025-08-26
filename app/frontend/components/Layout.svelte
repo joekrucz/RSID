@@ -1,8 +1,16 @@
 <script>
+  import { onMount } from 'svelte';
   import Navbar from './Navbar.svelte';
   import Toast from './Toast.svelte';
+  import { setAvailableFeatures } from '../stores/features.js';
   
   let { user, currentPage = 'dashboard', children } = $props();
+  
+  onMount(() => {
+    if (user?.availableFeatures) {
+      setAvailableFeatures(user.availableFeatures);
+    }
+  });
 </script>
 
 <div class="min-h-screen bg-base-200">
