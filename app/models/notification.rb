@@ -2,7 +2,7 @@ class Notification < ApplicationRecord
   belongs_to :user
   belongs_to :notifiable, polymorphic: true, optional: true
   
-  enum notification_type: {
+  enum :notification_type, {
     project_created: 0,
     project_updated: 1,
     message_received: 2,
