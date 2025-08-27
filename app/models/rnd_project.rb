@@ -91,12 +91,20 @@ class RndProject < ApplicationRecord
                    where(client: current_user)
                  end
     
-    base_query.where(
-      "title ILIKE ? OR description ILIKE ? OR qualifying_activities ILIKE ? OR technical_challenges ILIKE ?",
+    # Start with a joins to ensure structural compatibility
+    projects_with_joins = base_query.joins(:client)
+    
+    # Search in project fields
+    content_matches = projects_with_joins.where(
+      "rnd_projects.title ILIKE ? OR rnd_projects.description ILIKE ? OR rnd_projects.qualifying_activities ILIKE ? OR rnd_projects.technical_challenges ILIKE ?",
       "%#{query}%", "%#{query}%", "%#{query}%", "%#{query}%"
-    ).or(
-      base_query.joins(:client).where("users.name ILIKE ?", "%#{query}%")
     )
+    
+    # Search in client name
+    client_matches = projects_with_joins.where("users.name ILIKE ?", "%#{query}%")
+    
+    # Combine the results
+    content_matches.or(client_matches)
   end
   
   private
