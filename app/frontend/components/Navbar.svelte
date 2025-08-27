@@ -53,6 +53,7 @@
               {#if user.isAdmin}
                 <li><button onclick={() => navigateTo('/people')} class:active={isActive('people')}>People</button></li>
                 <li><button onclick={() => navigateTo('/admin/feature_flags')} class:active={isActive('feature_flags')}>Feature Flags</button></li>
+                <li><button onclick={() => navigateTo('/inspector')} class:active={isActive('inspector')}>🔍 App Inspector</button></li>
               {/if}
               
               <li><button onclick={() => navigateTo('/settings')} class:active={isActive('settings')}>Settings</button></li>

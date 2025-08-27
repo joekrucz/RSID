@@ -1,21 +1,31 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  user: one
-  name: MyString
-  description: MyText
-  file_type: MyString
-  file_size: 1
-  category: MyString
-  original_filename: MyString
-  content_type: MyString
+  user: admin_user
+  name: "Test File One"
+  description: "This is a test file description"
+  file_type: "document"
+  file_size: 1024
+  category: "work"
+  original_filename: "test_document.pdf"
+  content_type: "application/pdf"
 
 two:
-  user: two
-  name: MyString
-  description: MyText
-  file_type: MyString
-  file_size: 1
-  category: MyString
-  original_filename: MyString
-  content_type: MyString
+  user: admin_user
+  name: "Test File Two"
+  description: "This is another test file description"
+  file_type: "image"
+  file_size: 2048
+  category: "personal"
+  original_filename: "test_image.jpg"
+  content_type: "image/jpeg"
+
+client_file:
+  user: client_user
+  name: "Client File"
+  description: "This is a file uploaded by a client"
+  file_type: "document"
+  file_size: 512
+  category: "work"
+  original_filename: "client_document.docx"
+  content_type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"

@@ -1,17 +1,25 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  client: one
-  sender: one
-  recipient: one
-  subject: MyString
-  content: MyText
+  client: client_user
+  sender: admin_user
+  recipient: client_user
+  subject: "Test Message One"
+  content: "This is a test message content"
   message_type: 1
 
 two:
-  client: two
-  sender: two
-  recipient: two
-  subject: MyString
-  content: MyText
+  client: client_user
+  sender: client_user
+  recipient: admin_user
+  subject: "Test Message Two"
+  content: "This is another test message content"
   message_type: 1
+
+internal_message:
+  client: client_user
+  sender: admin_user
+  recipient: employee_user
+  subject: "Internal Message"
+  content: "This is an internal message between employees"
+  message_type: 0

@@ -1,15 +1,22 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  title: MyString
-  description: MyText
+  title: "Test Grant Application One"
+  description: "This is a test grant application description"
   status: 1
-  deadline: 2025-08-22 09:40:44
-  user: one
+  deadline: <%= 1.month.from_now %>
+  user: admin_user
 
 two:
-  title: MyString
-  description: MyText
-  status: 1
-  deadline: 2025-08-22 09:40:44
-  user: two
+  title: "Test Grant Application Two"
+  description: "This is another test grant application description"
+  status: 0
+  deadline: <%= 2.months.from_now %>
+  user: admin_user
+
+client_application:
+  title: "Client Grant Application"
+  description: "This is a grant application created by a client"
+  status: 2
+  deadline: <%= 3.months.from_now %>
+  user: client_user

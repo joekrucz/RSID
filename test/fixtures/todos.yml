@@ -1,17 +1,42 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  user: one
-  title: MyString
-  description: MyText
+  user: admin_user
+  title: "Test Todo One"
+  description: "This is a test todo description"
   completed: false
-  priority: MyString
-  due_date: 2025-08-21
+  priority: "medium"
+  due_date: <%= 1.week.from_now %>
 
 two:
-  user: two
-  title: MyString
-  description: MyText
+  user: admin_user
+  title: "Test Todo Two"
+  description: "This is another test todo description"
+  completed: true
+  priority: "high"
+  due_date: <%= 1.day.ago %>
+
+overdue_todo:
+  user: admin_user
+  title: "Overdue Todo"
+  description: "This todo is overdue"
   completed: false
-  priority: MyString
-  due_date: 2025-08-21
+  priority: "high"
+  due_date: <%= 1.day.ago %>
+
+due_soon_todo:
+  user: admin_user
+  title: "Due Soon Todo"
+  description: "This todo is due soon"
+  completed: false
+  priority: "low"
+  due_date: <%= 3.days.from_now %>
+
+completed_today_todo:
+  user: admin_user
+  title: "Completed Today Todo"
+  description: "This todo was completed today"
+  completed: true
+  priority: "medium"
+  due_date: <%= 1.week.ago %>
+  updated_at: <%= Time.current %>

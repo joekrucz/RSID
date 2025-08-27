@@ -1,13 +1,22 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  name: MyString
-  file_path: MyString
-  file_type: MyString
+  name: "Test Document One"
+  file_path: "/uploads/test_document_one.pdf"
+  file_type: "pdf"
+  file_size: 1024
   grant_application: one
 
 two:
-  name: MyString
-  file_path: MyString
-  file_type: MyString
+  name: "Test Document Two"
+  file_path: "/uploads/test_document_two.docx"
+  file_type: "docx"
+  file_size: 2048
   grant_application: two
+
+client_document:
+  name: "Client Document"
+  file_path: "/uploads/client_document.pdf"
+  file_type: "pdf"
+  file_size: 512
+  grant_application: client_application

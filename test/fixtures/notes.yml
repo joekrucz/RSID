@@ -1,11 +1,16 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  user: one
-  title: MyString
-  content: MyText
+  user: admin_user
+  title: "Test Note One"
+  content: "This is a test note content for note one"
 
 two:
-  user: two
-  title: MyString
-  content: MyText
+  user: admin_user
+  title: "Test Note Two"
+  content: "This is a test note content for note two"
+
+client_note:
+  user: client_user
+  title: "Client Note"
+  content: "This is a note created by a client"

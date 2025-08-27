@@ -65,6 +65,9 @@ Rails.application.routes.draw do
              end
            end
          end
+         
+         # App Inspector (Admin only)
+         get 'inspector', to: 'inspector#index'
   
   # Pages
   get 'home', to: 'pages#home'

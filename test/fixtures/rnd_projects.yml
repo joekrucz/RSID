@@ -1,21 +1,41 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  title: MyString
-  description: MyText
-  client: one
-  start_date: 2025-08-25
-  end_date: 2025-08-25
-  status: 1
-  qualifying_activities: MyText
-  technical_challenges: MyText
+  title: "Test R&D Project One"
+  description: "This is a test R&D project description for project one"
+  client: client_user
+  start_date: <%= 1.month.ago.to_date %>
+  end_date: <%= 1.month.from_now.to_date %>
+  status: 0
+  qualifying_activities: "Research and development activities for project one"
+  technical_challenges: "Technical challenges description for project one"
 
 two:
-  title: MyString
-  description: MyText
-  client: two
-  start_date: 2025-08-25
-  end_date: 2025-08-25
+  title: "Test R&D Project Two"
+  description: "This is a test R&D project description for project two"
+  client: client_user
+  start_date: <%= 2.months.ago.to_date %>
+  end_date: <%= Date.current %>
   status: 1
-  qualifying_activities: MyText
-  technical_challenges: MyText
+  qualifying_activities: "Research and development activities for project two"
+  technical_challenges: "Technical challenges description for project two"
+
+completed_project:
+  title: "Completed R&D Project"
+  description: "This is a completed R&D project"
+  client: client_user
+  start_date: <%= 3.months.ago.to_date %>
+  end_date: <%= 1.month.ago.to_date %>
+  status: 2
+  qualifying_activities: "Research and development activities for completed project"
+  technical_challenges: "Technical challenges description for completed project"
+
+ready_for_claim_project:
+  title: "Ready for Claim R&D Project"
+  description: "This project is ready for claim"
+  client: client_user
+  start_date: <%= 4.months.ago.to_date %>
+  end_date: <%= 2.months.ago.to_date %>
+  status: 3
+  qualifying_activities: "Research and development activities for claim project"
+  technical_challenges: "Technical challenges description for claim project"
