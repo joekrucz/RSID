@@ -1,6 +1,8 @@
 class ApplicationController < ActionController::Base
   require_relative '../services/feature_flag_service'
   include ApplicationHelper
+  include AuthorizationConcern
+  include LoggingConcern
   
   before_action :set_current_user
   before_action :check_feature_access
@@ -10,9 +12,7 @@ class ApplicationController < ActionController::Base
   def set_current_user
     if session[:user_id]
       @current_user = User.find_by(id: session[:user_id])
-      Rails.logger.info "Current user = #{@current_user&.name}"
-    else
-      Rails.logger.info "Current user = "
+      log_user_action("session_start") if @current_user
     end
   end
   
@@ -22,13 +22,12 @@ class ApplicationController < ActionController::Base
   
   def require_login
     unless @current_user
-      Rails.logger.info "require_login called - no current user"
+      log_user_action("login_required_failed")
       redirect_to login_path, alert: "Please log in to access this page."
       return
     end
     
-    Rails.logger.info "require_login called - current_user: #{@current_user.name}"
-    Rails.logger.info "User authorized: #{@current_user.name}"
+    log_user_action("login_required_success")
   end
   
   def require_employee
@@ -74,20 +73,6 @@ class ApplicationController < ActionController::Base
   helper_method :feature_enabled?
   
   def user_props
-    return nil unless @current_user
-    
-    {
-      id: @current_user.id,
-      name: @current_user.name,
-      email: @current_user.email,
-      role: @current_user.role,
-      isEmployee: @current_user.employee?,
-      isAdmin: @current_user.admin?,
-      isClient: @current_user.client?,
-      canManageClients: @current_user.can_manage_clients?,
-      canAccessGrantPipeline: @current_user.can_access_grant_pipeline?,
-      canViewInternalNotes: @current_user.can_view_internal_notes?,
-      availableFeatures: @current_user.available_features.map(&:name)
-    }
+    PropsBuilderService.user_props(@current_user)
   end
 end

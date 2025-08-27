@@ -4,7 +4,7 @@ class RndProjectsController < ApplicationController
   before_action :set_rnd_project, only: [:show, :edit, :update, :destroy]
 
   def index
-    Rails.logger.info "R&D Projects accessed by user: #{@current_user.name} (Role: #{@current_user.role})"
+    log_user_action("accessed_rnd_projects")
     
     # Get search and filter parameters
     search = params[:search]&.strip
@@ -17,7 +17,7 @@ class RndProjectsController < ApplicationController
     
     render inertia: 'RndProjects/Index', props: {
       user: user_props,
-      rnd_projects: projects.map { |project| rnd_project_props(project) },
+      rnd_projects: projects.map { |project| PropsBuilderService.rnd_project_props(project) },
       search: search,
       status_filter: status_filter,
       client_filter: client_filter,
@@ -38,7 +38,7 @@ class RndProjectsController < ApplicationController
     
     render inertia: 'RndProjects/Show', props: {
       user: user_props,
-      rnd_project: rnd_project_props(@rnd_project),
+      rnd_project: PropsBuilderService.rnd_project_props(@rnd_project),
       expenditures: @rnd_project.rnd_expenditures.map { |exp| rnd_expenditure_props(exp) },
       can_edit: can_edit_project?(@rnd_project),
       can_add_expenditures: @current_user.employee?
@@ -53,9 +53,7 @@ class RndProjectsController < ApplicationController
   end
 
   def create
-    Rails.logger.info "Creating R&D project with params: #{rnd_project_params}"
-    Rails.logger.info "Current user role: #{@current_user.role}"
-    Rails.logger.info "Available clients: #{get_available_clients.count}"
+    log_user_action("creating_rnd_project", { params: rnd_project_params })
     
     @rnd_project = RndProject.new(rnd_project_params)
     @rnd_project.status = :draft
@@ -63,14 +61,20 @@ class RndProjectsController < ApplicationController
     # If current user is a client, automatically set them as the client
     if @current_user.client?
       @rnd_project.client_id = @current_user.id
-      Rails.logger.info "Setting client_id to current user: #{@current_user.id}"
     end
     
-    Rails.logger.info "R&D project client_id before save: #{@rnd_project.client_id}"
-    Rails.logger.info "R&D project valid? #{@rnd_project.valid?}"
-    Rails.logger.info "R&D project errors: #{@rnd_project.errors.full_messages}" unless @rnd_project.valid?
-    
     if @rnd_project.save
+      # Create notification for relevant users
+      if @current_user.employee?
+        Notification.create_for_user(
+          @rnd_project.client,
+          :project_created,
+          "New R&D Project Created",
+          "A new R&D project '#{@rnd_project.title}' has been created for you.",
+          @rnd_project
+        )
+      end
+      
       redirect_to rnd_projects_path, notice: "R&D Project '#{@rnd_project.title}' created successfully!"
     else
       render inertia: 'RndProjects/New', props: {
@@ -98,7 +102,7 @@ class RndProjectsController < ApplicationController
     
     render inertia: 'RndProjects/Edit', props: {
       user: user_props,
-      rnd_project: rnd_project_props(@rnd_project),
+      rnd_project: PropsBuilderService.rnd_project_props(@rnd_project),
       clients: get_available_clients
     }
   end
@@ -110,11 +114,22 @@ class RndProjectsController < ApplicationController
     end
     
     if @rnd_project.update(rnd_project_params)
+      # Create notification for project updates
+      if @current_user.employee?
+        Notification.create_for_user(
+          @rnd_project.client,
+          :project_updated,
+          "R&D Project Updated",
+          "Your R&D project '#{@rnd_project.title}' has been updated.",
+          @rnd_project
+        )
+      end
+      
       redirect_to rnd_projects_path, notice: "R&D Project '#{@rnd_project.title}' updated successfully!"
     else
       render inertia: 'RndProjects/Edit', props: {
         user: user_props,
-        rnd_project: rnd_project_props(@rnd_project),
+        rnd_project: PropsBuilderService.rnd_project_props(@rnd_project),
         clients: get_available_clients,
         errors: @rnd_project.errors.full_messages
       }
@@ -176,45 +191,7 @@ class RndProjectsController < ApplicationController
     end
   end
 
-  def rnd_project_props(project)
-    {
-      id: project.id,
-      title: project.title,
-      description: project.description,
-      client: {
-        id: project.client.id,
-        name: project.client.name,
-        email: project.client.email
-      },
-      start_date: project.start_date&.strftime("%Y-%m-%d"),
-      end_date: project.end_date&.strftime("%Y-%m-%d"),
-      status: project.status,
-      qualifying_activities: project.qualifying_activities,
-      technical_challenges: project.technical_challenges,
-      total_expenditure: project.total_expenditure,
-      expenditure_by_type: project.expenditure_by_type,
-      duration_days: project.duration_days,
-      is_active: project.is_active?,
-      can_be_claimed: project.can_be_claimed?,
-      created_at: project.created_at.strftime("%B %d, %Y"),
-      updated_at: project.updated_at.strftime("%B %d, %Y")
-    }
-  end
 
-  def rnd_expenditure_props(expenditure)
-    {
-      id: expenditure.id,
-      expenditure_type: expenditure.expenditure_type,
-      amount: expenditure.amount,
-      description: expenditure.description,
-      date: expenditure.date&.strftime("%Y-%m-%d"),
-      qualifying_amount: expenditure.qualifying_amount,
-      is_qualifying: expenditure.is_qualifying?,
-      formatted_amount: expenditure.formatted_amount,
-      formatted_qualifying_amount: expenditure.formatted_qualifying_amount,
-      created_at: expenditure.created_at.strftime("%B %d, %Y")
-    }
-  end
 
   def calculate_stats(projects)
     {

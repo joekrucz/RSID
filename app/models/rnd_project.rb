@@ -81,6 +81,24 @@ class RndProject < ApplicationRecord
     projects.sorted_by(sort_by, sort_order)
   end
   
+  # Global search method
+  def self.search_global(query, current_user)
+    base_query = if current_user.admin?
+                   all
+                 elsif current_user.employee?
+                   all
+                 else
+                   where(client: current_user)
+                 end
+    
+    base_query.where(
+      "title ILIKE ? OR description ILIKE ? OR qualifying_activities ILIKE ? OR technical_challenges ILIKE ?",
+      "%#{query}%", "%#{query}%", "%#{query}%", "%#{query}%"
+    ).or(
+      base_query.joins(:client).where("users.name ILIKE ?", "%#{query}%")
+    )
+  end
+  
   private
   
   def end_date_after_start_date

@@ -69,6 +69,19 @@ class Todo < ApplicationRecord
     todos.sorted_by(sort_by, sort_order)
   end
   
+  # Global search method
+  def self.search_global(query, current_user)
+    base_query = if current_user.admin?
+                   all
+                 elsif current_user.employee?
+                   all
+                 else
+                   where(user: current_user)
+                 end
+    
+    base_query.where("title LIKE ? OR description LIKE ?", "%#{query}%", "%#{query}%")
+  end
+  
 
   
   private

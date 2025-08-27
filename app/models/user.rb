@@ -26,6 +26,9 @@ class User < ApplicationRecord
          # Feature flag associations
          has_many :user_feature_accesses, dependent: :destroy
          has_many :feature_flags, through: :user_feature_accesses
+         
+         # Notification associations
+         has_many :notifications, dependent: :destroy
   
   # Role enum with explicit type
   attribute :role, :integer, default: 0
@@ -140,5 +143,18 @@ class User < ApplicationRecord
     people = people.search_by_name_or_email(search) if search.present?
     people = people.by_role(role_filter) if role_filter.present?
     people.sorted_by(sort_by, sort_order)
+  end
+  
+  # Global search method
+  def self.search_global(query, current_user)
+    base_query = if current_user.admin?
+                   all
+                 elsif current_user.employee?
+                   all
+                 else
+                   where(id: current_user.id)
+                 end
+    
+    base_query.search_by_name_or_email(query)
   end
 end

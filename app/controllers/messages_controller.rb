@@ -37,9 +37,18 @@ class MessagesController < ApplicationController
     @message.sender = @current_user
     
     if @message.save
+      # Create notification for recipient
+      Notification.create_for_user(
+        @message.recipient,
+        :message_received,
+        "New Message Received",
+        "You have received a new message: '#{@message.subject}'",
+        @message
+      )
+      
       render inertia: 'Messages/Index', props: {
         user: user_props,
-        messages: @current_user.accessible_messages.recent.limit(20).map { |message| message_props(message) },
+        messages: @current_user.accessible_messages.recent.limit(20).map { |message| PropsBuilderService.message_props(message) },
         success_message: "Message sent successfully!"
       }
     else

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_26_161759) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_27_173000) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -102,6 +102,23 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_26_161759) do
     t.index ["user_id"], name: "index_notes_on_user_id"
   end
 
+  create_table "notifications", force: :cascade do |t|
+    t.integer "user_id", null: false
+    t.string "title", null: false
+    t.text "message", null: false
+    t.integer "notification_type", default: 0, null: false
+    t.boolean "read", default: false, null: false
+    t.datetime "read_at"
+    t.string "notifiable_type"
+    t.integer "notifiable_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["notifiable_type", "notifiable_id"], name: "index_notifications_on_notifiable"
+    t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
+    t.index ["user_id", "read"], name: "index_notifications_on_user_id_and_read"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
+  end
+
   create_table "rnd_expenditures", force: :cascade do |t|
     t.integer "rnd_project_id", null: false
     t.integer "expenditure_type"
@@ -170,6 +187,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_26_161759) do
   add_foreign_key "messages", "users", column: "recipient_id"
   add_foreign_key "messages", "users", column: "sender_id"
   add_foreign_key "notes", "users"
+  add_foreign_key "notifications", "users"
   add_foreign_key "rnd_expenditures", "rnd_projects"
   add_foreign_key "rnd_projects", "users", column: "client_id"
   add_foreign_key "todos", "users"

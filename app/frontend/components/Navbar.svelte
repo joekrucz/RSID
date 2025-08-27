@@ -1,6 +1,7 @@
 <script>
   import { router } from '@inertiajs/svelte';
   import { toast } from '../stores/toast.js';
+  import NotificationBell from './NotificationBell.svelte';
   
   let { user, currentPage = 'dashboard' } = $props();
   
@@ -37,6 +38,7 @@
           <ul class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
             {#if user}
               <li><button onclick={() => navigateTo('/dashboard')} class:active={isActive('dashboard')}>Dashboard</button></li>
+              <li><button onclick={() => navigateTo('/search')} class:active={isActive('search')}>🔍 Search</button></li>
               <li><button onclick={() => navigateTo('/notes')} class:active={isActive('notes')}>Notes</button></li>
               <li><button onclick={() => navigateTo('/todos')} class:active={isActive('todos')}>Todo List</button></li>
               <li><button onclick={() => navigateTo('/file_items')} class:active={isActive('files')}>Files</button></li>
@@ -75,8 +77,11 @@
       </div>
 
       <!-- Right side -->
-      <div class="flex items-center">
+      <div class="flex items-center gap-2">
         {#if user}
+          <!-- Notification Bell -->
+          <NotificationBell {user} unreadCount={0} />
+          
           <div class="dropdown dropdown-end">
             <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
               <div class="avatar placeholder">

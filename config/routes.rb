@@ -68,6 +68,19 @@ Rails.application.routes.draw do
          
          # App Inspector (Admin only)
          get 'inspector', to: 'inspector#index'
+         
+         # Search
+         get 'search', to: 'search#index'
+         
+         # Notifications
+         resources :notifications, only: [:index] do
+           member do
+             patch :mark_as_read
+           end
+           collection do
+             patch :mark_all_as_read
+           end
+         end
   
   # Pages
   get 'home', to: 'pages#home'

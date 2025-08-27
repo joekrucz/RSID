@@ -28,4 +28,20 @@ class Message < ApplicationRecord
   def is_client_communication?
     message_type == 'client_communication'
   end
+  
+  # Global search method
+  def self.search_global(query, current_user)
+    base_query = if current_user.admin?
+                   all
+                 elsif current_user.employee?
+                   where(sender: current_user).or(where(recipient: current_user))
+                 elsif current_user.client?
+                   client_profile = current_user.client_profile
+                   client_profile ? for_client(client_profile) : none
+                 else
+                   none
+                 end
+    
+    base_query.where("subject LIKE ? OR content LIKE ?", "%#{query}%", "%#{query}%")
+  end
 end
