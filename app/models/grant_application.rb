@@ -25,7 +25,7 @@ class GrantApplication < ApplicationRecord
   
   # Search scope
   scope :search_by_content, ->(query) {
-    where("title ILIKE ? OR description ILIKE ?", "%#{query}%", "%#{query}%")
+    where("title LIKE ? OR description LIKE ?", "%#{query}%", "%#{query}%")
   }
   
   # Helper methods

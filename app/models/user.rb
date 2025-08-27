@@ -48,7 +48,7 @@ class User < ApplicationRecord
   
   # Search scope
   scope :search_by_name_or_email, ->(query) {
-    where("name ILIKE ? OR email ILIKE ?", "%#{query}%", "%#{query}%")
+    where("name LIKE ? OR email LIKE ?", "%#{query}%", "%#{query}%")
   }
   
   # Sort scope

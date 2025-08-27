@@ -22,7 +22,7 @@ class RndProject < ApplicationRecord
   
   # Search scope
   scope :search_by_content, ->(query) {
-    where("title ILIKE ? OR description ILIKE ?", "%#{query}%", "%#{query}%")
+    where("title LIKE ? OR description LIKE ?", "%#{query}%", "%#{query}%")
   }
   
   # Sort scope
@@ -96,12 +96,12 @@ class RndProject < ApplicationRecord
     
     # Search in project fields
     content_matches = projects_with_joins.where(
-      "rnd_projects.title ILIKE ? OR rnd_projects.description ILIKE ? OR rnd_projects.qualifying_activities ILIKE ? OR rnd_projects.technical_challenges ILIKE ?",
+      "rnd_projects.title LIKE ? OR rnd_projects.description LIKE ? OR rnd_projects.qualifying_activities LIKE ? OR rnd_projects.technical_challenges LIKE ?",
       "%#{query}%", "%#{query}%", "%#{query}%", "%#{query}%"
     )
     
     # Search in client name
-    client_matches = projects_with_joins.where("users.name ILIKE ?", "%#{query}%")
+    client_matches = projects_with_joins.where("users.name LIKE ?", "%#{query}%")
     
     # Combine the results
     content_matches.or(client_matches)
