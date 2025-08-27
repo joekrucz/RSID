@@ -105,6 +105,7 @@ class PropsBuilderService
   private
 
   def self.format_date(date)
+    return "N/A" if date.nil?
     date.strftime("%B %d, %Y")
   end
 

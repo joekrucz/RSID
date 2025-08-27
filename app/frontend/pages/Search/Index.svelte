@@ -15,6 +15,10 @@
   });
   
   function performSearch() {
+    console.log('Search button clicked!');
+    console.log('Search query:', searchQuery);
+    console.log('Search filters:', searchFilters);
+    
     const params = new URLSearchParams();
     if (searchQuery.trim()) {
       params.set('q', searchQuery.trim());
@@ -27,7 +31,10 @@
       }
     });
     
-    router.visit(`/search?${params.toString()}`);
+    const searchUrl = `/search?${params.toString()}`;
+    console.log('Navigating to:', searchUrl);
+    
+    router.visit(searchUrl);
   }
   
   function handleKeyPress(event) {
@@ -69,11 +76,11 @@
             class="input input-bordered w-full"
           />
         </div>
-        <Button on:click={performSearch} variant="primary">
+        <Button onclick={performSearch} variant="primary">
           Search
         </Button>
         {#if query}
-          <Button on:click={clearSearch} variant="secondary">
+          <Button onclick={clearSearch} variant="secondary">
             Clear
           </Button>
         {/if}
@@ -160,11 +167,11 @@
                       <span>Created: {project.created_at}</span>
                     </div>
                   </div>
-                  <Button 
-                    variant="secondary" 
-                    size="sm"
-                    on:click={() => router.visit(`/rnd_projects/${project.id}`)}
-                  >
+                                     <Button 
+                     variant="secondary" 
+                     size="sm"
+                     onclick={() => router.visit(`/rnd_projects/${project.id}`)}
+                   >
                     View
                   </Button>
                 </div>
@@ -189,11 +196,11 @@
                     <p class="text-sm text-gray-600 mt-1">{note.content}</p>
                     <div class="text-xs text-gray-500 mt-2">Created: {note.created_at}</div>
                   </div>
-                  <Button 
-                    variant="secondary" 
-                    size="sm"
-                    on:click={() => router.visit(`/notes/${note.id}`)}
-                  >
+                                     <Button 
+                     variant="secondary" 
+                     size="sm"
+                     onclick={() => router.visit(`/notes/${note.id}`)}
+                   >
                     View
                   </Button>
                 </div>
@@ -233,11 +240,11 @@
                       <span>Created: {todo.created_at}</span>
                     </div>
                   </div>
-                  <Button 
-                    variant="secondary" 
-                    size="sm"
-                    on:click={() => router.visit(`/todos/${todo.id}`)}
-                  >
+                                     <Button 
+                     variant="secondary" 
+                     size="sm"
+                     onclick={() => router.visit(`/todos/${todo.id}`)}
+                   >
                     View
                   </Button>
                 </div>
@@ -266,11 +273,11 @@
                       <span>Created: {message.created_at}</span>
                     </div>
                   </div>
-                  <Button 
-                    variant="secondary" 
-                    size="sm"
-                    on:click={() => router.visit(`/messages/${message.id}`)}
-                  >
+                                     <Button 
+                     variant="secondary" 
+                     size="sm"
+                     onclick={() => router.visit(`/messages/${message.id}`)}
+                   >
                     View
                   </Button>
                 </div>
@@ -297,11 +304,11 @@
                       <span>Role: {user_result.role}</span>
                     </div>
                   </div>
-                  <Button 
-                    variant="secondary" 
-                    size="sm"
-                    on:click={() => router.visit(`/people/${user_result.id}`)}
-                  >
+                                     <Button 
+                     variant="secondary" 
+                     size="sm"
+                     onclick={() => router.visit(`/people/${user_result.id}`)}
+                   >
                     View
                   </Button>
                 </div>
@@ -319,7 +326,7 @@
           <p class="text-gray-600 mb-4">
             Try adjusting your search terms or filters
           </p>
-          <Button on:click={clearSearch} variant="primary">
+          <Button onclick={clearSearch} variant="primary">
             Start New Search
           </Button>
         </div>
