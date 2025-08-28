@@ -2,7 +2,7 @@ class SearchController < ApplicationController
   before_action :require_login
 
   def index
-    query = params[:q]&.strip
+    query = SanitizationService.sanitize_search_query(params[:q])
     filters = params[:filters] || {}
     
     log_user_action("performed_search", { query: query, filters: filters })

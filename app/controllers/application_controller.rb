@@ -4,6 +4,9 @@ class ApplicationController < ActionController::Base
   include AuthorizationConcern
   include LoggingConcern
   
+  # Enable CSRF protection
+  protect_from_forgery with: :exception
+  
   before_action :set_current_user
   before_action :check_feature_access
   

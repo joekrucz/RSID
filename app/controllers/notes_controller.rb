@@ -39,6 +39,10 @@ class NotesController < ApplicationController
   def create
     @note = @current_user.notes.build(note_params)
     
+    # Sanitize content
+    @note.title = SanitizationService.sanitize_text_content(@note.title)
+    @note.content = SanitizationService.sanitize_text_content(@note.content)
+    
     if @note.save
       render inertia: 'Notes/Index', props: {
         user: user_props,
@@ -56,7 +60,12 @@ class NotesController < ApplicationController
   end
 
   def update
-    if @note.update(note_params)
+    # Sanitize content before update
+    sanitized_params = note_params.dup
+    sanitized_params[:title] = SanitizationService.sanitize_text_content(sanitized_params[:title])
+    sanitized_params[:content] = SanitizationService.sanitize_text_content(sanitized_params[:content])
+    
+    if @note.update(sanitized_params)
       render inertia: 'Notes/Index', props: {
         user: user_props,
         notes: @current_user.notes.recent.map { |note| note_props(note) },
