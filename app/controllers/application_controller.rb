@@ -3,6 +3,7 @@ class ApplicationController < ActionController::Base
   include ApplicationHelper
   include AuthorizationConcern
   include LoggingConcern
+  # include PerformanceMonitoringConcern  # Temporarily disabled for debugging
   
   # Enable CSRF protection
   protect_from_forgery with: :exception

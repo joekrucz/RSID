@@ -18,7 +18,11 @@ class SearchController < ApplicationController
       query: query,
       filters: filters,
       results: results,
-      total_results: results.values.sum(&:length)
+      pagination: {
+        page: page,
+        per_page: per_page,
+        total_results: results.values_at(:projects_total, :notes_total, :todos_total, :messages_total, :users_total).compact.sum
+      }
     }
   end
 
@@ -27,39 +31,58 @@ class SearchController < ApplicationController
   def perform_search(query, filters)
     results = {}
     
+    # Get pagination parameters
+    page = params[:page]&.to_i || 1
+    per_page = [params[:per_page]&.to_i || 10, Rails.application.config.x.max_search_results].min
+    
     # Search R&D Projects
     if should_search?('projects', filters)
-      results[:projects] = RndProject.search_global(query, @current_user)
-        .limit(10)
+      projects_query = RndProject.search_global(query, @current_user)
+      results[:projects] = projects_query
+        .offset((page - 1) * per_page)
+        .limit(per_page)
         .map { |project| PropsBuilderService.rnd_project_props(project) }
+      results[:projects_total] = projects_query.count
     end
     
     # Search Notes
     if should_search?('notes', filters)
-      results[:notes] = Note.search_global(query, @current_user)
-        .limit(10)
+      notes_query = Note.search_global(query, @current_user)
+      results[:notes] = notes_query
+        .offset((page - 1) * per_page)
+        .limit(per_page)
         .map { |note| PropsBuilderService.note_props(note) }
+      results[:notes_total] = notes_query.count
     end
     
     # Search Todos
     if should_search?('todos', filters)
-      results[:todos] = Todo.search_global(query, @current_user)
-        .limit(10)
+      todos_query = Todo.search_global(query, @current_user)
+      results[:todos] = todos_query
+        .offset((page - 1) * per_page)
+        .limit(per_page)
         .map { |todo| PropsBuilderService.todo_props(todo) }
+      results[:todos_total] = todos_query.count
     end
     
     # Search Messages
     if should_search?('messages', filters)
-      results[:messages] = Message.search_global(query, @current_user)
-        .limit(10)
+      messages_query = Message.search_global(query, @current_user)
+      results[:messages] = messages_query
+        .offset((page - 1) * per_page)
+        .limit(per_page)
         .map { |message| PropsBuilderService.message_props(message) }
+      results[:messages_total] = messages_query.count
     end
     
     # Search Users (admin/employee only)
     if should_search?('users', filters) && @current_user.employee?
-      results[:users] = User.search_global(query, @current_user)
-        .limit(10)
+      users_query = User.search_global(query, @current_user)
+      results[:users] = users_query
+        .offset((page - 1) * per_page)
+        .limit(per_page)
         .map { |user| PropsBuilderService.user_props(user) }
+      results[:users_total] = users_query.count
     end
     
     results

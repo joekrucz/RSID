@@ -1,15 +1,15 @@
 # Security headers configuration
-Rails.application.config.middleware.use(Rack::Deflater)
+# Rails.application.config.middleware.use(Rack::Deflater)  # Temporarily disabled for debugging
 
 # Add security headers
-Rails.application.config.middleware.insert_before 0, Rack::Cors do
-  allow do
-    origins '*'  # Configure this properly for production
-    resource '*',
-      headers: :any,
-      methods: [:get, :post, :put, :patch, :delete, :options, :head]
-  end
-end
+# Rails.application.config.middleware.insert_before 0, Rack::Cors do
+#   allow do
+#     origins '*'  # Configure this properly for production
+#     resource '*',
+#       headers: :any,
+#       methods: [:get, :post, :put, :patch, :delete, :options, :head]
+#   end
+# end
 
 # Custom security headers middleware
 class SecurityHeaders
@@ -36,4 +36,4 @@ class SecurityHeaders
   end
 end
 
-Rails.application.config.middleware.use SecurityHeaders
+# Rails.application.config.middleware.use SecurityHeaders  # Temporarily disabled for debugging

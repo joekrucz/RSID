@@ -23,5 +23,22 @@ module BlankCodebase
     #
     # config.time_zone = "Central Time (US & Canada)"
     # config.eager_load_paths << Rails.root.join("extras")
+    
+    # Application version
+    config.version = ENV.fetch('APP_VERSION', '1.0.0')
+    
+    # Environment-specific configuration
+    config.x.app_name = 'RSID App'
+    config.x.environment = Rails.env
+    
+    # Performance monitoring
+    config.x.enable_performance_monitoring = Rails.env.production?
+    
+    # Feature flags
+    config.x.feature_flags_enabled = true
+    
+    # Security settings
+    config.x.max_search_results = ENV.fetch('MAX_SEARCH_RESULTS', 100).to_i
+    config.x.session_timeout = ENV.fetch('SESSION_TIMEOUT', 24.hours).to_i
   end
 end

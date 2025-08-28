@@ -81,6 +81,13 @@ Rails.application.routes.draw do
              patch :mark_all_as_read
            end
          end
+         
+         # Health check endpoints
+         get 'health', to: 'health#index'
+         get 'health/database', to: 'health#database'
+         get 'health/cache', to: 'health#cache'
+         
+
   
   # Pages
   get 'home', to: 'pages#home'
