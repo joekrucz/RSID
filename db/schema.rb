@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_27_173000) do
+ActiveRecord::Schema[8.0].define(version: 2025_08_28_120001) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -24,6 +24,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_173000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "employee_id"
+    t.index ["created_at"], name: "index_clients_on_created_at"
     t.index ["employee_id"], name: "index_clients_on_employee_id"
     t.index ["user_id"], name: "index_clients_on_user_id"
   end
@@ -35,6 +36,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_173000) do
     t.json "settings", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["enabled"], name: "index_feature_flags_on_enabled"
     t.index ["name"], name: "index_feature_flags_on_name", unique: true
   end
 
@@ -51,6 +53,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_173000) do
     t.string "checksum"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["category"], name: "index_file_items_on_category"
+    t.index ["created_at"], name: "index_file_items_on_created_at"
+    t.index ["file_type"], name: "index_file_items_on_file_type"
+    t.index ["name"], name: "index_file_items_on_name"
     t.index ["user_id", "category"], name: "index_file_items_on_user_id_and_category"
     t.index ["user_id", "created_at"], name: "index_file_items_on_user_id_and_created_at"
     t.index ["user_id", "file_type"], name: "index_file_items_on_user_id_and_file_type"
@@ -66,6 +72,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_173000) do
     t.integer "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_grant_applications_on_created_at"
+    t.index ["deadline"], name: "index_grant_applications_on_deadline"
+    t.index ["status"], name: "index_grant_applications_on_status"
+    t.index ["title"], name: "index_grant_applications_on_title"
     t.index ["user_id"], name: "index_grant_applications_on_user_id"
   end
 
@@ -89,8 +99,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_173000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["client_id"], name: "index_messages_on_client_id"
+    t.index ["created_at"], name: "index_messages_on_created_at"
+    t.index ["message_type"], name: "index_messages_on_message_type"
     t.index ["recipient_id"], name: "index_messages_on_recipient_id"
     t.index ["sender_id"], name: "index_messages_on_sender_id"
+    t.index ["subject"], name: "index_messages_on_subject"
   end
 
   create_table "notes", force: :cascade do |t|
@@ -99,6 +112,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_173000) do
     t.text "content"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_notes_on_created_at"
+    t.index ["title"], name: "index_notes_on_title"
+    t.index ["updated_at"], name: "index_notes_on_updated_at"
     t.index ["user_id"], name: "index_notes_on_user_id"
   end
 
@@ -113,7 +129,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_173000) do
     t.integer "notifiable_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_notifications_on_created_at"
     t.index ["notifiable_type", "notifiable_id"], name: "index_notifications_on_notifiable"
+    t.index ["notification_type"], name: "index_notifications_on_notification_type"
+    t.index ["read"], name: "index_notifications_on_read"
     t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
     t.index ["user_id", "read"], name: "index_notifications_on_user_id_and_read"
     t.index ["user_id"], name: "index_notifications_on_user_id"
@@ -127,6 +146,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_173000) do
     t.date "date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["amount"], name: "index_rnd_expenditures_on_amount"
+    t.index ["date"], name: "index_rnd_expenditures_on_date"
+    t.index ["expenditure_type"], name: "index_rnd_expenditures_on_expenditure_type"
     t.index ["rnd_project_id"], name: "index_rnd_expenditures_on_rnd_project_id"
   end
 
@@ -142,6 +164,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_173000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["client_id"], name: "index_rnd_projects_on_client_id"
+    t.index ["created_at"], name: "index_rnd_projects_on_created_at"
+    t.index ["end_date"], name: "index_rnd_projects_on_end_date"
+    t.index ["start_date"], name: "index_rnd_projects_on_start_date"
+    t.index ["status"], name: "index_rnd_projects_on_status"
+    t.index ["title"], name: "index_rnd_projects_on_title"
   end
 
   create_table "todos", force: :cascade do |t|
@@ -153,6 +180,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_173000) do
     t.date "due_date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["completed"], name: "index_todos_on_completed"
+    t.index ["created_at"], name: "index_todos_on_created_at"
+    t.index ["due_date"], name: "index_todos_on_due_date"
+    t.index ["priority"], name: "index_todos_on_priority"
+    t.index ["title"], name: "index_todos_on_title"
     t.index ["user_id"], name: "index_todos_on_user_id"
   end
 
@@ -175,7 +207,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_173000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "role"
+    t.index ["created_at"], name: "index_users_on_created_at"
     t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["role"], name: "index_users_on_role"
   end
 
   add_foreign_key "clients", "users"
@@ -189,6 +223,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_27_173000) do
   add_foreign_key "notes", "users"
   add_foreign_key "notifications", "users"
   add_foreign_key "rnd_expenditures", "rnd_projects"
+  add_foreign_key "rnd_projects", "clients", on_delete: :cascade
   add_foreign_key "rnd_projects", "users", column: "client_id"
   add_foreign_key "todos", "users"
   add_foreign_key "user_feature_accesses", "feature_flags"
