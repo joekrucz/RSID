@@ -6,13 +6,6 @@ class GrantApplicationsController < ApplicationController
     @grant_applications = @current_user.grant_applications.includes(:grant_documents, :company)
                                      .order(created_at: :desc)
     
-    # Debug logging for production
-    Rails.logger.info "=== GRANT APPLICATIONS DEBUG ==="
-    Rails.logger.info "Current user ID: #{@current_user.id}"
-    Rails.logger.info "Current user email: #{@current_user.email}"
-    Rails.logger.info "Total grant applications for user: #{@grant_applications.count}"
-    Rails.logger.info "All grant applications in DB: #{GrantApplication.count}"
-    Rails.logger.info "Grant applications by user: #{GrantApplication.group(:user_id).count}"
     
     # Search functionality
     if params[:search].present?

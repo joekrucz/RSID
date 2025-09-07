@@ -64,10 +64,9 @@ unless User.exists?
   puts "Created demo admin user: admin@demo.com / password123"
 end
 
-# Demo data: sample grant applications for the admin user
-admin_user = User.find_by(email: 'admin@demo.com')
-if admin_user
-  user = admin_user
+# Demo data: sample grant applications for the first user
+if User.exists?(1)
+  user = User.find(1)
   samples = [
     { title: 'AI Research Grant', description: 'Funding to develop AI-driven insights for SMEs', days_from_now: 7 },
     { title: 'Green Energy Initiative', description: 'Solar microgrid feasibility study', days_from_now: 14 },
