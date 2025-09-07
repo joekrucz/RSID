@@ -1,28 +1,65 @@
 class RndClaimsController < ApplicationController
   before_action :require_login
   before_action :require_rnd_claims_feature
-  before_action :set_rnd_claim, only: [:show, :edit, :update, :destroy]
+  before_action :set_rnd_claim, only: [:show, :edit, :update, :destroy, :change_stage]
 
   def index
     log_user_action("accessed_rnd_claims")
     
-    # Get search and filter parameters
+    # Get search and pagination parameters
     search = params[:search]&.strip
-    sort_by = params[:sort_by] || 'created_at'
-    sort_order = params[:sort_order] || 'desc'
+    page = [params[:page].to_i, 1].max
+    per_page = [params[:per_page].to_i, 25].max
+    per_page = 25 if per_page == 0
     
-    claims = RndClaim.filtered_and_sorted(@current_user, search: search, sort_by: sort_by, sort_order: sort_order)
+    # Get all claims for pipeline data (not paginated)
+    all_claims = RndClaim.includes(:company, :rnd_claim_expenditures)
+                        .order(created_at: :desc)
+    
+    # Apply search to all claims
+    if search.present?
+      all_claims = all_claims.search_global(search, @current_user)
+    end
+    
+    # Calculate total count for pagination
+    total_count = all_claims.count
+    
+    # Get paginated claims for list view
+    paginated_claims = all_claims.limit(per_page).offset((page - 1) * per_page)
+    
+    # Group by stage for pipeline view
+    pipeline_data = {}
+    stages = ['upcoming', 'readying_for_delivery', 'in_progress', 'finalised', 'filed_awaiting_hmrc', 'claim_processed', 'client_invoiced', 'paid']
+    stages.each do |stage|
+      stage_claims = all_claims.where(stage: stage)
+      pipeline_data[stage] = {
+        claims: stage_claims.map { |claim| PropsBuilderService.rnd_claim_props(claim) },
+        count: stage_claims.count,
+        total_value: stage_claims.sum(&:total_expenditure)
+      }
+    end
     
     render inertia: 'RndClaims/Index', props: {
       user: user_props,
-      rnd_claims: claims.map { |claim| PropsBuilderService.rnd_claim_props(claim) },
-      search: search,
-      sort_by: sort_by,
-      sort_order: sort_order,
-      can_create_claims: @current_user.employee? || @current_user.admin?,
-      can_manage_claims: @current_user.employee? || @current_user.admin?,
-      stats: calculate_stats(claims),
-      companies: get_available_companies
+      rnd_claims: paginated_claims.map { |claim| PropsBuilderService.rnd_claim_props(claim) },
+      pipeline_data: pipeline_data,
+      filters: {
+        search: search,
+        per_page: per_page
+      },
+      pagination: {
+        current_page: page,
+        total_pages: (total_count.to_f / per_page).ceil,
+        per_page: per_page,
+        total_count: total_count,
+        has_next_page: (page * per_page) < total_count,
+        has_prev_page: page > 1
+      },
+      stats: {
+        total: all_claims.count,
+        total_expenditure: all_claims.sum(&:total_expenditure)
+      },
+      view_mode: params[:view] || 'list'
     }
   end
 
@@ -129,6 +166,28 @@ class RndClaimsController < ApplicationController
     end
   end
 
+  def change_stage
+    unless can_edit_claim?(@rnd_claim)
+      render json: { success: false, message: "Access denied." }, status: :forbidden
+      return
+    end
+    
+    new_stage = params[:stage]
+    
+    if @rnd_claim.update(stage: new_stage)
+      render json: { 
+        success: true, 
+        message: "Stage updated to #{new_stage.humanize} successfully!",
+        stage: new_stage
+      }
+    else
+      render json: { 
+        success: false, 
+        message: "Failed to update stage: #{@rnd_claim.errors.full_messages.join(', ')}" 
+      }, status: :unprocessable_entity
+    end
+  end
+
     private
   
   def require_rnd_claims_feature
@@ -140,7 +199,7 @@ class RndClaimsController < ApplicationController
   end
 
   def rnd_claim_params
-    permitted_params = [:title, :description, :start_date, :end_date, :qualifying_activities, :technical_challenges, :company_id]
+    permitted_params = [:title, :description, :start_date, :end_date, :qualifying_activities, :technical_challenges, :company_id, :stage]
     params.require(:rnd_claim).permit(*permitted_params)
   end
 

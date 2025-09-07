@@ -52,6 +52,9 @@ Rails.application.routes.draw do
          
         # R&D Claims (protected)
         resources :rnd_claims, only: [:index, :show, :new, :create, :edit, :update, :destroy] do
+          member do
+            patch :change_stage
+          end
           resources :rnd_claim_expenditures, only: [:create, :edit, :update, :destroy]
         end
          

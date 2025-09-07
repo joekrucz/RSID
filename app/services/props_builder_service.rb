@@ -22,6 +22,7 @@ class PropsBuilderService
       id: claim.id,
       title: claim.title,
       description: claim.description,
+      stage: claim.stage || 'upcoming',
       company: claim.company ? {
         id: claim.company.id,
         name: claim.company.name

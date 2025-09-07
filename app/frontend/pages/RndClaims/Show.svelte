@@ -8,6 +8,20 @@
   
   let { user, rnd_claim, expenditures, can_edit, can_add_expenditures } = $props();
   
+  const stages = [
+    'upcoming',
+    'readying_for_delivery',
+    'in_progress',
+    'finalised',
+    'filed_awaiting_hmrc',
+    'claim_processed',
+    'client_invoiced',
+    'paid'
+  ];
+  
+  let activeTab = $state('overview');
+  let currentStage = $state(rnd_claim.stage || 'upcoming');
+  let stageLoading = $state(false);
   let showAddExpenditure = $state(false);
   let newExpenditure = $state({
     expenditure_type: '',
@@ -16,6 +30,50 @@
     date: ''
   });
   let loading = $state(false);
+  const idxCurrent = $derived(stages.indexOf(currentStage));
+
+  const stageStyles = {
+    upcoming: { inactive: 'bg-secondary/20 text-secondary', active: 'bg-secondary text-secondary-content', complete: 'bg-secondary text-secondary-content', fillInactive: 'fill-secondary/20', fillActive: 'fill-secondary', fillComplete: 'fill-secondary' },
+    readying_for_delivery: { inactive: 'bg-warning/20 text-warning', active: 'bg-warning text-warning-content', complete: 'bg-warning text-warning-content', fillInactive: 'fill-warning/20', fillActive: 'fill-warning', fillComplete: 'fill-warning' },
+    in_progress: { inactive: 'bg-info/20 text-info', active: 'bg-info text-info-content', complete: 'bg-info text-info-content', fillInactive: 'fill-info/20', fillActive: 'fill-info', fillComplete: 'fill-info' },
+    finalised: { inactive: 'bg-primary/20 text-primary', active: 'bg-primary text-primary-content', complete: 'bg-primary text-primary-content', fillInactive: 'fill-primary/20', fillActive: 'fill-primary', fillComplete: 'fill-primary' },
+    filed_awaiting_hmrc: { inactive: 'bg-accent/20 text-accent', active: 'bg-accent text-accent-content', complete: 'bg-accent text-accent-content', fillInactive: 'fill-accent/20', fillActive: 'fill-accent', fillComplete: 'fill-accent' },
+    claim_processed: { inactive: 'bg-neutral/20 text-neutral', active: 'bg-neutral text-neutral-content', complete: 'bg-neutral text-neutral-content', fillInactive: 'fill-neutral/20', fillActive: 'fill-neutral', fillComplete: 'fill-neutral' },
+    client_invoiced: { inactive: 'bg-base-content/20 text-base-content', active: 'bg-base-content text-base-100', complete: 'bg-base-content text-base-100', fillInactive: 'fill-base-content/20', fillActive: 'fill-base-content', fillComplete: 'fill-base-content' },
+    paid: { inactive: 'bg-success/20 text-success', active: 'bg-success text-success-content', complete: 'bg-success text-success-content', fillInactive: 'fill-success/20', fillActive: 'fill-success', fillComplete: 'fill-success' }
+  };
+  
+  function handleStageChange(targetStage) {
+    if (targetStage === currentStage) return;
+    stageLoading = true;
+    
+    fetch(`/rnd_claims/${rnd_claim.id}/change_stage`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+      },
+      body: JSON.stringify({ stage: targetStage })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        currentStage = targetStage;
+        toast.success(data.message || 'Stage updated successfully!');
+        // Reload the page to get updated data
+        router.reload();
+      } else {
+        toast.error(data.message || 'Failed to update stage.');
+      }
+    })
+    .catch(error => {
+      console.error('Error updating stage:', error);
+      toast.error('Failed to update stage.');
+    })
+    .finally(() => {
+      stageLoading = false;
+    });
+  }
   
   function goBack() {
     router.visit('/rnd_claims');
@@ -116,58 +174,157 @@
       </div>
     </div>
     
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Project Details -->
-      <div class="lg:col-span-2 space-y-6">
-        <!-- Project Overview -->
-        <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6">
-          <h3 class="text-lg font-semibold text-base-content mb-4">Project Overview</h3>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 class="font-medium text-base-content mb-2">Description</h4>
-              <p class="text-base-content/70 whitespace-pre-wrap">{rnd_claim.description}</p>
-            </div>
+    <!-- Stages -->
+    {#key currentStage}
+    <div class="mt-2 w-full">
+      <ul class="flex items-stretch w-full gap-0">
+        {#each stages as s, i}
+          {@const isComplete = idxCurrent > i}
+          {@const isActive = idxCurrent === i}
+          {@const palette = stageStyles[s] || { inactive: 'bg-base-300 text-base-content', active: 'bg-base-content text-base-100', complete: 'bg-base-content text-base-100', fillInactive: 'fill-base-300', fillActive: 'fill-base-content', fillComplete: 'fill-base-content' }}
+          <li class="relative flex items-stretch flex-1 min-w-0">
+            <button
+              class={`h-6 px-2 rounded-l-md w-full ${isComplete ? palette.complete : isActive ? palette.active : palette.inactive}`}
+              disabled={stageLoading}
+              onclick={() => handleStageChange(s)}
+              title={s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+              aria-current={currentStage === s ? 'step' : undefined}
+            >
+              <span class="sr-only">{s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+            </button>
+            {#if i < stages.length - 1}
+              <svg class="h-6 w-2 -ml-px" viewBox="0 0 14 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <polygon points="0,0 14,16 0,32" class={isComplete ? palette.fillComplete : isActive ? palette.fillActive : palette.fillInactive} />
+              </svg>
+            {/if}
+          </li>
+        {/each}
+      </ul>
+      {#if stageLoading}
+        <span class="loading loading-spinner loading-xs align-middle ml-2"></span>
+      {/if}
+    </div>
+    {/key}
+    
+    <!-- Tabs -->
+    <div class="bg-base-100 rounded-lg shadow border border-base-300 mb-6">
+      <div class="tabs tabs-boxed p-2">
+        <button 
+          class="tab {activeTab === 'overview' ? 'tab-active' : ''}"
+          onclick={() => activeTab = 'overview'}
+        >
+          Overview
+        </button>
+        <button 
+          class="tab {activeTab === 'checklist' ? 'tab-active' : ''}"
+          onclick={() => activeTab = 'checklist'}
+        >
+          Checklist
+        </button>
+        <button 
+          class="tab {activeTab === 'projects' ? 'tab-active' : ''}"
+          onclick={() => activeTab = 'projects'}
+        >
+          Projects
+        </button>
+        <button 
+          class="tab {activeTab === 'narrative' ? 'tab-active' : ''}"
+          onclick={() => activeTab = 'narrative'}
+        >
+          Narrative
+        </button>
+        <button 
+          class="tab {activeTab === 'expenditure' ? 'tab-active' : ''}"
+          onclick={() => activeTab = 'expenditure'}
+        >
+          Expenditure
+        </button>
+      </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6">
+      {#if activeTab === 'overview'}
+        <div class="space-y-6">
+          <!-- Project Overview -->
+          <div>
+            <h3 class="text-lg font-semibold text-base-content mb-4">Project Overview</h3>
             
-            <div>
-              <h4 class="font-medium text-base-content mb-2">Timeline</h4>
-              <div class="space-y-2">
-                <div>
-                  <span class="text-sm text-base-content/50">Start Date:</span>
-                  <div class="font-medium">{rnd_claim.start_date}</div>
-                </div>
-                <div>
-                  <span class="text-sm text-base-content/50">End Date:</span>
-                  <div class="font-medium">{rnd_claim.end_date}</div>
-                </div>
-                <div>
-                  <span class="text-sm text-base-content/50">Duration:</span>
-                  <div class="font-medium">{rnd_claim.duration_days} days</div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 class="font-medium text-base-content mb-2">Description</h4>
+                <p class="text-base-content/70 whitespace-pre-wrap">{rnd_claim.description}</p>
+              </div>
+              
+              <div>
+                <h4 class="font-medium text-base-content mb-2">Timeline</h4>
+                <div class="space-y-2">
+                  <div>
+                    <span class="text-sm text-base-content/50">Start Date:</span>
+                    <div class="font-medium">{rnd_claim.start_date}</div>
+                  </div>
+                  <div>
+                    <span class="text-sm text-base-content/50">End Date:</span>
+                    <div class="font-medium">{rnd_claim.end_date}</div>
+                  </div>
+                  <div>
+                    <span class="text-sm text-base-content/50">Duration:</span>
+                    <div class="font-medium">{rnd_claim.duration_days} days</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        <!-- R&D Activities -->
-        <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6">
-          <h3 class="text-lg font-semibold text-base-content mb-4">R&D Activities & Challenges</h3>
           
-          <div class="space-y-6">
-            <div>
-              <h4 class="font-medium text-base-content mb-2">Qualifying R&D Activities</h4>
-              <p class="text-base-content/70 whitespace-pre-wrap">{rnd_claim.qualifying_activities}</p>
-            </div>
+          <!-- R&D Activities & Challenges -->
+          <div>
+            <h3 class="text-lg font-semibold text-base-content mb-4">R&D Activities & Challenges</h3>
             
-            <div>
-              <h4 class="font-medium text-base-content mb-2">Technical Challenges</h4>
-              <p class="text-base-content/70 whitespace-pre-wrap">{rnd_claim.technical_challenges}</p>
+            <div class="space-y-6">
+              <div>
+                <h4 class="font-medium text-base-content mb-2">Qualifying R&D Activities</h4>
+                <p class="text-base-content/70 whitespace-pre-wrap">{rnd_claim.qualifying_activities}</p>
+              </div>
+              
+              <div>
+                <h4 class="font-medium text-base-content mb-2">Technical Challenges</h4>
+                <p class="text-base-content/70 whitespace-pre-wrap">{rnd_claim.technical_challenges}</p>
+              </div>
             </div>
           </div>
         </div>
-        
-        <!-- Expenditures -->
-        <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6">
+      {:else if activeTab === 'checklist'}
+        <div class="text-center py-12">
+          <div class="text-base-content/50">
+            <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-base-content mb-2">Checklist</h3>
+            <p class="text-base-content/70">Checklist functionality coming soon.</p>
+          </div>
+        </div>
+      {:else if activeTab === 'projects'}
+        <div class="text-center py-12">
+          <div class="text-base-content/50">
+            <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-base-content mb-2">Projects</h3>
+            <p class="text-base-content/70">Projects functionality coming soon.</p>
+          </div>
+        </div>
+      {:else if activeTab === 'narrative'}
+        <div class="text-center py-12">
+          <div class="text-base-content/50">
+            <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-base-content mb-2">Narrative</h3>
+            <p class="text-base-content/70">Narrative functionality coming soon.</p>
+          </div>
+        </div>
+      {:else if activeTab === 'expenditure'}
+        <div>
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-lg font-semibold text-base-content">Expenditures</h3>
             {#if can_add_expenditures}
@@ -311,71 +468,6 @@
             </div>
           {/if}
         </div>
-      </div>
-      
-      <!-- Sidebar -->
-      <div class="space-y-6">
-        <!-- Project Stats -->
-        <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6">
-          <h3 class="text-lg font-semibold text-base-content mb-4">Project Statistics</h3>
-          
-          <div class="space-y-4">
-            <div class="stat bg-base-200 rounded-lg p-4">
-              <div class="stat-title">Total Expenditure</div>
-              <div class="stat-value text-primary">{formatCurrency(rnd_claim.total_expenditure)}</div>
-            </div>
-            
-            <div class="stat bg-base-200 rounded-lg p-4">
-              <div class="stat-title">Qualifying Amount</div>
-              <div class="stat-value text-success">{formatCurrency(calculateTotalQualifyingAmount())}</div>
-            </div>
-            
-            <div class="stat bg-base-200 rounded-lg p-4">
-              <div class="stat-title">Expenditure Count</div>
-              <div class="stat-value text-info">{expenditures.length}</div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Expenditure Breakdown -->
-        {#if expenditures && expenditures.length > 0}
-          <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6">
-            <h3 class="text-lg font-semibold text-base-content mb-4">Expenditure Breakdown</h3>
-            
-            <div class="space-y-3">
-              {#each Object.entries(calculateExpenditureByType()) as [type, amount]}
-                <div class="flex justify-between items-center">
-                  <span class="text-sm font-medium">{getExpenditureTypeDisplayName(type)}</span>
-                  <span class="text-sm font-bold">{formatCurrency(amount)}</span>
-                </div>
-              {/each}
-            </div>
-          </div>
-        {/if}
-        
-        <!-- Project Info -->
-        <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6">
-          <h3 class="text-lg font-semibold text-base-content mb-4">Project Information</h3>
-          
-          <div class="space-y-3">
-            <div>
-              <span class="text-sm text-base-content/50">Client</span>
-              <div class="font-medium">{rnd_claim.company?.name || 'No Company'}</div>
-              <div class="text-sm text-base-content/70">{rnd_claim.company?.name || 'No Company'}</div>
-            </div>
-            
-            <div>
-              <span class="text-sm text-base-content/50">Created</span>
-              <div class="font-medium">{rnd_claim.created_at}</div>
-            </div>
-            
-            <div>
-              <span class="text-sm text-base-content/50">Last Updated</span>
-              <div class="font-medium">{rnd_claim.updated_at}</div>
-            </div>
-          </div>
-        </div>
-        
-      </div>
+      {/if}
     </div>
 </Layout> 
