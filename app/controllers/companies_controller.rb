@@ -54,7 +54,6 @@ class CompaniesController < ApplicationController
       id: application.id,
       title: application.title,
       description: application.description,
-      status: application.status,
       stage: application.stage,
       stage_badge_class: view_context.grant_stage_badge_class(application.stage),
       deadline: application.deadline&.strftime("%B %d, %Y at %I:%M %p"),
