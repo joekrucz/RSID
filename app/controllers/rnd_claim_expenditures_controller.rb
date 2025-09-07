@@ -61,17 +61,22 @@ class RndClaimExpendituresController < ApplicationController
     {
       id: claim.id,
       title: claim.title,
-      description: claim.description,
-      client: {
-        id: claim.client.id,
-        name: claim.client.name,
-        email: claim.client.email
-      },
+      stage: claim.stage || 'upcoming',
+      company: claim.company ? {
+        id: claim.company.id,
+        name: claim.company.name
+      } : nil,
       start_date: claim.start_date&.strftime("%Y-%m-%d"),
       end_date: claim.end_date&.strftime("%Y-%m-%d"),
-      status: claim.status,
+      qualifying_activities: claim.qualifying_activities,
+      technical_challenges: claim.technical_challenges,
       total_expenditure: claim.total_expenditure,
-      created_at: claim.created_at.strftime("%B %d, %Y")
+      expenditure_by_type: claim.expenditure_by_type,
+      duration_days: claim.duration_days,
+      is_active: claim.is_active?,
+      can_be_claimed: claim.can_be_claimed?,
+      created_at: claim.created_at.strftime("%B %d, %Y"),
+      updated_at: claim.updated_at.strftime("%B %d, %Y")
     }
   end
 

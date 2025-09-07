@@ -160,9 +160,11 @@
                 <div class="flex justify-between items-start">
                   <div class="flex-1">
                     <h4 class="font-medium text-gray-900">{claim.title}</h4>
-                    <p class="text-sm text-gray-600 mt-1">{claim.description}</p>
+                    <p class="text-sm text-gray-600 mt-1">{claim.qualifying_activities}</p>
                     <div class="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                      <span>Client: {claim.client.name}</span>
+                      {#if claim.company}
+                        <span>Company: {claim.company.name}</span>
+                      {/if}
                       <span>Created: {claim.created_at}</span>
                     </div>
                   </div>

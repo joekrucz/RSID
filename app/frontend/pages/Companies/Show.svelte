@@ -159,7 +159,7 @@
                               {claim.title}
                             </a>
                           </div>
-                          <div class="text-sm opacity-70 line-clamp-2">{claim.description}</div>
+                          <div class="text-sm opacity-70 line-clamp-2">{claim.qualifying_activities}</div>
                         </div>
                       </div>
                     </td>

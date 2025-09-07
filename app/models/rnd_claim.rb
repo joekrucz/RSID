@@ -17,7 +17,7 @@ class RndClaim < ApplicationRecord
   
   # Search scope
   scope :search_by_content, ->(query) {
-    where("title LIKE ? OR description LIKE ?", "%#{query}%", "%#{query}%")
+    where("title LIKE ? OR qualifying_activities LIKE ? OR technical_challenges LIKE ?", "%#{query}%", "%#{query}%", "%#{query}%")
   }
   
   # Sort scope
@@ -86,8 +86,8 @@ class RndClaim < ApplicationRecord
     
     # Search in claim fields
     base_query.where(
-      "rnd_claims.title LIKE ? OR rnd_claims.description LIKE ? OR rnd_claims.qualifying_activities LIKE ? OR rnd_claims.technical_challenges LIKE ?",
-      "%#{query}%", "%#{query}%", "%#{query}%", "%#{query}%"
+      "rnd_claims.title LIKE ? OR rnd_claims.qualifying_activities LIKE ? OR rnd_claims.technical_challenges LIKE ?",
+      "%#{query}%", "%#{query}%", "%#{query}%"
     )
   end
   

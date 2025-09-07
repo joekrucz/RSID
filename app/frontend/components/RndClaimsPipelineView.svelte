@@ -173,7 +173,7 @@
                   {/if}
                   
                   <div class="text-xs text-base-content/50 mb-2 line-clamp-2">
-                    {claim.description}
+                    {claim.qualifying_activities}
                   </div>
                   
                   <div class="flex items-center justify-between text-xs text-base-content/60">

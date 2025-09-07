@@ -101,7 +101,6 @@ class RndClaimsController < ApplicationController
         errors: @rnd_claim.errors.full_messages,
         rnd_claim: { 
           title: rnd_claim_params[:title], 
-          description: rnd_claim_params[:description],
           company_id: rnd_claim_params[:company_id],
           start_date: rnd_claim_params[:start_date],
           end_date: rnd_claim_params[:end_date],
@@ -133,9 +132,9 @@ class RndClaimsController < ApplicationController
     
     if @rnd_claim.update(rnd_claim_params)
       # Create notification for claim updates
-      if @current_user.employee?
+      if @current_user.employee? && @rnd_claim.company
         Notification.create_for_user(
-          @rnd_claim.client,
+          @rnd_claim.company,
           :claim_updated,
           "R&D Claim Updated",
           "Your R&D claim '#{@rnd_claim.title}' has been updated.",
@@ -148,7 +147,7 @@ class RndClaimsController < ApplicationController
       render inertia: 'RndClaims/Edit', props: {
         user: user_props,
         rnd_claim: PropsBuilderService.rnd_claim_props(@rnd_claim),
-        clients: get_available_clients,
+        companies: get_available_companies,
         errors: @rnd_claim.errors.full_messages
       }
     end

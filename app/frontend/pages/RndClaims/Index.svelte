@@ -270,7 +270,14 @@
                   </td>
                   <td>
                     {#if claim.company}
-                      <div class="font-medium">{claim.company.name}</div>
+                      <div class="font-medium">
+                        <a 
+                          href={`/companies/${claim.company.id}`} 
+                          class="link link-primary hover:link-primary-focus"
+                        >
+                          {claim.company.name}
+                        </a>
+                      </div>
                     {:else}
                       <div class="text-sm opacity-50">—</div>
                     {/if}
