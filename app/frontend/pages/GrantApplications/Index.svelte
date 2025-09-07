@@ -131,6 +131,7 @@
 </script>
 
 <Layout {user}>
+  <div class="max-w-7xl mx-auto">
     <!-- Header -->
     <div class="mb-6">
       <div class="flex justify-between items-center mb-4">
@@ -469,4 +470,5 @@
       <!-- Pipeline View -->
       <PipelineView pipeline_data={filteredPipelineData} />
     {/if}
+  </div>
 </Layout> 

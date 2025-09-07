@@ -100,7 +100,7 @@
 </script>
 
 <Layout {user}>
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-7xl mx-auto">
       <!-- Header -->
       <div class="mb-6">
         <Button variant="secondary" onclick={goBack} class="mb-4">
