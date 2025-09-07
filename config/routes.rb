@@ -56,6 +56,7 @@ Rails.application.routes.draw do
             patch :change_stage
           end
           resources :rnd_claim_expenditures, only: [:create, :edit, :update, :destroy]
+          resources :rnd_claim_projects, only: [:index, :show, :new, :create, :edit, :update, :destroy]
         end
          
          # Grant Applications (protected)

@@ -73,8 +73,10 @@ class RndClaimsController < ApplicationController
       user: user_props,
       rnd_claim: PropsBuilderService.rnd_claim_props(@rnd_claim),
       expenditures: @rnd_claim.rnd_claim_expenditures.map { |exp| rnd_claim_expenditure_props(exp) },
+      projects: @rnd_claim.rnd_claim_projects.map { |project| rnd_claim_project_props(project) },
       can_edit: can_edit_claim?(@rnd_claim),
-      can_add_expenditures: @current_user.employee?
+      can_add_expenditures: @current_user.employee?,
+      can_add_projects: @current_user.employee?
     }
   end
 
@@ -223,6 +225,19 @@ class RndClaimsController < ApplicationController
     {
       total: claims.count,
       total_expenditure: claims.sum(&:total_expenditure)
+    }
+  end
+
+  def rnd_claim_project_props(project)
+    {
+      id: project.id,
+      name: project.name,
+      qualification_status: project.qualification_status,
+      narrative_status: project.narrative_status,
+      qualification_status_display: project.qualification_status_display,
+      narrative_status_display: project.narrative_status_display,
+      created_at: project.created_at.strftime('%d/%m/%Y %H:%M'),
+      updated_at: project.updated_at.strftime('%d/%m/%Y %H:%M')
     }
   end
 end 

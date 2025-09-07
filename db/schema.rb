@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_07_224342) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_07_230930) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -187,6 +187,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_224342) do
     t.index ["rnd_claim_id"], name: "index_rnd_claim_expenditures_on_rnd_claim_id"
   end
 
+  create_table "rnd_claim_projects", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "qualification_status", default: "qualified", null: false
+    t.string "narrative_status", default: "skip", null: false
+    t.integer "rnd_claim_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["narrative_status"], name: "index_rnd_claim_projects_on_narrative_status"
+    t.index ["qualification_status"], name: "index_rnd_claim_projects_on_qualification_status"
+    t.index ["rnd_claim_id", "name"], name: "index_rnd_claim_projects_on_rnd_claim_id_and_name", unique: true
+    t.index ["rnd_claim_id"], name: "index_rnd_claim_projects_on_rnd_claim_id"
+  end
+
   create_table "rnd_claims", force: :cascade do |t|
     t.string "title"
     t.text "description"
@@ -260,6 +273,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_224342) do
   add_foreign_key "notes", "users"
   add_foreign_key "notifications", "users"
   add_foreign_key "rnd_claim_expenditures", "rnd_claims"
+  add_foreign_key "rnd_claim_projects", "rnd_claims"
   add_foreign_key "rnd_claims", "companies"
   add_foreign_key "todos", "users"
   add_foreign_key "user_feature_accesses", "feature_flags"

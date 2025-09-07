@@ -11,10 +11,16 @@
 
   // Local UI state: expanded map keyed by section index and item index
   let expanded = $state({});
+  // Section collapsed state
+  let sectionsCollapsed = $state({});
 
   function toggle(sectionIdx, itemIdx) {
     const key = `${sectionIdx}-${itemIdx}`;
     expanded[key] = !expanded[key];
+  }
+
+  function toggleSection(sectionIdx) {
+    sectionsCollapsed[sectionIdx] = !sectionsCollapsed[sectionIdx];
   }
 
   function setDueDate(sectionIdx, itemIdx, value) {
@@ -76,9 +82,26 @@
   {#each sections as section, sIdx}
     <div class="bg-white rounded-lg shadow-sm border">
       <div class="px-4 py-3 border-b">
-        <h3 class="font-semibold text-gray-900">{section.title}</h3>
+        <div class="flex items-center justify-between">
+          <h3 class="font-semibold text-gray-900">{section.title}</h3>
+          <button 
+            class="btn btn-sm btn-ghost"
+            onclick={() => toggleSection(sIdx)}
+            aria-label={sectionsCollapsed[sIdx] ? 'Expand section' : 'Collapse section'}
+          >
+            <svg 
+              class="w-4 h-4 transition-transform duration-200 {sectionsCollapsed[sIdx] ? 'rotate-180' : ''}" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+        </div>
       </div>
-      <ul class="divide-y">
+      {#if !sectionsCollapsed[sIdx]}
+        <ul class="divide-y">
         {#each localSections[sIdx].items as item, iIdx}
           <li class="px-4 py-3">
             <div class="flex items-start justify-between gap-4">
@@ -145,7 +168,8 @@
             {/if}
           </li>
         {/each}
-      </ul>
+        </ul>
+      {/if}
     </div>
   {/each}
 </div>

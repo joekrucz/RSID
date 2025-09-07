@@ -1,6 +1,7 @@
 class RndClaim < ApplicationRecord
   belongs_to :company, optional: true
   has_many :rnd_claim_expenditures, dependent: :destroy
+  has_many :rnd_claim_projects, dependent: :destroy
   
   
   # Validations

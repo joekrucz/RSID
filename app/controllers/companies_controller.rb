@@ -16,7 +16,7 @@ class CompaniesController < ApplicationController
   def show
     company = Company.find(params[:id])
     grant_applications = company.grant_applications.includes(:user).order(created_at: :desc)
-    rnd_claims = company.rnd_claims.includes(:client).order(created_at: :desc)
+    rnd_claims = company.rnd_claims.order(created_at: :desc)
     
     render inertia: 'Companies/Show', props: {
       user: user_props,

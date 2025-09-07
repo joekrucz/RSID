@@ -22,6 +22,8 @@
   let currentStage = $state(grant_application.stage || 'pre_delivery');
   let loading = $state(false);
   let stageLoading = $state(false);
+  let applicationDetailsCollapsed = $state(false);
+  let checklistSectionsCollapsed = $state({});
   const idxCurrent = $derived(stages.indexOf(currentStage));
 
   const stageStyles = {
@@ -159,8 +161,25 @@
       
       <!-- Application Details (full width to match checklist) -->
       <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6 mt-6">
-        <h2 class="text-xl font-semibold text-base-content mb-4">Application Details</h2>
-        <div class="space-y-4">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-semibold text-base-content">Application Details</h2>
+          <button 
+            class="btn btn-sm btn-ghost"
+            onclick={() => applicationDetailsCollapsed = !applicationDetailsCollapsed}
+            aria-label={applicationDetailsCollapsed ? 'Expand Application Details' : 'Collapse Application Details'}
+          >
+            <svg 
+              class="w-4 h-4 transition-transform duration-200 {applicationDetailsCollapsed ? 'rotate-180' : ''}" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </button>
+        </div>
+        {#if !applicationDetailsCollapsed}
+          <div class="space-y-4">
           <div>
             <div class="text-sm font-medium mb-1">Deadline</div>
             <div class="text-sm">
@@ -217,7 +236,8 @@
               <div class="text-sm">{grant_application.updated_at}</div>
             </div>
           </div>
-        </div>
+          </div>
+        {/if}
       </div>
       <!-- Checklist Component -->
       <div class="mt-6">
