@@ -96,7 +96,6 @@ class PropsBuilderService
     {
       id: application.id,
       title: application.title,
-      status: application.status,
       submission_date: application.submission_date&.strftime("%Y-%m-%d"),
       created_at: format_date(application.created_at)
     }
