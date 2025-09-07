@@ -39,7 +39,12 @@ class DashboardController < ApplicationController
       storage_used: @current_user.file_items.sum(:file_size) || 0,
       grant_applications: @current_user.grant_applications.count,
       grant_applications_overdue: @current_user.grant_applications.overdue.count,
-      rnd_claims: get_accessible_rnd_claims.count
+      rnd_claims: get_accessible_rnd_claims.count,
+      rnd_claims_draft: get_accessible_rnd_claims.where(stage: 'upcoming').count,
+      rnd_claims_ready_for_claim: get_accessible_rnd_claims.where(stage: 'finalised').count,
+      rnd_claims_total_value: get_accessible_rnd_claims.sum(&:total_expenditure),
+      companies: get_accessible_companies.count,
+      grant_competitions: get_accessible_grant_competitions.count
     }
     
     # Add role-specific stats
@@ -50,6 +55,12 @@ class DashboardController < ApplicationController
       base_stats[:clients] = 1 # They are their own client
     else
       base_stats[:clients] = 0
+    end
+    
+    # Add admin-specific stats
+    if @current_user.admin?
+      base_stats[:people] = User.count
+      base_stats[:total_users] = User.count
     end
     
     # Calculate completion rate
@@ -65,7 +76,9 @@ class DashboardController < ApplicationController
       todos: @current_user.todos.recent.limit(5).map { |todo| todo_props(todo) },
       files: @current_user.file_items.recent.limit(3).map { |file| file_props(file) },
       grant_applications: @current_user.grant_applications.order(created_at: :desc).limit(3).map { |app| grant_application_props(app) },
-      rnd_claims: get_accessible_rnd_claims.order(created_at: :desc).limit(3).map { |claim| rnd_claim_props(claim) }
+      rnd_claims: get_accessible_rnd_claims.order(created_at: :desc).limit(3).map { |claim| rnd_claim_props(claim) },
+      companies: get_accessible_companies.order(created_at: :desc).limit(3).map { |company| company_props(company) },
+      grant_competitions: get_accessible_grant_competitions.order(created_at: :desc).limit(3).map { |competition| grant_competition_props(competition) }
     }
     
     # Add role-specific activity
@@ -75,6 +88,11 @@ class DashboardController < ApplicationController
       base_activity[:clients] = [@current_user.client_profile].compact.map { |client| client_props(client) }
     else
       base_activity[:clients] = []
+    end
+    
+    # Add admin-specific activity
+    if @current_user.admin?
+      base_activity[:people] = User.order(created_at: :desc).limit(3).map { |user| user_summary_props(user) }
     end
     
     base_activity
@@ -202,6 +220,35 @@ class DashboardController < ApplicationController
     }
   end
 
+  def company_props(company)
+    {
+      id: company.id,
+      name: company.name,
+      website: company.website,
+      created_at: format_date(company.created_at)
+    }
+  end
+
+  def grant_competition_props(competition)
+    {
+      id: competition.id,
+      grant_name: competition.grant_name,
+      funding_body: competition.funding_body,
+      deadline: format_date(competition.deadline),
+      created_at: format_date(competition.created_at)
+    }
+  end
+
+  def user_summary_props(user)
+    {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      created_at: format_date(user.created_at)
+    }
+  end
+
   def get_accessible_rnd_claims
     if @current_user.admin?
       RndClaim.all
@@ -209,6 +256,22 @@ class DashboardController < ApplicationController
       RndClaim.all # Employees can see all claims
     else
       RndClaim.where(client: @current_user) # Clients can only see their own claims
+    end
+  end
+
+  def get_accessible_companies
+    if @current_user.admin? || @current_user.employee?
+      Company.all
+    else
+      Company.none # Clients don't see companies directly
+    end
+  end
+
+  def get_accessible_grant_competitions
+    if @current_user.admin? || @current_user.employee?
+      GrantCompetition.all
+    else
+      GrantCompetition.none # Clients don't see competitions directly
     end
   end
 

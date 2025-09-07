@@ -59,20 +59,23 @@ Rails.application.routes.draw do
           resources :rnd_claim_projects, only: [:index, :show, :new, :create, :edit, :update, :destroy]
         end
          
-         # Grant Applications (protected)
-        resources :grant_applications do
-          member do
-            patch :change_stage
-          end
-          collection do
-            post :link_companies
-            post :add_demo_data
-            post :add_massive_demo_data
-            get :debug_data
-            post :fix_company_links
-          end
-          resources :grant_checklist_items, only: [:create, :update]
-        end
+  # Grant Applications (protected)
+ resources :grant_applications do
+   member do
+     patch :change_stage
+   end
+   collection do
+     post :link_companies
+     post :add_demo_data
+     post :add_massive_demo_data
+     get :debug_data
+     post :fix_company_links
+   end
+   resources :grant_checklist_items, only: [:create, :update]
+ end
+         
+         # CNF Communications (protected)
+         resources :cnf_comms, only: [:index, :show, :new, :create, :edit, :update, :destroy]
          
          # Admin Feature Flags
          namespace :admin do

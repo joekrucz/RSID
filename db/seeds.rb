@@ -393,6 +393,15 @@ if User.exists?(1)
         "User experience and interface design",
         "Algorithm development and optimization"
       ].sample(rand(2..3)).join(", ")
+      
+      # CNF status and deadline
+      cnf_statuses = ['not_claiming', 'cnf_needed', 'cnf_exemption_possible', 'in_progress', 'cnf_submitted', 'cnf_exempt', 'cnf_missed']
+      c.cnf_status = cnf_statuses.sample
+      
+      # CNF deadline should be after the project end date
+      if c.cnf_status != 'not_claiming'
+        c.cnf_deadline = end_date + rand(1..90).days
+      end
     end
     
     created_claims << claim

@@ -10,7 +10,9 @@ class RndClaim < ApplicationRecord
   validates :end_date, presence: true
   validates :qualifying_activities, presence: true, length: { minimum: 10 }
   validates :technical_challenges, presence: true, length: { minimum: 10 }
+  validates :cnf_status, presence: true, inclusion: { in: %w[not_claiming cnf_needed cnf_exemption_possible in_progress cnf_submitted cnf_exempt cnf_missed] }
   validate :end_date_after_start_date
+  validate :cnf_deadline_after_end_date
   
   # Scopes
   scope :recent, -> { order(created_at: :desc) }
@@ -59,6 +61,42 @@ class RndClaim < ApplicationRecord
   def can_be_claimed?
     total_expenditure > 0
   end
+
+  def cnf_status_display
+    case cnf_status
+    when 'not_claiming' then 'Not Claiming'
+    when 'cnf_needed' then 'CNF Needed'
+    when 'cnf_exemption_possible' then 'CNF Exemption Possible'
+    when 'in_progress' then 'In Progress'
+    when 'cnf_submitted' then 'CNF Submitted'
+    when 'cnf_exempt' then 'CNF Exempt'
+    when 'cnf_missed' then 'CNF Missed'
+    else cnf_status.humanize
+    end
+  end
+
+  def cnf_status_badge_class
+    case cnf_status
+    when 'not_claiming' then 'badge-neutral'
+    when 'cnf_needed' then 'badge-error'
+    when 'cnf_exemption_possible' then 'badge-warning'
+    when 'in_progress' then 'badge-info'
+    when 'cnf_submitted' then 'badge-primary'
+    when 'cnf_exempt' then 'badge-success'
+    when 'cnf_missed' then 'badge-error'
+    else 'badge-neutral'
+    end
+  end
+
+  def cnf_deadline_overdue?
+    return false unless cnf_deadline
+    cnf_deadline < Date.current
+  end
+
+  def cnf_deadline_due_soon?
+    return false unless cnf_deadline
+    cnf_deadline <= Date.current + 7.days && cnf_deadline >= Date.current
+  end
   
   # Class method for complex filtering and sorting
   def self.filtered_and_sorted(current_user, search: nil, sort_by: 'created_at', sort_order: 'DESC')
@@ -98,6 +136,14 @@ class RndClaim < ApplicationRecord
     
     if end_date <= start_date
       errors.add(:end_date, "must be after start date")
+    end
+  end
+
+  def cnf_deadline_after_end_date
+    return unless cnf_deadline && end_date
+    
+    if cnf_deadline < end_date
+      errors.add(:cnf_deadline, "must be on or after the project end date")
     end
   end
 end

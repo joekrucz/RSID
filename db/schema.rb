@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_07_233014) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_07_234759) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -210,6 +210,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_233014) do
     t.datetime "updated_at", null: false
     t.integer "company_id"
     t.string "stage"
+    t.string "cnf_status", default: "not_claiming"
+    t.date "cnf_deadline"
+    t.index ["cnf_status"], name: "index_rnd_claims_on_cnf_status"
     t.index ["company_id"], name: "index_rnd_claims_on_company_id"
     t.index ["created_at"], name: "index_rnd_claims_on_created_at"
     t.index ["end_date"], name: "index_rnd_claims_on_end_date"

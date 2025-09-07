@@ -200,7 +200,7 @@ class RndClaimsController < ApplicationController
   end
 
   def rnd_claim_params
-    permitted_params = [:title, :start_date, :end_date, :qualifying_activities, :technical_challenges, :company_id, :stage]
+    permitted_params = [:title, :start_date, :end_date, :qualifying_activities, :technical_challenges, :company_id, :stage, :cnf_status, :cnf_deadline]
     params.require(:rnd_claim).permit(*permitted_params)
   end
 

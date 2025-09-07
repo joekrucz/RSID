@@ -35,6 +35,12 @@ class PropsBuilderService
       duration_days: claim.duration_days,
       is_active: claim.is_active?,
       can_be_claimed: claim.can_be_claimed?,
+      cnf_status: claim.cnf_status,
+      cnf_status_display: claim.cnf_status_display,
+      cnf_status_badge_class: claim.cnf_status_badge_class,
+      cnf_deadline: claim.cnf_deadline&.strftime("%Y-%m-%d"),
+      cnf_deadline_overdue: claim.cnf_deadline_overdue?,
+      cnf_deadline_due_soon: claim.cnf_deadline_due_soon?,
       created_at: claim.created_at.strftime("%B %d, %Y"),
       updated_at: claim.updated_at.strftime("%B %d, %Y")
     }

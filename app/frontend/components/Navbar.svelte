@@ -41,6 +41,7 @@
               <li><button onclick={() => navigateTo('/companies')} class:active={isActive('companies')}>Companies</button></li>
               <li><button onclick={() => navigateTo('/grant_competitions')} class:active={isActive('grant_competitions')}>Grant Competitions</button></li>
               <li><button onclick={() => navigateTo('/rnd_claims')} class:active={isActive('rnd_claims')}>R&D Claims</button></li>
+              <li><button onclick={() => navigateTo('/cnf_comms')} class:active={isActive('cnf_comms')}>CNF Comms</button></li>
               
               <!-- Admin only features -->
               {#if user.isAdmin}
