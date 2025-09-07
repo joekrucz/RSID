@@ -55,12 +55,12 @@
           ← Back to Application
         </Button>
         
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Edit Grant Application</h1>
-        <p class="text-gray-600">Update your grant application details</p>
+        <h1 class="text-3xl font-bold text-base-content mb-2">Edit Grant Application</h1>
+        <p class="text-base-content/70">Update your grant application details</p>
       </div>
       
       <!-- Form -->
-      <div class="bg-white rounded-lg shadow-sm border p-6">
+      <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6">
         <form onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
           <div class="space-y-6">
             <!-- Title -->

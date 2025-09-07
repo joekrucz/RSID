@@ -25,17 +25,17 @@
   const idxCurrent = $derived(stages.indexOf(currentStage));
 
   const stageStyles = {
-    client_acquisition_project_qualification: { inactive: 'bg-pink-200 text-pink-900', active: 'bg-pink-500 text-white', complete: 'bg-pink-600 text-white', fillInactive: 'fill-pink-200', fillActive: 'fill-pink-500', fillComplete: 'fill-pink-600' },
-    client_invoiced: { inactive: 'bg-amber-200 text-amber-900', active: 'bg-amber-500 text-white', complete: 'bg-amber-600 text-white', fillInactive: 'fill-amber-200', fillActive: 'fill-amber-500', fillComplete: 'fill-amber-600' },
-    invoice_paid: { inactive: 'bg-emerald-200 text-emerald-900', active: 'bg-emerald-500 text-white', complete: 'bg-emerald-600 text-white', fillInactive: 'fill-emerald-200', fillActive: 'fill-emerald-500', fillComplete: 'fill-emerald-600' },
-    preparing_for_kick_off_aml_resourcing: { inactive: 'bg-cyan-200 text-cyan-900', active: 'bg-cyan-500 text-white', complete: 'bg-cyan-600 text-white', fillInactive: 'fill-cyan-200', fillActive: 'fill-cyan-500', fillComplete: 'fill-cyan-600' },
-    kicked_off_in_progress: { inactive: 'bg-indigo-200 text-indigo-900', active: 'bg-indigo-500 text-white', complete: 'bg-indigo-600 text-white', fillInactive: 'fill-indigo-200', fillActive: 'fill-indigo-500', fillComplete: 'fill-indigo-600' },
-    submitted: { inactive: 'bg-blue-200 text-blue-900', active: 'bg-blue-500 text-white', complete: 'bg-blue-600 text-white', fillInactive: 'fill-blue-200', fillActive: 'fill-blue-500', fillComplete: 'fill-blue-600' },
-    awaiting_funding_decision: { inactive: 'bg-sky-200 text-sky-900', active: 'bg-sky-500 text-white', complete: 'bg-sky-600 text-white', fillInactive: 'fill-sky-200', fillActive: 'fill-sky-500', fillComplete: 'fill-sky-600' },
-    application_successful_or_not_successful: { inactive: 'bg-violet-200 text-violet-900', active: 'bg-violet-500 text-white', complete: 'bg-violet-600 text-white', fillInactive: 'fill-violet-200', fillActive: 'fill-violet-500', fillComplete: 'fill-violet-600' },
-    resub_due: { inactive: 'bg-fuchsia-200 text-fuchsia-900', active: 'bg-fuchsia-500 text-white', complete: 'bg-fuchsia-600 text-white', fillInactive: 'fill-fuchsia-200', fillActive: 'fill-fuchsia-500', fillComplete: 'fill-fuchsia-600' },
-    success_fee_invoiced: { inactive: 'bg-orange-200 text-orange-900', active: 'bg-orange-500 text-white', complete: 'bg-orange-600 text-white', fillInactive: 'fill-orange-200', fillActive: 'fill-orange-500', fillComplete: 'fill-orange-600' },
-    success_fee_paid: { inactive: 'bg-lime-200 text-lime-900', active: 'bg-lime-500 text-white', complete: 'bg-lime-600 text-white', fillInactive: 'fill-lime-200', fillActive: 'fill-lime-500', fillComplete: 'fill-lime-600' }
+    client_acquisition_project_qualification: { inactive: 'bg-secondary/20 text-secondary', active: 'bg-secondary text-secondary-content', complete: 'bg-secondary text-secondary-content', fillInactive: 'fill-secondary/20', fillActive: 'fill-secondary', fillComplete: 'fill-secondary' },
+    client_invoiced: { inactive: 'bg-warning/20 text-warning', active: 'bg-warning text-warning-content', complete: 'bg-warning text-warning-content', fillInactive: 'fill-warning/20', fillActive: 'fill-warning', fillComplete: 'fill-warning' },
+    invoice_paid: { inactive: 'bg-success/20 text-success', active: 'bg-success text-success-content', complete: 'bg-success text-success-content', fillInactive: 'fill-success/20', fillActive: 'fill-success', fillComplete: 'fill-success' },
+    preparing_for_kick_off_aml_resourcing: { inactive: 'bg-info/20 text-info', active: 'bg-info text-info-content', complete: 'bg-info text-info-content', fillInactive: 'fill-info/20', fillActive: 'fill-info', fillComplete: 'fill-info' },
+    kicked_off_in_progress: { inactive: 'bg-primary/20 text-primary', active: 'bg-primary text-primary-content', complete: 'bg-primary text-primary-content', fillInactive: 'fill-primary/20', fillActive: 'fill-primary', fillComplete: 'fill-primary' },
+    submitted: { inactive: 'bg-accent/20 text-accent', active: 'bg-accent text-accent-content', complete: 'bg-accent text-accent-content', fillInactive: 'fill-accent/20', fillActive: 'fill-accent', fillComplete: 'fill-accent' },
+    awaiting_funding_decision: { inactive: 'bg-neutral/20 text-neutral', active: 'bg-neutral text-neutral-content', complete: 'bg-neutral text-neutral-content', fillInactive: 'fill-neutral/20', fillActive: 'fill-neutral', fillComplete: 'fill-neutral' },
+    application_successful_or_not_successful: { inactive: 'bg-base-content/20 text-base-content', active: 'bg-base-content text-base-100', complete: 'bg-base-content text-base-100', fillInactive: 'fill-base-content/20', fillActive: 'fill-base-content', fillComplete: 'fill-base-content' },
+    resub_due: { inactive: 'bg-error/20 text-error', active: 'bg-error text-error-content', complete: 'bg-error text-error-content', fillInactive: 'fill-error/20', fillActive: 'fill-error', fillComplete: 'fill-error' },
+    success_fee_invoiced: { inactive: 'bg-warning/20 text-warning', active: 'bg-warning text-warning-content', complete: 'bg-warning text-warning-content', fillInactive: 'fill-warning/20', fillActive: 'fill-warning', fillComplete: 'fill-warning' },
+    success_fee_paid: { inactive: 'bg-success/20 text-success', active: 'bg-success text-success-content', complete: 'bg-success text-success-content', fillInactive: 'fill-success/20', fillActive: 'fill-success', fillComplete: 'fill-success' }
   };
   
   
@@ -91,8 +91,8 @@
         
         <div class="flex justify-between items-start">
           <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">{grant_application.title}</h1>
-            <p class="text-gray-600 mb-4">{grant_application.description}</p>
+            <h1 class="text-3xl font-bold text-base-content mb-2">{grant_application.title}</h1>
+            <p class="text-base-content/70 mb-4">{grant_application.description}</p>
           </div>
           
           <div class="flex space-x-2">
@@ -116,7 +116,7 @@
           {#each stages as s, i}
             {@const isComplete = idxCurrent > i}
             {@const isActive = idxCurrent === i}
-            {@const palette = stageStyles[s] || { inactive: 'bg-gray-200 text-gray-700', active: 'bg-gray-500 text-white', complete: 'bg-gray-600 text-white', fillInactive: 'fill-gray-200', fillActive: 'fill-gray-500', fillComplete: 'fill-gray-600' }}
+            {@const palette = stageStyles[s] || { inactive: 'bg-base-300 text-base-content', active: 'bg-base-content text-base-100', complete: 'bg-base-content text-base-100', fillInactive: 'fill-base-300', fillActive: 'fill-base-content', fillComplete: 'fill-base-content' }}
             <li class="relative flex items-stretch flex-1 min-w-0">
               <button
                 class={`h-6 px-2 rounded-l-md w-full ${isComplete ? palette.complete : isActive ? palette.active : palette.inactive}`}
@@ -142,8 +142,8 @@
       {/key}
       
       <!-- Application Details (full width to match checklist) -->
-      <div class="bg-white rounded-lg shadow-sm border p-6 mt-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-4">Application Details</h2>
+      <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6 mt-6">
+        <h2 class="text-xl font-semibold text-base-content mb-4">Application Details</h2>
         <div class="space-y-4">
           <div>
             <div class="text-sm font-medium mb-1">Deadline</div>
