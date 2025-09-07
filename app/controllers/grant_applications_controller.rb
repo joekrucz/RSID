@@ -208,8 +208,7 @@ class GrantApplicationsController < ApplicationController
       created_companies << company
     end
 
-    # Create 50 new grant applications linked to random companies
-    all_companies = Company.all
+    # Create 50 new grant applications linked to the newly created companies
     application_titles = [
       'Quantum Algorithm Development', 'Neural Network Optimization', 'Blockchain Security Protocol', 'Robotic Process Automation', 'Green Energy Storage',
       'Big Data Analytics Platform', 'Cloud Migration Strategy', 'Mobile Payment System', 'AI Diagnostic Tools', 'Digital Banking Solutions',
@@ -224,15 +223,18 @@ class GrantApplicationsController < ApplicationController
     ]
 
     created_applications = []
-    application_titles.each do |title|
+    application_titles.each_with_index do |title, index|
       deadline = Time.current + rand(1..90).days
+      # Link each application to a corresponding newly created company
+      company = created_companies[index % created_companies.length]
+      
       application = GrantApplication.create!(
         user: user,
         title: title,
         description: "Advanced research and development project for #{title}",
         deadline: deadline,
         stage: GrantApplication.stages.keys.sample,
-        company: all_companies.sample
+        company: company
       )
       created_applications << application
     end
