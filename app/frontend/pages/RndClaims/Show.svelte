@@ -183,6 +183,8 @@
 </svelte:head>
 
 <Layout {user}>
+  <!-- Sticky Header Section -->
+  <div class="sticky top-0 z-10 bg-base-200/95 backdrop-blur-sm border-b border-base-300 pb-4">
     <!-- Header -->
     <div class="mb-8">
       <div class="flex items-center justify-between mb-4">
@@ -278,8 +280,9 @@
         </button>
       </div>
     </div>
+  </div>
 
-    <!-- Tab Content -->
+  <!-- Tab Content -->
     <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6">
       {#if activeTab === 'overview'}
         <div class="space-y-6">
