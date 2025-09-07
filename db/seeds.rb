@@ -173,3 +173,91 @@ sample_companies.each do |c|
 end
 
 puts 'Seeded sample companies.'
+
+# Add 100 additional companies and applications for comprehensive demo data
+if User.exists?(1)
+  user = User.find(1)
+  
+  # Create 100 additional companies
+  additional_company_names = [
+    'Quantum Computing Corp', 'Neural Networks Inc', 'Blockchain Solutions Ltd', 'Robotics Dynamics', 'Green Energy Systems',
+    'Data Analytics Pro', 'Cloud Infrastructure Co', 'Mobile App Innovations', 'AI Healthcare Solutions', 'FinTech Revolution',
+    'Space Technology Ltd', 'Biotech Research Group', 'Cyber Security Experts', 'IoT Development Co', 'Machine Learning Labs',
+    'Virtual Reality Studios', 'Augmented Reality Tech', 'Edge Computing Solutions', '5G Network Systems', 'Smart City Technologies',
+    'Autonomous Vehicles Inc', 'Drone Technology Corp', 'Renewable Energy Co', 'Carbon Capture Systems', 'Water Purification Tech',
+    'Food Security Solutions', 'Agricultural Automation', 'Precision Medicine Labs', 'Gene Therapy Research', 'Drug Discovery Systems',
+    'Wearable Technology Co', 'Smart Home Solutions', 'Digital Twin Systems', 'Predictive Analytics Inc', 'Real-time Processing Co',
+    'Distributed Computing Ltd', 'Microservices Architecture', 'API Gateway Solutions', 'Database Optimization Co', 'Cache Management Systems',
+    'Load Balancing Tech', 'Container Orchestration', 'Serverless Computing Co', 'Event Streaming Systems', 'Message Queue Solutions',
+    'Search Engine Optimization', 'Content Delivery Networks', 'CDN Acceleration Co', 'Web Performance Labs', 'User Experience Design',
+    'Advanced Materials Corp', 'Nano Technology Inc', 'Biomimetic Solutions', 'Synthetic Biology Labs', 'Clean Energy Ventures',
+    'Carbon Neutral Tech', 'Circular Economy Co', 'Sustainable Manufacturing', 'Green Chemistry Labs', 'Environmental Monitoring',
+    'Climate Adaptation Tech', 'Resilience Engineering', 'Disaster Recovery Systems', 'Emergency Response Tech', 'Public Safety Solutions',
+    'Smart Grid Technologies', 'Energy Storage Systems', 'Power Management Co', 'Electrical Infrastructure', 'Renewable Integration',
+    'Hydrogen Fuel Cells', 'Solar Panel Innovations', 'Wind Energy Systems', 'Geothermal Solutions', 'Tidal Power Technologies',
+    'Nuclear Fusion Research', 'Advanced Reactor Design', 'Waste Management Tech', 'Recycling Automation', 'Resource Recovery Systems',
+    'Water Treatment Solutions', 'Desalination Technology', 'Aquaculture Systems', 'Marine Conservation Tech', 'Ocean Energy Harvesting',
+    'Space Mining Ventures', 'Asteroid Resources Inc', 'Lunar Base Technologies', 'Mars Colonization Co', 'Interplanetary Transport',
+    'Satellite Constellation', 'Space Debris Cleanup', 'Orbital Manufacturing', 'Space Tourism Tech', 'Zero Gravity Research',
+    'Advanced Propulsion', 'Hypersonic Vehicles', 'Electric Aircraft', 'Urban Air Mobility', 'Flying Car Technologies',
+    'Hyperloop Systems', 'Maglev Transportation', 'Autonomous Shipping', 'Smart Ports Tech', 'Logistics Optimization'
+  ]
+
+  created_companies = []
+  additional_company_names.each do |name|
+    company = Company.find_or_create_by!(name: name) do |c|
+      c.website = "https://#{name.downcase.gsub(/\s+/, '')}.com"
+      c.notes = "Demo company for #{name}"
+    end
+    created_companies << company
+  end
+
+  puts "Created #{created_companies.length} additional companies"
+
+  # Create 100 additional grant applications linked to the newly created companies
+  additional_application_titles = [
+    'Quantum Algorithm Development', 'Neural Network Optimization', 'Blockchain Security Protocol', 'Robotic Process Automation', 'Green Energy Storage',
+    'Big Data Analytics Platform', 'Cloud Migration Strategy', 'Mobile Payment System', 'AI Diagnostic Tools', 'Digital Banking Solutions',
+    'Satellite Communication Tech', 'Gene Editing Research', 'Network Security Framework', 'Smart Sensor Networks', 'Deep Learning Models',
+    'VR Training Simulations', 'AR Navigation Systems', 'Edge AI Processing', '5G Infrastructure', 'Smart Traffic Management',
+    'Self-Driving Car Software', 'Drone Delivery Network', 'Solar Panel Efficiency', 'Carbon Neutral Technology', 'Water Treatment Systems',
+    'Vertical Farming Solutions', 'Precision Agriculture', 'Personalized Medicine', 'Gene Therapy Delivery', 'Drug Testing Automation',
+    'Health Monitoring Devices', 'Smart Building Controls', 'Digital Twin Platform', 'Predictive Maintenance', 'Real-time Data Processing',
+    'Distributed Database Systems', 'Microservices Architecture', 'API Management Platform', 'Database Performance Tuning', 'Intelligent Caching',
+    'Load Distribution Algorithms', 'Container Management', 'Serverless Functions', 'Event Processing Engine', 'Message Queue Optimization',
+    'Search Algorithm Enhancement', 'Content Distribution', 'CDN Performance', 'Web Speed Optimization', 'UX Research Platform',
+    'Advanced Material Synthesis', 'Nano Manufacturing Process', 'Biomimetic Design Systems', 'Synthetic Organism Development', 'Clean Energy Storage',
+    'Carbon Capture Technology', 'Circular Economy Platform', 'Sustainable Production Methods', 'Green Chemical Processes', 'Environmental Sensing',
+    'Climate Modeling Software', 'Resilience Assessment Tools', 'Disaster Prediction Systems', 'Emergency Communication Tech', 'Public Safety Analytics',
+    'Smart Grid Management', 'Energy Storage Optimization', 'Power Distribution Control', 'Grid Integration Solutions', 'Renewable Energy Storage',
+    'Hydrogen Production Systems', 'Solar Efficiency Enhancement', 'Wind Turbine Optimization', 'Geothermal Energy Extraction', 'Tidal Power Generation',
+    'Fusion Reactor Design', 'Advanced Nuclear Safety', 'Waste Processing Technology', 'Recycling Automation Systems', 'Resource Extraction Methods',
+    'Water Purification Systems', 'Desalination Technology', 'Aquaculture Management', 'Marine Ecosystem Monitoring', 'Ocean Energy Conversion',
+    'Space Resource Mining', 'Asteroid Processing Technology', 'Lunar Habitat Systems', 'Mars Settlement Infrastructure', 'Interplanetary Transport Systems',
+    'Satellite Network Management', 'Space Debris Removal', 'Orbital Manufacturing Systems', 'Space Tourism Infrastructure', 'Zero Gravity Research',
+    'Advanced Propulsion Systems', 'Hypersonic Vehicle Design', 'Electric Aircraft Technology', 'Urban Air Mobility Solutions', 'Flying Vehicle Systems',
+    'Hyperloop Transportation', 'Maglev Train Technology', 'Autonomous Shipping Systems', 'Smart Port Operations', 'Logistics Optimization Platform'
+  ]
+
+  created_applications = []
+  additional_application_titles.each_with_index do |title, index|
+    deadline = Time.current + rand(1..90).days
+    # Link each application to a corresponding newly created company
+    company = created_companies[index % created_companies.length]
+
+    application = GrantApplication.find_or_create_by!(user: user, title: title) do |app|
+      app.description = "Advanced research and development project for #{title}"
+      app.deadline = deadline
+      app.stage = GrantApplication.stages.keys.sample
+      app.company = company
+    end
+    created_applications << application
+  end
+
+  puts "Created #{created_applications.length} additional grant applications"
+  puts "All applications are linked to companies"
+  puts "Total companies: #{Company.count}"
+  puts "Total grant applications: #{GrantApplication.count}"
+else
+  puts 'No user with id=1 found. Skipping additional demo data.'
+end
