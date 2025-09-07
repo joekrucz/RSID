@@ -43,5 +43,9 @@ module BlankCodebase
     # Security settings
     config.x.max_search_results = ENV.fetch('MAX_SEARCH_RESULTS', 100).to_i
     config.x.session_timeout = ENV.fetch('SESSION_TIMEOUT', 24.hours).to_i
+    
+    # Kaminari pagination configuration
+    config.x.kaminari_default_per_page = 25
+    config.x.kaminari_max_per_page = 100
   end
 end
