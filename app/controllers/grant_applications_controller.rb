@@ -9,16 +9,29 @@ class GrantApplicationsController < ApplicationController
     
     # Search functionality
     if params[:search].present?
-      search_term = "%#{params[:search]}%"
+      search_term = "%#{params[:search].upcase}%"
       @grant_applications = @grant_applications.where(
-        "title ILIKE ? OR description ILIKE ?", search_term, search_term
+        "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term, search_term
       )
     end
     
     # Pagination
     per_page = params[:per_page].present? ? params[:per_page].to_i : 25
     per_page = [25, 50, 100].include?(per_page) ? per_page : 25 # Validate per_page
-    @grant_applications = @grant_applications.page(params[:page]).per(per_page)
+    page = params[:page].present? ? params[:page].to_i : 1
+    
+    # Use limit and offset for pagination (fallback if Kaminari isn't working)
+    offset = (page - 1) * per_page
+    @grant_applications = @grant_applications.limit(per_page).offset(offset)
+    
+    # Get total count for pagination info
+    total_count = @current_user.grant_applications.count
+    if params[:search].present?
+      search_term = "%#{params[:search].upcase}%"
+      total_count = @current_user.grant_applications.where(
+        "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term, search_term
+      ).count
+    end
     
     # Group by stage for pipeline view (using all applications, not paginated)
     all_applications = @current_user.grant_applications.includes(:grant_documents, :company)
@@ -26,9 +39,9 @@ class GrantApplicationsController < ApplicationController
     
     # Apply search to pipeline data too
     if params[:search].present?
-      search_term = "%#{params[:search]}%"
+      search_term = "%#{params[:search].upcase}%"
       all_applications = all_applications.where(
-        "title ILIKE ? OR description ILIKE ?", search_term, search_term
+        "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term, search_term
       )
     end
     
@@ -51,12 +64,12 @@ class GrantApplicationsController < ApplicationController
         per_page: per_page
       },
       pagination: {
-        current_page: @grant_applications.current_page,
-        total_pages: @grant_applications.total_pages,
+        current_page: page,
+        total_pages: (total_count.to_f / per_page).ceil,
         per_page: per_page,
-        total_count: @grant_applications.total_count,
-        has_next_page: @grant_applications.next_page.present?,
-        has_prev_page: @grant_applications.prev_page.present?
+        total_count: total_count,
+        has_next_page: (page * per_page) < total_count,
+        has_prev_page: page > 1
       },
       stats: {
         total: @current_user.grant_applications.count,
