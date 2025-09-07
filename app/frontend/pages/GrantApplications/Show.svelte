@@ -43,16 +43,32 @@
   function handleStageChange(targetStage) {
     if (targetStage === currentStage) return;
     stageLoading = true;
-    router.patch(`/grant_applications/${grant_application.id}/change_stage`, { stage: targetStage }, {
-      onSuccess: () => {
-        currentStage = targetStage;
-        toast.success('Stage updated successfully!');
-        stageLoading = false;
+    
+    fetch(`/grant_applications/${grant_application.id}/change_stage`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
       },
-      onError: () => {
-        toast.error('Failed to update stage.');
-        stageLoading = false;
+      body: JSON.stringify({ stage: targetStage })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        currentStage = targetStage;
+        toast.success(data.message || 'Stage updated successfully!');
+        // Reload the page to get updated data
+        router.reload();
+      } else {
+        toast.error(data.message || 'Failed to update stage.');
       }
+    })
+    .catch(error => {
+      console.error('Error updating stage:', error);
+      toast.error('Failed to update stage.');
+    })
+    .finally(() => {
+      stageLoading = false;
     });
   }
 
