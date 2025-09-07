@@ -45,7 +45,9 @@ class GrantApplication < ApplicationRecord
     (deadline.to_date - Date.current).to_i
   end
   
-
+  def humanize_stage
+    stage.humanize
+  end
   
   def can_edit?
     true
