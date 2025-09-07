@@ -59,6 +59,7 @@ Rails.application.routes.draw do
           end
           collection do
             post :link_companies
+            post :add_demo_data
           end
           resources :grant_checklist_items, only: [:create, :update]
         end

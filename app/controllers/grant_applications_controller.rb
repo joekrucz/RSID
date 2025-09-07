@@ -137,6 +137,47 @@ class GrantApplicationsController < ApplicationController
       companies_count: companies.count
     }
   end
+
+  def add_demo_data
+    # Endpoint to add more demo data
+    user = User.first
+    companies = Company.all
+    
+    if companies.empty?
+      render json: { error: "No companies found. Run seeds first." }
+      return
+    end
+
+    # Add more grant applications
+    new_applications = [
+      { title: 'Advanced AI Research', description: 'Next-generation AI algorithms for complex problems', days_from_now: 15 },
+      { title: 'Sustainable Energy Grid', description: 'Smart grid technology for renewable energy', days_from_now: 22 },
+      { title: 'Biotech Innovation Lab', description: 'Cutting-edge biotechnology research facility', days_from_now: 30 },
+      { title: 'Cybersecurity Fortress', description: 'Advanced threat detection and prevention systems', days_from_now: 18 },
+      { title: 'Space Exploration Tech', description: 'Technology for deep space missions', days_from_now: 45 }
+    ]
+
+    created_count = 0
+    new_applications.each do |app_data|
+      deadline = Time.current + app_data[:days_from_now].days
+      application = GrantApplication.create!(
+        user: user,
+        title: app_data[:title],
+        description: app_data[:description],
+        deadline: deadline,
+        stage: GrantApplication.stages.keys.sample,
+        company: companies.sample
+      )
+      created_count += 1
+    end
+
+    render json: { 
+      success: true, 
+      created_applications: created_count,
+      total_applications: GrantApplication.count,
+      companies_count: companies.count
+    }
+  end
   
   private
   
