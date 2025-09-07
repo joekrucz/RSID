@@ -52,6 +52,18 @@ end
 
 puts "Created #{default_features.length} feature flags"
 
+# Create demo admin user if no users exist
+unless User.exists?
+  admin_user = User.create!(
+    name: "Demo Admin",
+    email: "admin@demo.com",
+    password: "password123",
+    password_confirmation: "password123",
+    role: :admin
+  )
+  puts "Created demo admin user: admin@demo.com / password123"
+end
+
 # Demo data: sample grant applications for the first user
 if User.exists?(1)
   user = User.find(1)
