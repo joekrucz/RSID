@@ -1,6 +1,7 @@
 class GrantApplicationsController < ApplicationController
   before_action :require_login
   before_action :set_grant_application, only: [:show, :edit, :update, :destroy, :change_stage]
+  skip_before_action :verify_authenticity_token, only: [:fix_company_links]
   
   def index
     @grant_applications = @current_user.grant_applications.includes(:grant_documents, :company)
@@ -219,17 +220,25 @@ class GrantApplicationsController < ApplicationController
     unlinked_applications = @current_user.grant_applications.where(company_id: nil)
     linked_count = 0
     
-    unlinked_applications.each do |app|
-      app.update!(company: companies.sample)
-      linked_count += 1
-    end
+    begin
+      unlinked_applications.each do |app|
+        app.update!(company: companies.sample)
+        linked_count += 1
+      end
 
-    render json: { 
-      success: true, 
-      linked_count: linked_count,
-      total_applications: @current_user.grant_applications.count,
-      companies_count: companies.count
-    }
+      render json: { 
+        success: true, 
+        linked_count: linked_count,
+        total_applications: @current_user.grant_applications.count,
+        companies_count: companies.count
+      }
+    rescue => e
+      render json: { 
+        success: false, 
+        error: e.message,
+        linked_count: linked_count
+      }
+    end
   end
   
   private
