@@ -18,14 +18,19 @@ Rails.application.configure do
     policy.script_src *policy.script_src, :blob if Rails.env.test?
     
     # Allow inline scripts in production for Inertia.js and Svelte
-    policy.script_src *policy.script_src, :unsafe_inline if Rails.env.production?
+    # Note: unsafe_inline is ignored when nonces are present, so we need to handle this differently
+    if Rails.env.production?
+      policy.script_src *policy.script_src, :unsafe_inline, :unsafe_eval
+    end
 
     policy.style_src   :self, :https
     # Allow @vite/client to hot reload style changes in development
     policy.style_src *policy.style_src, :unsafe_inline if Rails.env.development?
     
     # Allow inline styles in production for Inertia.js and Svelte
-    policy.style_src *policy.style_src, :unsafe_inline if Rails.env.production?
+    if Rails.env.production?
+      policy.style_src *policy.style_src, :unsafe_inline
+    end
 
     # Allow WebSocket connections to Vite dev server
     policy.connect_src :self, :https
@@ -36,8 +41,14 @@ Rails.application.configure do
   end
 
   # Generate session nonces for permitted importmap, inline scripts, and inline styles.
-  config.content_security_policy_nonce_generator = ->(request) { request.session.id.to_s }
-  config.content_security_policy_nonce_directives = %w(script-src style-src)
+  # Disable nonces in production to allow unsafe_inline to work
+  if Rails.env.production?
+    config.content_security_policy_nonce_generator = nil
+    config.content_security_policy_nonce_directives = []
+  else
+    config.content_security_policy_nonce_generator = ->(request) { request.session.id.to_s }
+    config.content_security_policy_nonce_directives = %w(script-src style-src)
+  end
 
   # Report violations without enforcing the policy.
   # config.content_security_policy_report_only = true
