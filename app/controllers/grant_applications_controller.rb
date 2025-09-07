@@ -206,6 +206,31 @@ class GrantApplicationsController < ApplicationController
     
     render json: debug_info
   end
+
+  def fix_company_links
+    # Fix endpoint to link all applications to companies
+    companies = Company.all
+    if companies.empty?
+      render json: { error: "No companies found" }
+      return
+    end
+
+    # Get all applications for this user that don't have a company
+    unlinked_applications = @current_user.grant_applications.where(company_id: nil)
+    linked_count = 0
+    
+    unlinked_applications.each do |app|
+      app.update!(company: companies.sample)
+      linked_count += 1
+    end
+
+    render json: { 
+      success: true, 
+      linked_count: linked_count,
+      total_applications: @current_user.grant_applications.count,
+      companies_count: companies.count
+    }
+  end
   
   private
   
