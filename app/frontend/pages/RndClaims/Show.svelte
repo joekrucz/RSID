@@ -198,7 +198,6 @@
           <div class="flex items-center space-x-4">
             <h1 class="text-3xl font-bold text-base-content">{rnd_claim.title}</h1>
           </div>
-          <p class="text-base-content/70 mt-2">R&D Project for {rnd_claim.company?.name || 'No Company'}</p>
         </div>
         {#if can_edit}
           <div class="flex space-x-2">
@@ -290,12 +289,7 @@
           <div>
             <h3 class="text-lg font-semibold text-base-content mb-4">Project Overview</h3>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 class="font-medium text-base-content mb-2">Description</h4>
-                <p class="text-base-content/70 whitespace-pre-wrap">{rnd_claim.description}</p>
-              </div>
-              
+            <div class="grid grid-cols-1 gap-6">
               <div>
                 <h4 class="font-medium text-base-content mb-2">Timeline</h4>
                 <div class="space-y-2">
