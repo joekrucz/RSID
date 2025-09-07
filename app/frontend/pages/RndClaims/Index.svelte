@@ -265,7 +265,6 @@
                             {claim.title}
                           </a>
                         </div>
-                        <div class="text-sm opacity-50 line-clamp-1">{claim.description}</div>
                       </div>
                     </div>
                   </td>

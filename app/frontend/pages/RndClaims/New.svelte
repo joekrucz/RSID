@@ -10,7 +10,6 @@
   
   let formData = $state({
     title: rnd_claim.title || '',
-    description: rnd_claim.description || '',
     company_id: rnd_claim.company_id || '',
     start_date: rnd_claim.start_date || '',
     end_date: rnd_claim.end_date || '',
@@ -40,10 +39,6 @@
       return;
     }
     
-    if (!formData.description.trim()) {
-      toast.error('Please enter a description for this R&D claim.');
-      return;
-    }
     
     loading = true;
     
@@ -127,26 +122,6 @@
                 error={errors.find(e => e.includes('Company'))}
               />
             </div>
-          </div>
-          
-          <div class="form-control mt-6">
-            <label class="label">
-              <span class="label-text font-medium">Project Description *</span>
-            </label>
-            <textarea
-              class="textarea textarea-bordered h-24"
-              placeholder="Describe the overall project, its objectives, and expected outcomes..."
-              bind:value={formData.description}
-              required
-            ></textarea>
-            <label class="label">
-              <span class="label-text-alt">Provide a comprehensive description of the R&D project</span>
-            </label>
-            {#if errors.find(e => e.includes('Description'))}
-              <label class="label">
-                <span class="label-text-alt text-error">{errors.find(e => e.includes('Description'))}</span>
-              </label>
-            {/if}
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">

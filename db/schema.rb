@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_07_230930) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_07_233014) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -202,7 +202,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_230930) do
 
   create_table "rnd_claims", force: :cascade do |t|
     t.string "title"
-    t.text "description"
     t.date "start_date"
     t.date "end_date"
     t.text "qualifying_activities"

@@ -6,7 +6,6 @@ class RndClaim < ApplicationRecord
   
   # Validations
   validates :title, presence: true, length: { minimum: 3 }
-  validates :description, presence: true, length: { minimum: 10 }
   validates :start_date, presence: true
   validates :end_date, presence: true
   validates :qualifying_activities, presence: true, length: { minimum: 10 }

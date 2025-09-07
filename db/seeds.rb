@@ -359,7 +359,6 @@ if User.exists?(1)
     end
     
     claim = RndClaim.find_or_create_by!(company: company, title: claim_title) do |c|
-      c.description = "Research and Development activities for #{company.name} during #{fiscal_year}. This includes innovative projects, technical challenges, and qualifying activities that contribute to the company's technological advancement and competitive positioning."
       c.start_date = start_date
       c.end_date = end_date
       # Different stage distributions for dev vs production
