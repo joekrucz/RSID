@@ -49,6 +49,7 @@
               {/if}
               
               <li><button onclick={() => navigateTo('/grant_applications')} class:active={isActive('grant_applications')}>Grant Applications</button></li>
+              <li><button onclick={() => navigateTo('/companies')} class:active={isActive('companies')}>Companies</button></li>
               <li><button onclick={() => navigateTo('/rnd_projects')} class:active={isActive('rnd_projects')}>R&D Projects</button></li>
               
               <!-- Admin only features -->

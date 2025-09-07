@@ -1,0 +1,23 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  grant_application: one
+  section: MyString
+  title: MyString
+  due_date: 2025-09-07
+  checked: false
+  notes: MyText
+  subbie: MyString
+  no_subbie: false
+  contract_link: MyString
+
+two:
+  grant_application: two
+  section: MyString
+  title: MyString
+  due_date: 2025-09-07
+  checked: false
+  notes: MyText
+  subbie: MyString
+  no_subbie: false
+  contract_link: MyString

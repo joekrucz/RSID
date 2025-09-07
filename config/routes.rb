@@ -43,6 +43,9 @@ Rails.application.routes.draw do
   
   # Messages (protected)
          resources :messages, only: [:index, :show, :create]
+
+         # Companies directory
+         resources :companies, only: [:index, :show, :new, :create]
          
          # R&D Projects (protected)
          resources :rnd_projects, only: [:index, :show, :new, :create, :edit, :update, :destroy] do
@@ -50,12 +53,13 @@ Rails.application.routes.draw do
          end
          
          # Grant Applications (protected)
-         resources :grant_applications do
-           member do
-             patch :submit
-             patch :change_status
-           end
-         end
+        resources :grant_applications do
+          member do
+            patch :change_status
+            patch :change_stage
+          end
+          resources :grant_checklist_items, only: [:create, :update]
+        end
          
          # Admin Feature Flags
          namespace :admin do

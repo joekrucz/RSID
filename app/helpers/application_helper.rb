@@ -50,6 +50,35 @@ module ApplicationHelper
       'badge-neutral'
     end
   end
+
+  def grant_stage_badge_class(stage)
+    case stage.to_s
+    when 'client_acquisition_project_qualification'
+      'badge-secondary'
+    when 'client_invoiced'
+      'badge-warning'
+    when 'invoice_paid'
+      'badge-success'
+    when 'preparing_for_kick_off_aml_resourcing'
+      'badge-info'
+    when 'kicked_off_in_progress'
+      'badge-accent'
+    when 'submitted'
+      'badge-primary'
+    when 'awaiting_funding_decision'
+      'badge-info'
+    when 'application_successful_or_not_successful'
+      'badge-neutral'
+    when 'resub_due'
+      'badge-error'
+    when 'success_fee_invoiced'
+      'badge-warning'
+    when 'success_fee_paid'
+      'badge-success'
+    else
+      'badge'
+    end
+  end
   
   def rnd_project_status_color(status)
     case status.to_s

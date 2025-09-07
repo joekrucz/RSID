@@ -1,20 +1,62 @@
 <script>
+  import { onMount } from 'svelte';
   import { router } from '@inertiajs/svelte';
   import { toast } from '../../stores/toast.js';
   import Layout from '../../components/Layout.svelte';
   import Button from '../../components/forms/Button.svelte';
   import Select from '../../components/forms/Select.svelte';
+  import PipelineView from '../../components/PipelineView.svelte';
   
-  let { user, grant_applications, filters, stats } = $props();
+  let { user, grant_applications, pipeline_data, filters, stats, view_mode = 'list' } = $props();
   
   let search = $state(filters.search || '');
   let statusFilter = $state(filters.status || '');
   let showFilters = $state(false);
+  let currentView = $state(view_mode);
+  
+  // Check localStorage on mount if no explicit view parameter in URL
+  onMount(() => {
+    if (!window.location.search.includes('view=')) {
+      const savedView = localStorage.getItem('grant_applications_view');
+      if (savedView && savedView !== view_mode) {
+        currentView = savedView;
+        // Update the URL to reflect the saved preference
+        router.get('/grant_applications', { 
+          search: search || undefined,
+          status: statusFilter || undefined,
+          view: currentView
+        }, {
+          preserveState: true,
+          preserveScroll: true,
+          replace: true // Replace current history entry instead of adding new one
+        });
+      }
+    }
+  });
   
   function handleSearch() {
     router.get('/grant_applications', { 
       search: search || undefined,
-      status: statusFilter || undefined
+      status: statusFilter || undefined,
+      view: currentView
+    }, {
+      preserveState: true,
+      preserveScroll: true
+    });
+  }
+  
+  function switchView(view) {
+    currentView = view;
+    
+    // Save view preference to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('grant_applications_view', view);
+    }
+    
+    router.get('/grant_applications', { 
+      search: search || undefined,
+      status: statusFilter || undefined,
+      view: currentView
     }, {
       preserveState: true,
       preserveScroll: true
@@ -61,6 +103,10 @@
   function navigateTo(path) {
     router.visit(path);
   }
+
+  function displayLabel(value) {
+    return (value || '').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+  }
 </script>
 
 <Layout {user}>
@@ -77,6 +123,33 @@
           </svg>
           New Application
         </Button>
+      </div>
+      
+      <!-- View Toggle -->
+      <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center space-x-2">
+          <span class="text-sm font-medium text-base-content">View:</span>
+          <div class="btn-group">
+            <button 
+              class="btn btn-sm {currentView === 'list' ? 'btn-primary' : 'btn-outline'}"
+              onclick={() => switchView('list')}
+            >
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+              </svg>
+              List
+            </button>
+            <button 
+              class="btn btn-sm {currentView === 'pipeline' ? 'btn-primary' : 'btn-outline'}"
+              onclick={() => switchView('pipeline')}
+            >
+              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
+              </svg>
+              Pipeline
+            </button>
+          </div>
+        </div>
       </div>
       
       <!-- Stats Cards -->
@@ -180,15 +253,17 @@
       {/if}
     </div>
     
-    <!-- Applications List -->
-    <div class="bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden">
+    <!-- Applications Content -->
+    {#if currentView === 'list'}
+      <!-- List View -->
+      <div class="bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden">
       {#if grant_applications.length > 0}
         <div class="overflow-x-auto">
           <table class="table table-zebra w-full">
             <thead>
               <tr>
                 <th>Title</th>
-                <th>Status</th>
+                <th>Stage</th>
                 <th>Deadline</th>
                 <th>Documents</th>
                 <th>Created</th>
@@ -216,12 +291,9 @@
                     </div>
                   </td>
                   <td>
-                    <div class="badge {application.status_color}">
-                      {application.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    <div class={`badge ${application.stage_badge_class || 'badge-neutral'}`} title={displayLabel(application.stage)}>
+                      {displayLabel(application.stage)}
                     </div>
-                    {#if application.overdue}
-                      <div class="badge badge-error badge-sm mt-1">Overdue</div>
-                    {/if}
                   </td>
                   <td>
                     <div class="text-sm">
@@ -315,5 +387,9 @@
           </div>
         </div>
       {/if}
-    </div>
+      </div>
+    {:else}
+      <!-- Pipeline View -->
+      <PipelineView {pipeline_data} />
+    {/if}
 </Layout> 

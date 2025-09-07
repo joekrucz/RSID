@@ -12,7 +12,7 @@ Rails.application.configure do
     policy.object_src  :none
     policy.script_src  :self, :https
     # Allow @vite/client to hot reload javascript changes in development
-    policy.script_src *policy.script_src, :unsafe_eval, "http://#{ ViteRuby.config.host_with_port }" if Rails.env.development?
+    policy.script_src *policy.script_src, :unsafe_eval, :unsafe_inline, "http://#{ ViteRuby.config.host_with_port }" if Rails.env.development?
 
     # You may need to enable this in production as well depending on your setup.
     policy.script_src *policy.script_src, :blob if Rails.env.test?
@@ -20,6 +20,10 @@ Rails.application.configure do
     policy.style_src   :self, :https
     # Allow @vite/client to hot reload style changes in development
     policy.style_src *policy.style_src, :unsafe_inline if Rails.env.development?
+
+    # Allow WebSocket connections to Vite dev server
+    policy.connect_src :self, :https
+    policy.connect_src *policy.connect_src, "http://#{ ViteRuby.config.host_with_port }", "ws://#{ ViteRuby.config.host_with_port }" if Rails.env.development?
 
     # Specify URI for violation reports
     # policy.report_uri "/csp-violation-report-endpoint"

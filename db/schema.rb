@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_08_28_120001) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_07_165708) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -27,6 +27,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_28_120001) do
     t.index ["created_at"], name: "index_clients_on_created_at"
     t.index ["employee_id"], name: "index_clients_on_employee_id"
     t.index ["user_id"], name: "index_clients_on_user_id"
+  end
+
+  create_table "companies", force: :cascade do |t|
+    t.string "name"
+    t.string "website"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "feature_flags", force: :cascade do |t|
@@ -72,11 +80,29 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_28_120001) do
     t.integer "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "stage"
+    t.integer "company_id"
+    t.index ["company_id"], name: "index_grant_applications_on_company_id"
     t.index ["created_at"], name: "index_grant_applications_on_created_at"
     t.index ["deadline"], name: "index_grant_applications_on_deadline"
     t.index ["status"], name: "index_grant_applications_on_status"
     t.index ["title"], name: "index_grant_applications_on_title"
     t.index ["user_id"], name: "index_grant_applications_on_user_id"
+  end
+
+  create_table "grant_checklist_items", force: :cascade do |t|
+    t.integer "grant_application_id", null: false
+    t.string "section"
+    t.string "title"
+    t.date "due_date"
+    t.boolean "checked", default: false, null: false
+    t.text "notes"
+    t.string "subbie"
+    t.boolean "no_subbie", default: false, null: false
+    t.string "contract_link"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["grant_application_id"], name: "index_grant_checklist_items_on_grant_application_id"
   end
 
   create_table "grant_documents", force: :cascade do |t|
@@ -215,7 +241,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_08_28_120001) do
   add_foreign_key "clients", "users"
   add_foreign_key "clients", "users", column: "employee_id"
   add_foreign_key "file_items", "users"
+  add_foreign_key "grant_applications", "companies"
   add_foreign_key "grant_applications", "users"
+  add_foreign_key "grant_checklist_items", "grant_applications"
   add_foreign_key "grant_documents", "grant_applications"
   add_foreign_key "messages", "clients"
   add_foreign_key "messages", "users", column: "recipient_id"

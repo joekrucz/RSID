@@ -5,12 +5,13 @@
   import Button from '../../components/forms/Button.svelte';
   import Input from '../../components/forms/Input.svelte';
   
-  let { user, grant_application, errors = {} } = $props();
+  let { user, grant_application, companies = [], errors = {} } = $props();
   
   let title = $state(grant_application.title || '');
   let description = $state(grant_application.description || '');
   let deadlineDate = $state(grant_application.deadline_date || '');
   let deadlineTime = $state(grant_application.deadline_time || '12:00');
+  let companyId = $state(grant_application.company?.id || '');
   let loading = $state(false);
   
   function handleSubmit() {
@@ -27,7 +28,8 @@
         title: title.trim(),
         description: description.trim(),
         deadline: deadline.toISOString(),
-        status: grant_application.status
+        status: grant_application.status,
+        company_id: companyId || null
       }
     }, {
       onSuccess: () => {
@@ -118,6 +120,24 @@
                   bind:value={deadlineTime}
                 />
               </div>
+            </div>
+            
+            <!-- Company -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text">Company</span>
+              </label>
+              <select class="select select-bordered w-full" bind:value={companyId}>
+                <option value="">Select a company (optional)</option>
+                {#each companies as company}
+                  <option value={company.id}>{company.name}</option>
+                {/each}
+              </select>
+              {#if errors.company_id}
+                <label class="label">
+                  <span class="label-text-alt text-error">{errors.company_id}</span>
+                </label>
+              {/if}
             </div>
             
             <!-- Status Info -->
