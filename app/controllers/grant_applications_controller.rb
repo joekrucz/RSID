@@ -1,7 +1,7 @@
 class GrantApplicationsController < ApplicationController
   before_action :require_login
   before_action :set_grant_application, only: [:show, :edit, :update, :destroy, :change_stage]
-  skip_before_action :verify_authenticity_token, only: [:fix_company_links]
+  skip_before_action :verify_authenticity_token, only: [:fix_company_links, :add_massive_demo_data]
   
   def index
     @grant_applications = @current_user.grant_applications.includes(:grant_documents, :company)
