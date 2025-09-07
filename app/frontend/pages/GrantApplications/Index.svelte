@@ -70,8 +70,18 @@
     });
   }
   
+  let searchTimeout;
+  
   function handleSearch() {
-    loadPage(1); // Reset to first page when searching
+    // Clear existing timeout
+    if (searchTimeout) {
+      clearTimeout(searchTimeout);
+    }
+    
+    // Debounce search to avoid too many requests
+    searchTimeout = setTimeout(() => {
+      loadPage(1); // Reset to first page when searching
+    }, 300);
   }
   
   function handlePerPageChange(newPerPage) {
@@ -140,17 +150,38 @@
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
         <!-- Search Bar -->
         <div class="flex-1 max-w-md">
-          <div class="relative">
-            <input
-              type="text"
-              placeholder="Search applications, companies, or descriptions..."
-              class="input input-bordered w-full pl-10"
-              bind:value={search}
-              onkeyup={(e) => e.key === 'Enter' && handleSearch()}
-            />
-            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-base-content/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <input
+                type="text"
+                placeholder="Search applications, companies, or descriptions..."
+                class="input input-bordered w-full pl-10"
+                bind:value={search}
+                onkeyup={(e) => e.key === 'Enter' && handleSearch()}
+                oninput={() => handleSearch()}
+              />
+              <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-base-content/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+            </div>
+            <button 
+              class="btn btn-primary"
+              onclick={handleSearch}
+            >
+              Search
+            </button>
+            {#if search.trim()}
+              <button 
+                class="btn btn-outline"
+                onclick={() => {
+                  search = '';
+                  handleSearch();
+                }}
+                title="Clear search"
+              >
+                Clear
+              </button>
+            {/if}
           </div>
         </div>
         
