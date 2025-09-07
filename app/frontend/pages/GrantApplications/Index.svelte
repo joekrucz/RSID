@@ -253,6 +253,7 @@
               <tr>
                 <th>Title</th>
                 <th>Company</th>
+                <th>Competition</th>
                 <th>Stage</th>
                 <th>Deadline</th>
                 <th>Actions</th>
@@ -291,6 +292,25 @@
                     {:else}
                       <div class="text-sm opacity-50">
                         No company
+                      </div>
+                    {/if}
+                  </td>
+                  <td>
+                    {#if application.grant_competition}
+                      <div class="text-sm font-medium">
+                        <a 
+                          href="/grant_competitions/{application.grant_competition.id}" 
+                          class="link link-primary hover:link-primary-focus"
+                        >
+                          {application.grant_competition.grant_name}
+                        </a>
+                      </div>
+                      <div class="text-xs opacity-70">
+                        {application.grant_competition.funding_body}
+                      </div>
+                    {:else}
+                      <div class="text-sm opacity-50">
+                        No competition
                       </div>
                     {/if}
                   </td>

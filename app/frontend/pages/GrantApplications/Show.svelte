@@ -187,6 +187,26 @@
               </div>
             </div>
           {/if}
+          {#if grant_application.grant_competition}
+            <div>
+              <div class="text-sm font-medium mb-1">Grant Competition</div>
+              <div class="text-sm">
+                <a href={`/grant_competitions/${grant_application.grant_competition.id}`} class="link link-primary">
+                  {grant_application.grant_competition.grant_name}
+                </a>
+                <div class="text-xs text-base-content/70 mt-1">
+                  {grant_application.grant_competition.funding_body}
+                </div>
+                <div class="text-xs text-base-content/70">
+                  Deadline: {new Date(grant_application.grant_competition.deadline).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                  })}
+                </div>
+              </div>
+            </div>
+          {/if}
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <div class="text-sm font-medium mb-1">Created</div>

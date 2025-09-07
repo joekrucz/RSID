@@ -158,6 +158,14 @@
                     </div>
                   {/if}
                   
+                  {#if application.grant_competition}
+                    <div class="text-xs text-base-content/70 mb-2">
+                      <a href={`/grant_competitions/${application.grant_competition.id}`} class="link link-primary">
+                        {application.grant_competition.grant_name}
+                      </a>
+                    </div>
+                  {/if}
+                  
                   <div class="text-xs text-base-content/50 mb-2 line-clamp-2">
                     {application.description}
                   </div>
