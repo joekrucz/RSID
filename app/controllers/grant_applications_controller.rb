@@ -194,9 +194,14 @@ class GrantApplicationsController < ApplicationController
             id: app.company.id,
             name: app.company.name
           } : nil,
-          company_id: app.company_id
+          company_id: app.company_id,
+          raw_company_id: app.read_attribute(:company_id)
         }
-      end
+      end,
+      # Additional debug info
+      all_companies: Company.all.map { |c| { id: c.id, name: c.name } },
+      applications_with_company_id: applications.select { |app| app.company_id.present? }.count,
+      applications_without_company_id: applications.select { |app| app.company_id.nil? }.count
     }
     
     render json: debug_info
