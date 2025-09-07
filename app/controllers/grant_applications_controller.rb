@@ -180,6 +180,72 @@ class GrantApplicationsController < ApplicationController
     }
   end
 
+  def add_massive_demo_data
+    # Endpoint to add 50 more companies and 50 more applications
+    user = User.first
+    
+    # Create 50 new companies
+    company_names = [
+      'Quantum Computing Corp', 'Neural Networks Inc', 'Blockchain Solutions Ltd', 'Robotics Dynamics', 'Green Energy Systems',
+      'Data Analytics Pro', 'Cloud Infrastructure Co', 'Mobile App Innovations', 'AI Healthcare Solutions', 'FinTech Revolution',
+      'Space Technology Ltd', 'Biotech Research Group', 'Cyber Security Experts', 'IoT Development Co', 'Machine Learning Labs',
+      'Virtual Reality Studios', 'Augmented Reality Tech', 'Edge Computing Solutions', '5G Network Systems', 'Smart City Technologies',
+      'Autonomous Vehicles Inc', 'Drone Technology Corp', 'Renewable Energy Co', 'Carbon Capture Systems', 'Water Purification Tech',
+      'Food Security Solutions', 'Agricultural Automation', 'Precision Medicine Labs', 'Gene Therapy Research', 'Drug Discovery Systems',
+      'Wearable Technology Co', 'Smart Home Solutions', 'Digital Twin Systems', 'Predictive Analytics Inc', 'Real-time Processing Co',
+      'Distributed Computing Ltd', 'Microservices Architecture', 'API Gateway Solutions', 'Database Optimization Co', 'Cache Management Systems',
+      'Load Balancing Tech', 'Container Orchestration', 'Serverless Computing Co', 'Event Streaming Systems', 'Message Queue Solutions',
+      'Search Engine Optimization', 'Content Delivery Networks', 'CDN Acceleration Co', 'Web Performance Labs', 'User Experience Design'
+    ]
+
+    created_companies = []
+    company_names.each do |name|
+      company = Company.create!(
+        name: name,
+        website: "https://#{name.downcase.gsub(/\s+/, '')}.com",
+        notes: "Demo company for #{name}"
+      )
+      created_companies << company
+    end
+
+    # Create 50 new grant applications linked to random companies
+    all_companies = Company.all
+    application_titles = [
+      'Quantum Algorithm Development', 'Neural Network Optimization', 'Blockchain Security Protocol', 'Robotic Process Automation', 'Green Energy Storage',
+      'Big Data Analytics Platform', 'Cloud Migration Strategy', 'Mobile Payment System', 'AI Diagnostic Tools', 'Digital Banking Solutions',
+      'Satellite Communication Tech', 'Gene Editing Research', 'Network Security Framework', 'Smart Sensor Networks', 'Deep Learning Models',
+      'VR Training Simulations', 'AR Navigation Systems', 'Edge AI Processing', '5G Infrastructure', 'Smart Traffic Management',
+      'Self-Driving Car Software', 'Drone Delivery Network', 'Solar Panel Efficiency', 'Carbon Neutral Technology', 'Water Treatment Systems',
+      'Vertical Farming Solutions', 'Precision Agriculture', 'Personalized Medicine', 'Gene Therapy Delivery', 'Drug Testing Automation',
+      'Health Monitoring Devices', 'Smart Building Controls', 'Digital Twin Platform', 'Predictive Maintenance', 'Real-time Data Processing',
+      'Distributed Database Systems', 'Microservices Architecture', 'API Management Platform', 'Database Performance Tuning', 'Intelligent Caching',
+      'Load Distribution Algorithms', 'Container Management', 'Serverless Functions', 'Event Processing Engine', 'Message Queue Optimization',
+      'Search Algorithm Enhancement', 'Content Distribution', 'CDN Performance', 'Web Speed Optimization', 'UX Research Platform'
+    ]
+
+    created_applications = []
+    application_titles.each do |title|
+      deadline = Time.current + rand(1..90).days
+      application = GrantApplication.create!(
+        user: user,
+        title: title,
+        description: "Advanced research and development project for #{title}",
+        deadline: deadline,
+        stage: GrantApplication.stages.keys.sample,
+        company: all_companies.sample
+      )
+      created_applications << application
+    end
+
+    render json: { 
+      success: true, 
+      created_companies: created_companies.count,
+      created_applications: created_applications.count,
+      total_companies: Company.count,
+      total_applications: GrantApplication.count
+    }
+  end
+
   def debug_data
     # Debug endpoint to see what data is being sent to frontend
     applications = @current_user.grant_applications.includes(:company, :grant_documents).order(created_at: :desc)

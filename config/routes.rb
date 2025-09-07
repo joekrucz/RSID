@@ -60,6 +60,7 @@ Rails.application.routes.draw do
           collection do
             post :link_companies
             post :add_demo_data
+            post :add_massive_demo_data
             get :debug_data
             post :fix_company_links
           end
