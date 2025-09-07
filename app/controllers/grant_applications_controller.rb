@@ -178,6 +178,29 @@ class GrantApplicationsController < ApplicationController
       companies_count: companies.count
     }
   end
+
+  def debug_data
+    # Debug endpoint to see what data is being sent to frontend
+    applications = @current_user.grant_applications.includes(:company, :grant_documents).order(created_at: :desc)
+    
+    debug_info = {
+      user_id: @current_user.id,
+      total_applications: applications.count,
+      applications: applications.map do |app|
+        {
+          id: app.id,
+          title: app.title,
+          company: app.company ? {
+            id: app.company.id,
+            name: app.company.name
+          } : nil,
+          company_id: app.company_id
+        }
+      end
+    }
+    
+    render json: debug_info
+  end
   
   private
   
