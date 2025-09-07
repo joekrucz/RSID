@@ -6,46 +6,21 @@
   import Button from '../../components/forms/Button.svelte';
   import PipelineView from '../../components/PipelineView.svelte';
   
-  let { user, grant_applications, pipeline_data, filters, stats, view_mode = 'list' } = $props();
+  let { user, grant_applications, pipeline_data, filters, stats, pagination, view_mode = 'list' } = $props();
   
   let search = $state(filters.search || '');
   let currentView = $state(view_mode);
+  let currentPage = $state(pagination?.current_page || 1);
+  let perPage = $state(filters.per_page || 25);
   
-  // Filter applications based on search term
+  // Use server-side pagination and search
   let filteredApplications = $state(grant_applications);
   let filteredPipelineData = $state(pipeline_data);
   
+  // Update data when props change
   $effect(() => {
-    if (!search.trim()) {
-      filteredApplications = grant_applications;
-      filteredPipelineData = pipeline_data;
-    } else {
-      const searchTerm = search.toLowerCase();
-      
-      // Filter applications
-      filteredApplications = grant_applications.filter(application => 
-        application.title.toLowerCase().includes(searchTerm) ||
-        application.description.toLowerCase().includes(searchTerm) ||
-        (application.company && application.company.name.toLowerCase().includes(searchTerm))
-      );
-      
-      // Filter pipeline data
-      const filtered = {};
-      Object.entries(pipeline_data).forEach(([stage, data]) => {
-        const filteredApps = data.applications.filter(application => 
-          application.title.toLowerCase().includes(searchTerm) ||
-          application.description.toLowerCase().includes(searchTerm) ||
-          (application.company && application.company.name.toLowerCase().includes(searchTerm))
-        );
-        
-        filtered[stage] = {
-          ...data,
-          applications: filteredApps,
-          count: filteredApps.length
-        };
-      });
-      filteredPipelineData = filtered;
-    }
+    filteredApplications = grant_applications;
+    filteredPipelineData = pipeline_data;
   });
   
   // Check localStorage on mount if no explicit view parameter in URL
@@ -74,6 +49,38 @@
     if (typeof window !== 'undefined') {
       localStorage.setItem('grant_applications_view', view);
     }
+    
+    // Reload with new view
+    loadPage(1);
+  }
+  
+  function loadPage(page) {
+    const params = new URLSearchParams();
+    if (search.trim()) params.set('search', search);
+    if (perPage !== 25) params.set('per_page', perPage);
+    if (currentView !== 'list') params.set('view', currentView);
+    if (page > 1) params.set('page', page);
+    
+    const queryString = params.toString();
+    const url = queryString ? `/grant_applications?${queryString}` : '/grant_applications';
+    
+    router.get(url, {}, {
+      preserveState: true,
+      preserveScroll: true
+    });
+  }
+  
+  function handleSearch() {
+    loadPage(1); // Reset to first page when searching
+  }
+  
+  function handlePerPageChange(newPerPage) {
+    perPage = newPerPage;
+    loadPage(1); // Reset to first page when changing per page
+  }
+  
+  function goToPage(page) {
+    loadPage(page);
   }
   
   function handleSubmit(applicationId) {
@@ -139,6 +146,7 @@
               placeholder="Search applications, companies, or descriptions..."
               class="input input-bordered w-full pl-10"
               bind:value={search}
+              onkeyup={(e) => e.key === 'Enter' && handleSearch()}
             />
             <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-base-content/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -146,28 +154,45 @@
           </div>
         </div>
         
-        <!-- View Toggle -->
-        <div class="flex items-center space-x-2">
-          <span class="text-sm font-medium text-base-content">View:</span>
-          <div class="btn-group">
-            <button 
-              class="btn btn-sm {currentView === 'list' ? 'btn-primary' : 'btn-outline'}"
-              onclick={() => switchView('list')}
+        <!-- View Toggle and Per Page Selector -->
+        <div class="flex items-center space-x-4">
+          <!-- Per Page Selector -->
+          <div class="flex items-center space-x-2">
+            <span class="text-sm font-medium text-base-content">Show:</span>
+            <select 
+              class="select select-bordered select-sm"
+              bind:value={perPage}
+              onchange={() => handlePerPageChange(perPage)}
             >
-              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-              </svg>
-              List
-            </button>
-            <button 
-              class="btn btn-sm {currentView === 'pipeline' ? 'btn-primary' : 'btn-outline'}"
-              onclick={() => switchView('pipeline')}
-            >
-              <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
-              </svg>
-              Pipeline
-            </button>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+          
+          <!-- View Toggle -->
+          <div class="flex items-center space-x-2">
+            <span class="text-sm font-medium text-base-content">View:</span>
+            <div class="btn-group">
+              <button 
+                class="btn btn-sm {currentView === 'list' ? 'btn-primary' : 'btn-outline'}"
+                onclick={() => switchView('list')}
+              >
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                </svg>
+                List
+              </button>
+              <button 
+                class="btn btn-sm {currentView === 'pipeline' ? 'btn-primary' : 'btn-outline'}"
+                onclick={() => switchView('pipeline')}
+              >
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
+                </svg>
+                Pipeline
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -335,6 +360,60 @@
         </div>
       {/if}
       </div>
+      
+      <!-- Pagination Controls (only for list view) -->
+      {#if currentView === 'list' && pagination && pagination.total_pages > 1}
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 bg-base-100 rounded-lg border border-base-300">
+          <!-- Pagination Info -->
+          <div class="text-sm text-base-content/70">
+            Showing {((pagination.current_page - 1) * pagination.per_page) + 1} to {Math.min(pagination.current_page * pagination.per_page, pagination.total_count)} of {pagination.total_count} applications
+          </div>
+          
+          <!-- Pagination Navigation -->
+          <div class="flex items-center space-x-2">
+            <!-- Previous Button -->
+            <button 
+              class="btn btn-sm btn-outline"
+              disabled={!pagination.has_prev_page}
+              onclick={() => goToPage(pagination.current_page - 1)}
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+              Previous
+            </button>
+            
+            <!-- Page Numbers -->
+            <div class="flex items-center space-x-1">
+              {#each Array.from({length: Math.min(5, pagination.total_pages)}, (_, i) => {
+                const startPage = Math.max(1, pagination.current_page - 2);
+                const endPage = Math.min(pagination.total_pages, startPage + 4);
+                const adjustedStartPage = Math.max(1, endPage - 4);
+                return adjustedStartPage + i;
+              }).filter(page => page <= pagination.total_pages) as page}
+                <button 
+                  class="btn btn-sm {page === pagination.current_page ? 'btn-primary' : 'btn-outline'}"
+                  onclick={() => goToPage(page)}
+                >
+                  {page}
+                </button>
+              {/each}
+            </div>
+            
+            <!-- Next Button -->
+            <button 
+              class="btn btn-sm btn-outline"
+              disabled={!pagination.has_next_page}
+              onclick={() => goToPage(pagination.current_page + 1)}
+            >
+              Next
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      {/if}
     {:else}
       <!-- Pipeline View -->
       <PipelineView pipeline_data={filteredPipelineData} />

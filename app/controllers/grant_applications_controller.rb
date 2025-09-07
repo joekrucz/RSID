@@ -7,7 +7,6 @@ class GrantApplicationsController < ApplicationController
     @grant_applications = @current_user.grant_applications.includes(:grant_documents, :company)
                                      .order(created_at: :desc)
     
-    
     # Search functionality
     if params[:search].present?
       search_term = "%#{params[:search]}%"
@@ -16,10 +15,26 @@ class GrantApplicationsController < ApplicationController
       )
     end
     
-    # Group by stage for pipeline view
+    # Pagination
+    per_page = params[:per_page].present? ? params[:per_page].to_i : 25
+    per_page = [25, 50, 100].include?(per_page) ? per_page : 25 # Validate per_page
+    @grant_applications = @grant_applications.page(params[:page]).per(per_page)
+    
+    # Group by stage for pipeline view (using all applications, not paginated)
+    all_applications = @current_user.grant_applications.includes(:grant_documents, :company)
+                                   .order(created_at: :desc)
+    
+    # Apply search to pipeline data too
+    if params[:search].present?
+      search_term = "%#{params[:search]}%"
+      all_applications = all_applications.where(
+        "title ILIKE ? OR description ILIKE ?", search_term, search_term
+      )
+    end
+    
     pipeline_data = {}
     GrantApplication.stages.keys.each do |stage|
-      stage_applications = @grant_applications.where(stage: stage)
+      stage_applications = all_applications.where(stage: stage)
       pipeline_data[stage] = {
         applications: stage_applications.map { |app| grant_application_props(app) },
         count: stage_applications.count,
@@ -32,7 +47,16 @@ class GrantApplicationsController < ApplicationController
       grant_applications: @grant_applications.map { |app| grant_application_props(app) },
       pipeline_data: pipeline_data,
       filters: {
-        search: params[:search]
+        search: params[:search],
+        per_page: per_page
+      },
+      pagination: {
+        current_page: @grant_applications.current_page,
+        total_pages: @grant_applications.total_pages,
+        per_page: per_page,
+        total_count: @grant_applications.total_count,
+        has_next_page: @grant_applications.next_page.present?,
+        has_prev_page: @grant_applications.prev_page.present?
       },
       stats: {
         total: @current_user.grant_applications.count,
