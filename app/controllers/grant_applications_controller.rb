@@ -53,7 +53,8 @@ class GrantApplicationsController < ApplicationController
   
   def new
     render inertia: 'GrantApplications/New', props: {
-      user: user_props
+      user: user_props,
+      companies: Company.all.order(:name).map { |c| company_props(c) }
     }
   end
   
@@ -65,6 +66,7 @@ class GrantApplicationsController < ApplicationController
     else
       render inertia: 'GrantApplications/New', props: {
         user: user_props,
+        companies: Company.all.order(:name).map { |c| company_props(c) },
         errors: @grant_application.errors,
         grant_application: grant_application_params
       }
@@ -114,7 +116,7 @@ class GrantApplicationsController < ApplicationController
       }, status: :unprocessable_entity
     end
   end
-
+  
   def link_companies
     # This is a temporary endpoint to link companies to grant applications
     companies = Company.all

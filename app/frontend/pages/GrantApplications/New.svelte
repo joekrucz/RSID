@@ -4,13 +4,15 @@
   import Layout from '../../components/Layout.svelte';
   import Button from '../../components/forms/Button.svelte';
   import Input from '../../components/forms/Input.svelte';
+  import CompanySelector from '../../components/forms/CompanySelector.svelte';
   
-  let { user, errors = {}, grant_application = {} } = $props();
+  let { user, companies = [], errors = {}, grant_application = {} } = $props();
   
   let title = $state(grant_application.title || '');
   let description = $state(grant_application.description || '');
   let deadlineDate = $state('');
   let deadlineTime = $state('12:00');
+  let selectedCompany = $state(null);
   let loading = $state(false);
   
   function handleSubmit() {
@@ -62,7 +64,8 @@
       grant_application: {
         title: title.trim(),
         description: description.trim(),
-        deadline: deadline.toISOString()
+        deadline: deadline.toISOString(),
+        company_id: selectedCompany?.id || null
       }
     }, {
       onSuccess: () => {
@@ -140,6 +143,19 @@
               {/if}
             </div>
             
+            <!-- Company Selection -->
+            <div class="form-control">
+              <CompanySelector
+                {companies}
+                bind:selectedCompany
+                placeholder="Search for a company to associate with this application..."
+                error={errors.company_id}
+              />
+              <label class="label">
+                <span class="label-text-alt text-base-content/50">Optional: Associate this application with a company</span>
+              </label>
+            </div>
+            
             <!-- Deadline -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="form-control">
@@ -171,19 +187,8 @@
               </div>
             </div>
             
-            <!-- Status Info -->
-            <div class="alert alert-info">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-              </svg>
-              <div>
-                <h3 class="font-medium">Application Status</h3>
-                <div class="text-sm">
-                  New applications are created as <span class="badge badge-neutral">Draft</span> by default. 
-                  You can edit and submit them when ready.
-                </div>
-              </div>
-            </div>
+
+      
             
             <!-- Submit Button -->
             <div class="flex justify-end space-x-4">
