@@ -113,6 +113,30 @@ class GrantApplicationsController < ApplicationController
       }, status: :unprocessable_entity
     end
   end
+
+  def link_companies
+    # This is a temporary endpoint to link companies to grant applications
+    companies = Company.all
+    if companies.empty?
+      render json: { error: "No companies found" }
+      return
+    end
+
+    unlinked_applications = GrantApplication.where(company_id: nil)
+    linked_count = 0
+    
+    unlinked_applications.each do |app|
+      app.update!(company: companies.sample)
+      linked_count += 1
+    end
+
+    render json: { 
+      success: true, 
+      linked_count: linked_count,
+      total_applications: GrantApplication.count,
+      companies_count: companies.count
+    }
+  end
   
   private
   

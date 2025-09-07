@@ -57,6 +57,9 @@ Rails.application.routes.draw do
           member do
             patch :change_stage
           end
+          collection do
+            post :link_companies
+          end
           resources :grant_checklist_items, only: [:create, :update]
         end
          
