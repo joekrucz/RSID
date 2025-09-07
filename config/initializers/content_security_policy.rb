@@ -41,14 +41,9 @@ Rails.application.configure do
   end
 
   # Generate session nonces for permitted importmap, inline scripts, and inline styles.
-  # Disable nonces in production to allow unsafe_inline to work
-  if Rails.env.production?
-    config.content_security_policy_nonce_generator = nil
-    config.content_security_policy_nonce_directives = []
-  else
-    config.content_security_policy_nonce_generator = ->(request) { request.session.id.to_s }
-    config.content_security_policy_nonce_directives = %w(script-src style-src)
-  end
+  # Disable nonces in both development and production to allow unsafe_inline to work
+  config.content_security_policy_nonce_generator = nil
+  config.content_security_policy_nonce_directives = []
 
   # Report violations without enforcing the policy.
   # config.content_security_policy_report_only = true
