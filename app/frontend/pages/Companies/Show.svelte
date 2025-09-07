@@ -42,7 +42,6 @@
                 <tr>
                   <th>Title</th>
                   <th>Stage</th>
-                  <th>Status</th>
                   <th>Deadline</th>
                   <th>Created</th>
                   <th>Actions</th>
@@ -70,9 +69,6 @@
                       {#if application.overdue}
                         <div class="badge badge-error badge-sm mt-1">Overdue</div>
                       {/if}
-                    </td>
-                    <td>
-                      <div class="badge badge-neutral">{application.status}</div>
                     </td>
                     <td>
                       <div class="text-sm">

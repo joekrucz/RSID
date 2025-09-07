@@ -38,8 +38,6 @@ class DashboardController < ApplicationController
       overdue_todos: @current_user.todos.where('due_date < ? AND completed = ?', Date.current, false).count,
       storage_used: @current_user.file_items.sum(:file_size) || 0,
       grant_applications: @current_user.grant_applications.count,
-      grant_applications_draft: @current_user.grant_applications.by_status('draft').count,
-      grant_applications_submitted: @current_user.grant_applications.by_status('submitted').count,
       grant_applications_overdue: @current_user.grant_applications.overdue.count,
       rnd_projects: get_accessible_rnd_projects.count,
       rnd_projects_draft: get_accessible_rnd_projects.by_status('draft').count,
@@ -191,8 +189,6 @@ class DashboardController < ApplicationController
     {
       id: application.id,
       title: application.title,
-      status: application.status,
-      status_color: grant_application_status_color(application.status),
       deadline: format_date(application.deadline),
       days_until_deadline: application.days_until_deadline,
       overdue: application.overdue?,

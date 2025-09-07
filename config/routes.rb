@@ -55,7 +55,6 @@ Rails.application.routes.draw do
          # Grant Applications (protected)
         resources :grant_applications do
           member do
-            patch :change_status
             patch :change_stage
           end
           resources :grant_checklist_items, only: [:create, :update]

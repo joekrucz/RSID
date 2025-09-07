@@ -31,25 +31,6 @@ module ApplicationHelper
     "#{size.round(1)} #{units[unit_index]}"
   end
   
-  # Status color helpers
-  def grant_application_status_color(status)
-    case status.to_s
-    when 'draft'
-      'badge-neutral'
-    when 'submitted'
-      'badge-info'
-    when 'under_review'
-      'badge-warning'
-    when 'approved'
-      'badge-success'
-    when 'rejected'
-      'badge-error'
-    when 'completed'
-      'badge-success'
-    else
-      'badge-neutral'
-    end
-  end
 
   def grant_stage_badge_class(stage)
     case stage.to_s
@@ -108,10 +89,6 @@ module ApplicationHelper
     end
   end
   
-  # Status display name helpers
-  def grant_application_status_display(status)
-    status.to_s.replace('_', ' ').titleize
-  end
   
   def rnd_project_status_display(status)
     status.to_s.replace('_', ' ').titleize

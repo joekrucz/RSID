@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_07_165708) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_07_185226) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -75,7 +75,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_165708) do
   create_table "grant_applications", force: :cascade do |t|
     t.string "title"
     t.text "description"
-    t.integer "status"
     t.datetime "deadline"
     t.integer "user_id", null: false
     t.datetime "created_at", null: false
@@ -85,7 +84,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_165708) do
     t.index ["company_id"], name: "index_grant_applications_on_company_id"
     t.index ["created_at"], name: "index_grant_applications_on_created_at"
     t.index ["deadline"], name: "index_grant_applications_on_deadline"
-    t.index ["status"], name: "index_grant_applications_on_status"
     t.index ["title"], name: "index_grant_applications_on_title"
     t.index ["user_id"], name: "index_grant_applications_on_user_id"
   end

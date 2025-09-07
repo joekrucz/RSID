@@ -73,7 +73,7 @@ class InspectorController < ApplicationController
       },
       grant_applications: {
         total: GrantApplication.count,
-        by_status: GrantApplication.group(:status).count
+        by_stage: GrantApplication.group(:stage).count
       },
       messages: {
         total: Message.count

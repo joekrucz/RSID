@@ -10,7 +10,6 @@
   let { user, grant_applications, pipeline_data, filters, stats, view_mode = 'list' } = $props();
   
   let search = $state(filters.search || '');
-  let statusFilter = $state(filters.status || '');
   let showFilters = $state(false);
   let currentView = $state(view_mode);
   
@@ -23,7 +22,6 @@
         // Update the URL to reflect the saved preference
         router.get('/grant_applications', { 
           search: search || undefined,
-          status: statusFilter || undefined,
           view: currentView
         }, {
           preserveState: true,
@@ -37,7 +35,6 @@
   function handleSearch() {
     router.get('/grant_applications', { 
       search: search || undefined,
-      status: statusFilter || undefined,
       view: currentView
     }, {
       preserveState: true,
@@ -55,7 +52,6 @@
     
     router.get('/grant_applications', { 
       search: search || undefined,
-      status: statusFilter || undefined,
       view: currentView
     }, {
       preserveState: true,
@@ -65,7 +61,6 @@
   
   function clearFilters() {
     search = '';
-    statusFilter = '';
     router.get('/grant_applications', {}, {
       preserveState: true,
       preserveScroll: true
@@ -160,31 +155,6 @@
         </div>
         
         <div class="stat bg-base-100 shadow rounded-lg">
-          <div class="stat-title">Draft</div>
-          <div class="stat-value text-neutral">{stats.draft}</div>
-        </div>
-        
-        <div class="stat bg-base-100 shadow rounded-lg">
-          <div class="stat-title">Submitted</div>
-          <div class="stat-value text-info">{stats.submitted}</div>
-        </div>
-        
-        <div class="stat bg-base-100 shadow rounded-lg">
-          <div class="stat-title">Under Review</div>
-          <div class="stat-value text-warning">{stats.under_review}</div>
-        </div>
-        
-        <div class="stat bg-base-100 shadow rounded-lg">
-          <div class="stat-title">Approved</div>
-          <div class="stat-value text-success">{stats.approved}</div>
-        </div>
-        
-        <div class="stat bg-base-100 shadow rounded-lg">
-          <div class="stat-title">Rejected</div>
-          <div class="stat-value text-error">{stats.rejected}</div>
-        </div>
-        
-        <div class="stat bg-base-100 shadow rounded-lg">
           <div class="stat-title">Overdue</div>
           <div class="stat-value text-error">{stats.overdue}</div>
         </div>
@@ -218,23 +188,6 @@
             />
           </div>
           
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Status</span>
-            </label>
-            <Select
-              bind:value={statusFilter}
-              options={[
-                { value: '', label: 'All Statuses' },
-                { value: 'draft', label: 'Draft' },
-                { value: 'submitted', label: 'Submitted' },
-                { value: 'under_review', label: 'Under Review' },
-                { value: 'approved', label: 'Approved' },
-                { value: 'rejected', label: 'Rejected' },
-                { value: 'completed', label: 'Completed' }
-              ]}
-            />
-          </div>
           
           <div class="form-control">
             <label class="label">

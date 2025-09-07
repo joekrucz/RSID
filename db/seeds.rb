@@ -88,8 +88,6 @@ if User.exists?(1)
     GrantApplication.find_or_create_by!(user: user, title: s[:title]) do |ga|
       ga.description = s[:description]
       ga.deadline = deadline
-      # Ensure first 3 applications are draft status so edit button is visible
-      ga.status = i < 3 ? 'draft' : GrantApplication.statuses.keys.sample
       ga.stage = GrantApplication.stages.keys.sample if GrantApplication.respond_to?(:stages)
       # Assign a random company to each application
       ga.company = companies.sample if companies.any?

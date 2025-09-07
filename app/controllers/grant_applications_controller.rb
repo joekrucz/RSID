@@ -1,15 +1,11 @@
 class GrantApplicationsController < ApplicationController
   before_action :require_login
-  before_action :set_grant_application, only: [:show, :edit, :update, :destroy, :change_status, :change_stage]
+  before_action :set_grant_application, only: [:show, :edit, :update, :destroy, :change_stage]
   
   def index
     @grant_applications = @current_user.grant_applications.includes(:grant_documents, :company)
                                      .order(created_at: :desc)
     
-    # Filter by status if provided
-    if params[:status].present?
-      @grant_applications = @grant_applications.by_status(params[:status])
-    end
     
     # Search functionality
     if params[:search].present?
@@ -35,16 +31,10 @@ class GrantApplicationsController < ApplicationController
       grant_applications: @grant_applications.map { |app| grant_application_props(app) },
       pipeline_data: pipeline_data,
       filters: {
-        status: params[:status],
         search: params[:search]
       },
       stats: {
         total: @current_user.grant_applications.count,
-        draft: @current_user.grant_applications.by_status('draft').count,
-        submitted: @current_user.grant_applications.by_status('submitted').count,
-        under_review: @current_user.grant_applications.by_status('under_review').count,
-        approved: @current_user.grant_applications.by_status('approved').count,
-        rejected: @current_user.grant_applications.by_status('rejected').count,
         overdue: @current_user.grant_applications.overdue.count
       },
       view_mode: params[:view] || 'list'
@@ -106,15 +96,6 @@ class GrantApplicationsController < ApplicationController
   end
   
   
-  def change_status
-    new_status = params[:status]
-    if GrantApplication.statuses.key?(new_status)
-      @grant_application.update(status: new_status)
-      redirect_to grant_applications_path, notice: "Status updated to #{new_status.humanize}!"
-    else
-      redirect_to grant_applications_path, alert: 'Invalid status.'
-    end
-  end
 
   def change_stage
     new_stage = params[:stage]
@@ -140,7 +121,7 @@ class GrantApplicationsController < ApplicationController
   end
   
   def grant_application_params
-    params.require(:grant_application).permit(:title, :description, :deadline, :status, :stage, :company_id)
+    params.require(:grant_application).permit(:title, :description, :deadline, :stage, :company_id)
   end
   
   def grant_application_props(application)
@@ -148,8 +129,6 @@ class GrantApplicationsController < ApplicationController
       id: application.id,
       title: application.title,
       description: application.description,
-      status: application.status,
-      status_color: grant_application_status_color(application.status),
       stage: application.stage,
       stage_badge_class: view_context.grant_stage_badge_class(application.stage),
       deadline: application.deadline&.strftime("%B %d, %Y at %I:%M %p"),

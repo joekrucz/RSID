@@ -369,7 +369,6 @@
                       <div>
                         <div class="font-medium">{application.title}</div>
                         <div class="text-sm text-base-content/70">
-                          <span class="badge {application.status_color} mr-2">{application.status}</span>
                           {#if application.deadline}
                             <span class="text-xs">Deadline: {application.deadline}</span>
                           {/if}

@@ -74,9 +74,6 @@
     router.visit('/grant_applications');
   }
   
-  function getStatusDisplayName(status) {
-    return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-  }
   
   function formatDeadline(deadline) {
     if (!deadline) return 'No deadline set';

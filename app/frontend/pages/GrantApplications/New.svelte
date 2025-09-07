@@ -62,8 +62,7 @@
       grant_application: {
         title: title.trim(),
         description: description.trim(),
-        deadline: deadline.toISOString(),
-        status: 'draft'
+        deadline: deadline.toISOString()
       }
     }, {
       onSuccess: () => {

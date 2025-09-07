@@ -3,20 +3,17 @@
 one:
   title: "Test Grant Application One"
   description: "This is a test grant application description"
-  status: 1
   deadline: <%= 1.month.from_now %>
   user: admin_user
 
 two:
   title: "Test Grant Application Two"
   description: "This is another test grant application description"
-  status: 0
   deadline: <%= 2.months.from_now %>
   user: admin_user
 
 client_application:
   title: "Client Grant Application"
   description: "This is a grant application created by a client"
-  status: 2
   deadline: <%= 3.months.from_now %>
   user: client_user
