@@ -9,10 +9,18 @@ class GrantApplicationsController < ApplicationController
     
     # Search functionality
     if params[:search].present?
-      search_term = "%#{params[:search].upcase}%"
-      @grant_applications = @grant_applications.where(
-        "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term, search_term
-      )
+      search_term = "%#{params[:search]}%"
+      if ActiveRecord::Base.connection.adapter_name.downcase == 'postgresql'
+        @grant_applications = @grant_applications.where(
+          "title ILIKE ? OR description ILIKE ?", search_term, search_term
+        )
+      else
+        # SQLite3 and other databases
+        search_term_upcase = "%#{params[:search].upcase}%"
+        @grant_applications = @grant_applications.where(
+          "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term_upcase, search_term_upcase
+        )
+      end
     end
     
     # Pagination
@@ -27,10 +35,18 @@ class GrantApplicationsController < ApplicationController
     # Get total count for pagination info
     total_count = @current_user.grant_applications.count
     if params[:search].present?
-      search_term = "%#{params[:search].upcase}%"
-      total_count = @current_user.grant_applications.where(
-        "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term, search_term
-      ).count
+      search_term = "%#{params[:search]}%"
+      if ActiveRecord::Base.connection.adapter_name.downcase == 'postgresql'
+        total_count = @current_user.grant_applications.where(
+          "title ILIKE ? OR description ILIKE ?", search_term, search_term
+        ).count
+      else
+        # SQLite3 and other databases
+        search_term_upcase = "%#{params[:search].upcase}%"
+        total_count = @current_user.grant_applications.where(
+          "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term_upcase, search_term_upcase
+        ).count
+      end
     end
     
     # Group by stage for pipeline view (using all applications, not paginated)
@@ -39,10 +55,18 @@ class GrantApplicationsController < ApplicationController
     
     # Apply search to pipeline data too
     if params[:search].present?
-      search_term = "%#{params[:search].upcase}%"
-      all_applications = all_applications.where(
-        "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term, search_term
-      )
+      search_term = "%#{params[:search]}%"
+      if ActiveRecord::Base.connection.adapter_name.downcase == 'postgresql'
+        all_applications = all_applications.where(
+          "title ILIKE ? OR description ILIKE ?", search_term, search_term
+        )
+      else
+        # SQLite3 and other databases
+        search_term_upcase = "%#{params[:search].upcase}%"
+        all_applications = all_applications.where(
+          "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term_upcase, search_term_upcase
+        )
+      end
     end
     
     pipeline_data = {}
