@@ -100,7 +100,9 @@
 </script>
 
 <Layout {user}>
-    <div class="max-w-7xl mx-auto">
+  <div class="max-w-7xl mx-auto">
+    <!-- Sticky Header Section -->
+    <div class="sticky top-16 z-10 bg-base-200/95 backdrop-blur-sm border-b border-base-300 pb-4">
       <!-- Header -->
       <div class="mb-6">
         <Button variant="secondary" onclick={goBack} class="mb-4">
@@ -158,8 +160,9 @@
         {/if}
       </div>
       {/key}
-      
-      <!-- Application Details (full width to match checklist) -->
+    </div>
+    
+    <!-- Application Details (full width to match checklist) -->
       <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6 mt-6">
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-semibold text-base-content">Application Details</h2>
