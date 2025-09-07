@@ -38,15 +38,6 @@
           <ul class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
             {#if user}
               <li><button onclick={() => navigateTo('/dashboard')} class:active={isActive('dashboard')}>Dashboard</button></li>
-              <li><button onclick={() => navigateTo('/search')} class:active={isActive('search')}>🔍 Search</button></li>
-              <li><button onclick={() => navigateTo('/notes')} class:active={isActive('notes')}>Notes</button></li>
-              <li><button onclick={() => navigateTo('/todos')} class:active={isActive('todos')}>Todo List</button></li>
-              <li><button onclick={() => navigateTo('/file_items')} class:active={isActive('files')}>Files</button></li>
-              
-              <!-- Employee/Admin only features -->
-              {#if user.isEmployee || user.isAdmin}
-                <li><button onclick={() => navigateTo('/messages')} class:active={isActive('messages')}>Messages</button></li>
-              {/if}
               
               <li><button onclick={() => navigateTo('/grant_applications')} class:active={isActive('grant_applications')}>Grant Applications</button></li>
               <li><button onclick={() => navigateTo('/companies')} class:active={isActive('companies')}>Companies</button></li>
