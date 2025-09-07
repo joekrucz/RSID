@@ -216,6 +216,7 @@
             <thead>
               <tr>
                 <th>Title</th>
+                <th>Company</th>
                 <th>Stage</th>
                 <th>Deadline</th>
                 <th>Documents</th>
@@ -242,6 +243,17 @@
                         </div>
                       </div>
                     </div>
+                  </td>
+                  <td>
+                    {#if application.company}
+                      <div class="text-sm font-medium">
+                        {application.company.name}
+                      </div>
+                    {:else}
+                      <div class="text-sm opacity-50">
+                        No company
+                      </div>
+                    {/if}
                   </td>
                   <td>
                     <div class={`badge ${application.stage_badge_class || 'badge-neutral'}`} title={displayLabel(application.stage)}>
