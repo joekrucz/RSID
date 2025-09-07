@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_07_185226) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_07_212633) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -81,9 +81,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_185226) do
     t.datetime "updated_at", null: false
     t.integer "stage"
     t.integer "company_id"
+    t.integer "grant_competition_id"
     t.index ["company_id"], name: "index_grant_applications_on_company_id"
     t.index ["created_at"], name: "index_grant_applications_on_created_at"
     t.index ["deadline"], name: "index_grant_applications_on_deadline"
+    t.index ["grant_competition_id"], name: "index_grant_applications_on_grant_competition_id"
     t.index ["title"], name: "index_grant_applications_on_title"
     t.index ["user_id"], name: "index_grant_applications_on_user_id"
   end
@@ -101,6 +103,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_185226) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["grant_application_id"], name: "index_grant_checklist_items_on_grant_application_id"
+  end
+
+  create_table "grant_competitions", force: :cascade do |t|
+    t.string "grant_name"
+    t.datetime "deadline"
+    t.string "funding_body"
+    t.string "competition_link"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "grant_documents", force: :cascade do |t|
@@ -240,6 +251,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_185226) do
   add_foreign_key "clients", "users", column: "employee_id"
   add_foreign_key "file_items", "users"
   add_foreign_key "grant_applications", "companies"
+  add_foreign_key "grant_applications", "grant_competitions"
   add_foreign_key "grant_applications", "users"
   add_foreign_key "grant_checklist_items", "grant_applications"
   add_foreign_key "grant_documents", "grant_applications"

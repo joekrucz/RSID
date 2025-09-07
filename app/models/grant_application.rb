@@ -1,6 +1,7 @@
 class GrantApplication < ApplicationRecord
   belongs_to :user
   belongs_to :company, optional: true
+  belongs_to :grant_competition, optional: true
   has_many :grant_documents, dependent: :destroy
   has_many :grant_checklist_items, dependent: :destroy
   

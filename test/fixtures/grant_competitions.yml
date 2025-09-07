@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  grant_name: MyString
+  deadline: 2025-09-07 22:26:30
+  funding_body: MyString
+  competition_link: MyString
+
+two:
+  grant_name: MyString
+  deadline: 2025-09-07 22:26:30
+  funding_body: MyString
+  competition_link: MyString

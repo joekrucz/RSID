@@ -174,6 +174,81 @@ end
 
 puts 'Seeded sample companies.'
 
+# Create grant competitions for demo
+if User.exists?(1)
+  user = User.find(1)
+  puts 'Creating grant competitions...'
+  
+  # Create 20 grant competitions
+  competitions = []
+  funding_bodies = [
+    'Innovate UK',
+    'UK Research and Innovation (UKRI)',
+    'Department for Business, Energy & Industrial Strategy',
+    'National Institute for Health Research',
+    'Engineering and Physical Sciences Research Council',
+    'Biotechnology and Biological Sciences Research Council',
+    'Economic and Social Research Council',
+    'Arts and Humanities Research Council',
+    'Medical Research Council',
+    'Natural Environment Research Council',
+    'Science and Technology Facilities Council',
+    'Department for Education',
+    'Department for Transport',
+    'Department for Environment, Food and Rural Affairs',
+    'Department of Health and Social Care',
+    'Ministry of Defence',
+    'Department for Digital, Culture, Media and Sport',
+    'Department for International Trade',
+    'Department for Levelling Up, Housing and Communities',
+    'Department for Work and Pensions'
+  ]
+  
+  grant_types = [
+    'Innovation Grant',
+    'Research and Development Grant',
+    'Technology Transfer Grant',
+    'Collaborative Research Grant',
+    'Feasibility Study Grant',
+    'Proof of Concept Grant',
+    'Scale-up Grant',
+    'International Collaboration Grant',
+    'SME Innovation Grant',
+    'Academic Research Grant',
+    'Industrial Research Grant',
+    'Technology Innovation Grant',
+    'Digital Transformation Grant',
+    'Sustainability Innovation Grant',
+    'Healthcare Innovation Grant',
+    'Education Technology Grant',
+    'Clean Energy Grant',
+    'Advanced Manufacturing Grant',
+    'Artificial Intelligence Grant',
+    'Cybersecurity Innovation Grant'
+  ]
+  
+  (1..20).each do |i|
+    competition = GrantCompetition.find_or_create_by!(
+      grant_name: "#{grant_types.sample} #{i}"
+    ) do |comp|
+      comp.funding_body = funding_bodies.sample
+      comp.deadline = rand(30..365).days.from_now
+      comp.competition_link = "https://example.com/competition/#{i}"
+    end
+    competitions << competition
+  end
+
+  puts "Created #{competitions.length} grant competitions"
+  
+  # Link all existing grant applications to competitions
+  GrantApplication.where(grant_competition_id: nil).find_each do |app|
+    app.update!(grant_competition: competitions.sample)
+  end
+
+  puts "Linked all existing grant applications to competitions"
+  puts "Total competitions: #{GrantCompetition.count}"
+end
+
 # Add 100 additional companies and applications for comprehensive demo data
 if User.exists?(1)
   user = User.find(1)
@@ -250,6 +325,7 @@ if User.exists?(1)
       app.deadline = deadline
       app.stage = GrantApplication.stages.keys.sample
       app.company = company
+      app.grant_competition = GrantCompetition.all.sample
     end
     created_applications << application
   end

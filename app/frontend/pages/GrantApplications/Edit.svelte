@@ -4,14 +4,17 @@
   import Layout from '../../components/Layout.svelte';
   import Button from '../../components/forms/Button.svelte';
   import Input from '../../components/forms/Input.svelte';
+  import CompanySelector from '../../components/forms/CompanySelector.svelte';
+  import CompetitionSelector from '../../components/forms/CompetitionSelector.svelte';
   
-  let { user, grant_application, companies = [], errors = {} } = $props();
+  let { user, grant_application, companies = [], competitions = [], errors = {} } = $props();
   
   let title = $state(grant_application.title || '');
   let description = $state(grant_application.description || '');
   let deadlineDate = $state(grant_application.deadline_date || '');
   let deadlineTime = $state(grant_application.deadline_time || '12:00');
-  let companyId = $state(grant_application.company?.id || '');
+  let selectedCompany = $state(grant_application.company || null);
+  let selectedCompetition = $state(grant_application.grant_competition || null);
   let loading = $state(false);
   
   function handleSubmit() {
@@ -28,7 +31,8 @@
         title: title.trim(),
         description: description.trim(),
         deadline: deadline.toISOString(),
-        company_id: companyId || null
+        company_id: selectedCompany?.id || null,
+        grant_competition_id: selectedCompetition?.id || null
       }
     }, {
       onSuccess: () => {
@@ -121,22 +125,30 @@
               </div>
             </div>
             
-            <!-- Company -->
+            <!-- Company Selection -->
             <div class="form-control">
+              <CompanySelector
+                {companies}
+                bind:selectedCompany
+                placeholder="Search for a company to associate with this application..."
+                error={errors.company_id}
+              />
               <label class="label">
-                <span class="label-text">Company</span>
+                <span class="label-text-alt text-base-content/50">Optional: Associate this application with a company</span>
               </label>
-              <select class="select select-bordered w-full" bind:value={companyId}>
-                <option value="">Select a company (optional)</option>
-                {#each companies as company}
-                  <option value={company.id}>{company.name}</option>
-                {/each}
-              </select>
-              {#if errors.company_id}
-                <label class="label">
-                  <span class="label-text-alt text-error">{errors.company_id}</span>
-                </label>
-              {/if}
+            </div>
+            
+            <!-- Competition Selection -->
+            <div class="form-control">
+              <CompetitionSelector
+                {competitions}
+                bind:selectedCompetition
+                placeholder="Search for a grant competition to associate with this application..."
+                error={errors.grant_competition_id}
+              />
+              <label class="label">
+                <span class="label-text-alt text-base-content/50">Optional: Associate this application with a grant competition</span>
+              </label>
             </div>
             
             

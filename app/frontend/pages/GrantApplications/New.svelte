@@ -5,14 +5,16 @@
   import Button from '../../components/forms/Button.svelte';
   import Input from '../../components/forms/Input.svelte';
   import CompanySelector from '../../components/forms/CompanySelector.svelte';
+  import CompetitionSelector from '../../components/forms/CompetitionSelector.svelte';
   
-  let { user, companies = [], errors = {}, grant_application = {} } = $props();
+  let { user, companies = [], competitions = [], errors = {}, grant_application = {} } = $props();
   
   let title = $state(grant_application.title || '');
   let description = $state(grant_application.description || '');
   let deadlineDate = $state('');
   let deadlineTime = $state('12:00');
   let selectedCompany = $state(null);
+  let selectedCompetition = $state(null);
   let loading = $state(false);
   
   function handleSubmit() {
@@ -65,7 +67,8 @@
         title: title.trim(),
         description: description.trim(),
         deadline: deadline.toISOString(),
-        company_id: selectedCompany?.id || null
+        company_id: selectedCompany?.id || null,
+        grant_competition_id: selectedCompetition?.id || null
       }
     }, {
       onSuccess: () => {
@@ -153,6 +156,19 @@
               />
               <label class="label">
                 <span class="label-text-alt text-base-content/50">Optional: Associate this application with a company</span>
+              </label>
+            </div>
+            
+            <!-- Competition Selection -->
+            <div class="form-control">
+              <CompetitionSelector
+                {competitions}
+                bind:selectedCompetition
+                placeholder="Search for a grant competition to associate with this application..."
+                error={errors.grant_competition_id}
+              />
+              <label class="label">
+                <span class="label-text-alt text-base-content/50">Optional: Associate this application with a grant competition</span>
               </label>
             </div>
             

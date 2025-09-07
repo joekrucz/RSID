@@ -11,9 +11,9 @@ class GrantApplicationsController < ApplicationController
     if params[:search].present?
       search_term = "%#{params[:search]}%"
       if ActiveRecord::Base.connection.adapter_name.downcase == 'postgresql'
-        @grant_applications = @grant_applications.where(
-          "title ILIKE ? OR description ILIKE ?", search_term, search_term
-        )
+      @grant_applications = @grant_applications.where(
+        "title ILIKE ? OR description ILIKE ?", search_term, search_term
+      )
       else
         # SQLite3 and other databases
         search_term_upcase = "%#{params[:search].upcase}%"
@@ -115,7 +115,8 @@ class GrantApplicationsController < ApplicationController
   def new
     render inertia: 'GrantApplications/New', props: {
       user: user_props,
-      companies: Company.all.order(:name).map { |c| company_props(c) }
+      companies: Company.all.order(:name).map { |c| company_props(c) },
+      competitions: GrantCompetition.all.order(:deadline).map { |c| competition_props(c) }
     }
   end
   
@@ -128,6 +129,7 @@ class GrantApplicationsController < ApplicationController
       render inertia: 'GrantApplications/New', props: {
         user: user_props,
         companies: Company.all.order(:name).map { |c| company_props(c) },
+        competitions: GrantCompetition.all.order(:deadline).map { |c| competition_props(c) },
         errors: @grant_application.errors,
         grant_application: grant_application_params
       }
@@ -138,7 +140,8 @@ class GrantApplicationsController < ApplicationController
     render inertia: 'GrantApplications/Edit', props: {
       user: user_props,
       grant_application: grant_application_props(@grant_application),
-      companies: Company.all.order(:name).map { |c| company_props(c) }
+      companies: Company.all.order(:name).map { |c| company_props(c) },
+      competitions: GrantCompetition.all.order(:deadline).map { |c| competition_props(c) }
     }
   end
   
@@ -379,7 +382,7 @@ class GrantApplicationsController < ApplicationController
   end
   
   def grant_application_params
-    params.require(:grant_application).permit(:title, :description, :deadline, :stage, :company_id)
+    params.require(:grant_application).permit(:title, :description, :deadline, :stage, :company_id, :grant_competition_id)
   end
   
   def grant_application_props(application)
@@ -399,7 +402,8 @@ class GrantApplicationsController < ApplicationController
       created_at: application.created_at.strftime("%B %d, %Y"),
       updated_at: application.updated_at.strftime("%B %d, %Y"),
       documents_count: application.grant_documents.count,
-      company: application.company ? company_props(application.company) : nil
+      company: application.company ? company_props(application.company) : nil,
+      grant_competition: application.grant_competition ? competition_props(application.grant_competition) : nil
     }
   end
   
@@ -434,6 +438,20 @@ class GrantApplicationsController < ApplicationController
       name: company.name,
       website: company.website,
       notes: company.notes
+    }
+  end
+
+  def competition_props(competition)
+    {
+      id: competition.id,
+      grant_name: competition.grant_name,
+      deadline: competition.deadline,
+      funding_body: competition.funding_body,
+      competition_link: competition.competition_link,
+      status: competition.status,
+      upcoming: competition.upcoming?,
+      past: competition.past?,
+      days_until_deadline: competition.days_until_deadline
     }
   end
 end 
