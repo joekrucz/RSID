@@ -39,11 +39,11 @@ class DashboardController < ApplicationController
       storage_used: @current_user.file_items.sum(:file_size) || 0,
       grant_applications: @current_user.grant_applications.count,
       grant_applications_overdue: @current_user.grant_applications.overdue.count,
-      rnd_projects: get_accessible_rnd_projects.count,
-      rnd_projects_draft: get_accessible_rnd_projects.by_status('draft').count,
-      rnd_projects_active: get_accessible_rnd_projects.by_status('active').count,
-      rnd_projects_completed: get_accessible_rnd_projects.by_status('completed').count,
-      rnd_projects_ready_for_claim: get_accessible_rnd_projects.by_status('ready_for_claim').count
+      rnd_claims: get_accessible_rnd_claims.count,
+      rnd_claims_draft: get_accessible_rnd_claims.by_status('draft').count,
+      rnd_claims_active: get_accessible_rnd_claims.by_status('active').count,
+      rnd_claims_completed: get_accessible_rnd_claims.by_status('completed').count,
+      rnd_claims_ready_for_claim: get_accessible_rnd_claims.by_status('ready_for_claim').count
     }
     
     # Add role-specific stats
@@ -69,7 +69,7 @@ class DashboardController < ApplicationController
       todos: @current_user.todos.recent.limit(5).map { |todo| todo_props(todo) },
       files: @current_user.file_items.recent.limit(3).map { |file| file_props(file) },
       grant_applications: @current_user.grant_applications.order(created_at: :desc).limit(3).map { |app| grant_application_props(app) },
-      rnd_projects: get_accessible_rnd_projects.order(created_at: :desc).limit(3).map { |project| rnd_project_props(project) }
+      rnd_claims: get_accessible_rnd_claims.order(created_at: :desc).limit(3).map { |claim| rnd_claim_props(claim) }
     }
     
     # Add role-specific activity
@@ -196,25 +196,25 @@ class DashboardController < ApplicationController
     }
   end
 
-  def rnd_project_props(project)
+  def rnd_claim_props(claim)
     {
-      id: project.id,
-      title: project.title,
-      status: project.status,
-      status_color: rnd_project_status_color(project.status),
-      total_expenditure: project.total_expenditure,
-      client_name: project.client.name,
-      created_at: format_date(project.created_at)
+      id: claim.id,
+      title: claim.title,
+      status: claim.status,
+      status_color: rnd_claim_status_color(claim.status),
+      total_expenditure: claim.total_expenditure,
+      client_name: claim.company&.name || 'No Company',
+      created_at: format_date(claim.created_at)
     }
   end
 
-  def get_accessible_rnd_projects
+  def get_accessible_rnd_claims
     if @current_user.admin?
-      RndProject.all
+      RndClaim.all
     elsif @current_user.employee?
-      RndProject.all # Employees can see all projects
+      RndClaim.all # Employees can see all claims
     else
-      RndProject.where(client: @current_user) # Clients can only see their own projects
+      RndClaim.where(client: @current_user) # Clients can only see their own claims
     end
   end
 
