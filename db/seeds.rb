@@ -77,7 +77,18 @@ if User.exists?(1)
     { title: 'Urban Mobility Study', description: 'EV charging optimization research', days_from_now: 10 },
     { title: 'Manufacturing Robotics', description: 'Cobots for assembly line improvements', days_from_now: 5 },
     { title: 'FinTech Compliance Engine', description: 'Automated AML/KYC screening MVP', days_from_now: 45 },
-    { title: 'Climate Risk Modelling', description: 'Regional flood risk modelling POC', days_from_now: -5 }
+    { title: 'Climate Risk Modelling', description: 'Regional flood risk modelling POC', days_from_now: -5 },
+    # Additional demo data
+    { title: 'Blockchain Supply Chain', description: 'Transparent supply chain tracking using blockchain', days_from_now: 12 },
+    { title: 'VR Training Platform', description: 'Immersive training for industrial workers', days_from_now: 18 },
+    { title: 'Smart City Analytics', description: 'Data analytics for urban planning optimization', days_from_now: 25 },
+    { title: 'Quantum Computing Research', description: 'Quantum algorithms for optimization problems', days_from_now: 60 },
+    { title: 'Autonomous Vehicle Testing', description: 'Self-driving car safety validation platform', days_from_now: 40 },
+    { title: 'Renewable Energy Storage', description: 'Advanced battery technology for grid storage', days_from_now: 35 },
+    { title: 'Digital Twin Manufacturing', description: 'Virtual replicas for predictive maintenance', days_from_now: 20 },
+    { title: 'AI-Powered Drug Discovery', description: 'Machine learning for pharmaceutical research', days_from_now: 50 },
+    { title: 'Space Technology Innovation', description: 'Satellite communication optimization', days_from_now: 90 },
+    { title: 'Sustainable Agriculture Tech', description: 'Precision farming with IoT sensors', days_from_now: 15 }
   ]
 
   # Get companies for assignment
@@ -122,7 +133,18 @@ sample_companies = [
   { name: 'Stark Industries', website: 'https://stark.example', notes: 'Defense, R&D' },
   { name: 'Wayne Enterprises', website: 'https://wayne.example', notes: 'Diversified' },
   { name: 'Pied Piper', website: 'https://piedpiper.example', notes: 'Compression' },
-  { name: 'Wonka Industries', website: 'https://wonka.example', notes: 'Confectionery' }
+  { name: 'Wonka Industries', website: 'https://wonka.example', notes: 'Confectionery' },
+  # Additional demo companies
+  { name: 'TechNova Solutions', website: 'https://technova.example', notes: 'AI & Machine Learning' },
+  { name: 'GreenTech Innovations', website: 'https://greentech.example', notes: 'Sustainable Technology' },
+  { name: 'Quantum Dynamics', website: 'https://quantum.example', notes: 'Quantum Computing' },
+  { name: 'SpaceX Technologies', website: 'https://spacex.example', notes: 'Aerospace & Space' },
+  { name: 'BioMed Research', website: 'https://biomed.example', notes: 'Medical Research' },
+  { name: 'CyberShield Corp', website: 'https://cybershield.example', notes: 'Cybersecurity' },
+  { name: 'DataFlow Systems', website: 'https://dataflow.example', notes: 'Big Data Analytics' },
+  { name: 'RoboTech Industries', website: 'https://robotech.example', notes: 'Robotics & Automation' },
+  { name: 'CloudScale Inc', website: 'https://cloudscale.example', notes: 'Cloud Infrastructure' },
+  { name: 'FinTech Ventures', website: 'https://fintech.example', notes: 'Financial Technology' }
 ]
 
 sample_companies.each do |c|
