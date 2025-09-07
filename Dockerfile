@@ -45,6 +45,9 @@ COPY . .
 # Precompile bootsnap code for faster boot times
 RUN bundle exec bootsnap precompile app/ lib/
 
+# Build Vite assets for production
+RUN bundle exec vite build
+
 
 
 
