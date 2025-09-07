@@ -219,8 +219,6 @@
                 <th>Company</th>
                 <th>Stage</th>
                 <th>Deadline</th>
-                <th>Documents</th>
-                <th>Created</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -247,7 +245,12 @@
                   <td>
                     {#if application.company}
                       <div class="text-sm font-medium">
-                        {application.company.name}
+                        <a 
+                          href="/companies/{application.company.id}" 
+                          class="link link-primary hover:link-primary-focus"
+                        >
+                          {application.company.name}
+                        </a>
                       </div>
                     {:else}
                       <div class="text-sm opacity-50">
@@ -274,14 +277,6 @@
                         }
                       </div>
                     {/if}
-                  </td>
-                  <td>
-                    <div class="text-sm">
-                      {application.documents_count} document{application.documents_count !== 1 ? 's' : ''}
-                    </div>
-                  </td>
-                  <td>
-                    <div class="text-sm">{application.created_at}</div>
                   </td>
                   <td>
                     <div class="flex items-center space-x-2">
