@@ -118,6 +118,24 @@ if User.exists?(1)
     end
     puts "Successfully linked #{unlinked_applications.count} grant applications to companies!"
   end
+
+  # Ensure ALL grant applications are linked to companies (including newly created ones)
+  all_applications = GrantApplication.all
+  if all_applications.any? && companies.any?
+    unlinked_count = 0
+    all_applications.each do |application|
+      if application.company_id.nil?
+        application.update!(company: companies.sample)
+        puts "  Linked '#{application.title}' to '#{application.company.name}'"
+        unlinked_count += 1
+      end
+    end
+    if unlinked_count > 0
+      puts "Successfully linked #{unlinked_count} additional grant applications to companies!"
+    else
+      puts "All grant applications are already linked to companies."
+    end
+  end
 else
   puts 'No user with id=1 found. Skipping demo grant applications.'
 end
