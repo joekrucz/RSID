@@ -219,7 +219,7 @@
       </div>
       
       <!-- Stats Cards -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 mt-8">
         <div class="stat bg-base-100 shadow rounded-lg">
           <div class="stat-title">Total Claims</div>
           <div class="stat-value text-primary">{stats.total}</div>
