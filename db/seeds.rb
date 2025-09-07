@@ -95,6 +95,18 @@ if User.exists?(1)
   end
 
   puts 'Seeded sample grant applications for demo.'
+  
+  # Link any existing grant applications that don't have companies
+  unlinked_applications = GrantApplication.where(company_id: nil)
+  if unlinked_applications.any? && companies.any?
+    puts "Linking #{unlinked_applications.count} existing grant applications to companies..."
+    unlinked_applications.each do |application|
+      random_company = companies.sample
+      application.update!(company: random_company)
+      puts "  Linked '#{application.title}' to '#{random_company.name}'"
+    end
+    puts "Successfully linked #{unlinked_applications.count} grant applications to companies!"
+  end
 else
   puts 'No user with id=1 found. Skipping demo grant applications.'
 end
