@@ -36,6 +36,7 @@
           </div>
           <ul class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
             {#if user}
+              <li><button onclick={() => navigateTo('/dashboard')} class:active={isActive('dashboard')}>Dashboard</button></li>
               <li><button onclick={() => navigateTo('/grant_applications')} class:active={isActive('grant_applications')}>Grant Applications</button></li>
               <li><button onclick={() => navigateTo('/companies')} class:active={isActive('companies')}>Companies</button></li>
               <li><button onclick={() => navigateTo('/grant_competitions')} class:active={isActive('grant_competitions')}>Grant Competitions</button></li>
@@ -56,7 +57,7 @@
         </div>
         
         <!-- App title -->
-        <button class="btn btn-ghost text-xl ml-2" onclick={() => navigateTo('/grant_applications')}>RSID App</button>
+        <button class="btn btn-ghost text-xl ml-2" onclick={() => navigateTo('/dashboard')}>RSID App</button>
         
         <!-- Debug indicator for admin -->
         {#if user?.isAdmin}
