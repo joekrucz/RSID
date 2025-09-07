@@ -4,14 +4,48 @@
   import { toast } from '../../stores/toast.js';
   import Layout from '../../components/Layout.svelte';
   import Button from '../../components/forms/Button.svelte';
-  import Select from '../../components/forms/Select.svelte';
   import PipelineView from '../../components/PipelineView.svelte';
   
   let { user, grant_applications, pipeline_data, filters, stats, view_mode = 'list' } = $props();
   
   let search = $state(filters.search || '');
-  let showFilters = $state(false);
   let currentView = $state(view_mode);
+  
+  // Filter applications based on search term
+  let filteredApplications = $derived(() => {
+    if (!search.trim()) return grant_applications;
+    
+    const searchTerm = search.toLowerCase();
+    return grant_applications.filter(application => 
+      application.title.toLowerCase().includes(searchTerm) ||
+      application.description.toLowerCase().includes(searchTerm) ||
+      (application.company && application.company.name.toLowerCase().includes(searchTerm))
+    );
+  });
+  
+  // Filter pipeline data based on search term
+  let filteredPipelineData = $derived(() => {
+    if (!search.trim()) return pipeline_data;
+    
+    const searchTerm = search.toLowerCase();
+    const filtered = {};
+    
+    Object.entries(pipeline_data).forEach(([stage, data]) => {
+      const filteredApps = data.applications.filter(application => 
+        application.title.toLowerCase().includes(searchTerm) ||
+        application.description.toLowerCase().includes(searchTerm) ||
+        (application.company && application.company.name.toLowerCase().includes(searchTerm))
+      );
+      
+      filtered[stage] = {
+        ...data,
+        applications: filteredApps,
+        count: filteredApps.length
+      };
+    });
+    
+    return filtered;
+  });
   
   // Check localStorage on mount if no explicit view parameter in URL
   onMount(() => {
@@ -32,16 +66,6 @@
     }
   });
   
-  function handleSearch() {
-    router.get('/grant_applications', { 
-      search: search || undefined,
-      view: currentView
-    }, {
-      preserveState: true,
-      preserveScroll: true
-    });
-  }
-  
   function switchView(view) {
     currentView = view;
     
@@ -49,22 +73,6 @@
     if (typeof window !== 'undefined') {
       localStorage.setItem('grant_applications_view', view);
     }
-    
-    router.get('/grant_applications', { 
-      search: search || undefined,
-      view: currentView
-    }, {
-      preserveState: true,
-      preserveScroll: true
-    });
-  }
-  
-  function clearFilters() {
-    search = '';
-    router.get('/grant_applications', {}, {
-      preserveState: true,
-      preserveScroll: true
-    });
   }
   
   function handleSubmit(applicationId) {
@@ -120,8 +128,24 @@
         </Button>
       </div>
       
-      <!-- View Toggle -->
-      <div class="flex justify-between items-center mb-4">
+      <!-- Search and View Toggle -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+        <!-- Search Bar -->
+        <div class="flex-1 max-w-md">
+          <div class="relative">
+            <input
+              type="text"
+              placeholder="Search applications, companies, or descriptions..."
+              class="input input-bordered w-full pl-10"
+              bind:value={search}
+            />
+            <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-base-content/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+        </div>
+        
+        <!-- View Toggle -->
         <div class="flex items-center space-x-2">
           <span class="text-sm font-medium text-base-content">View:</span>
           <div class="btn-group">
@@ -161,56 +185,11 @@
       </div>
     </div>
     
-    <!-- Filters -->
-    <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6 mb-6">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-base-content">Filters</h3>
-        <button 
-          class="btn btn-ghost btn-sm"
-          onclick={() => showFilters = !showFilters}
-        >
-          {showFilters ? 'Hide' : 'Show'} Filters
-        </button>
-      </div>
-      
-      {#if showFilters}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Search</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Search by title or description..."
-              class="input input-bordered w-full"
-              bind:value={search}
-              onkeyup={(e) => e.key === 'Enter' && handleSearch()}
-            />
-          </div>
-          
-          
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">&nbsp;</span>
-            </label>
-            <div class="flex space-x-2">
-              <Button variant="primary" onclick={handleSearch} class="flex-1">
-                Search
-              </Button>
-              <Button variant="secondary" onclick={clearFilters} class="flex-1">
-                Clear
-              </Button>
-            </div>
-          </div>
-        </div>
-      {/if}
-    </div>
-    
     <!-- Applications Content -->
     {#if currentView === 'list'}
       <!-- List View -->
       <div class="bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden">
-      {#if grant_applications.length > 0}
+      {#if filteredApplications.length > 0}
         <div class="overflow-x-auto">
           <table class="table table-zebra w-full">
             <thead>
@@ -223,7 +202,7 @@
               </tr>
             </thead>
             <tbody>
-              {#each grant_applications as application}
+              {#each filteredApplications as application}
                 <tr class={application.overdue ? 'bg-error/10' : ''}>
                   <td>
                     <div class="flex items-center space-x-3">
@@ -337,19 +316,26 @@
             <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
-            <h3 class="text-lg font-medium text-base-content mb-2">No grant applications yet</h3>
+            <h3 class="text-lg font-medium text-base-content mb-2">
+              {search.trim() ? 'No applications found' : 'No grant applications yet'}
+            </h3>
             <p class="text-base-content/70 mb-6">
-              Get started by creating your first grant application
+              {search.trim() 
+                ? `No applications match "${search}". Try adjusting your search terms.`
+                : 'Get started by creating your first grant application'
+              }
             </p>
-            <Button variant="primary" onclick={() => router.visit('/grant_applications/new')}>
-              Create Your First Application
-            </Button>
+            {#if !search.trim()}
+              <Button variant="primary" onclick={() => router.visit('/grant_applications/new')}>
+                Create Your First Application
+              </Button>
+            {/if}
           </div>
         </div>
       {/if}
       </div>
     {:else}
       <!-- Pipeline View -->
-      <PipelineView {pipeline_data} />
+      <PipelineView pipeline_data={filteredPipelineData} />
     {/if}
 </Layout> 
