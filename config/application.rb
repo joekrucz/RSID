@@ -10,6 +10,9 @@ module BlankCodebase
   class Application < Rails::Application
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 8.0
+    
+    # Fallback for SECRET_KEY_BASE if not set in environment
+    config.secret_key_base = ENV['SECRET_KEY_BASE'] || 'demo_rsid_app_2024_secure_key_for_demonstrations_only_do_not_use_in_production'
 
     # Please, add to the `ignore` list any other `lib` subdirectories that do
     # not contain `.rb` files, or that should not be reloaded or eager loaded.
