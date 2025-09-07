@@ -20,8 +20,8 @@ class User < ApplicationRecord
          # Grant Application associations
          has_many :grant_applications, dependent: :destroy
          
-         # R&D Project associations
-         has_many :rnd_projects, dependent: :destroy
+        # R&D Claim associations
+        has_many :rnd_claims, dependent: :destroy
          
          # Feature flag associations
          has_many :user_feature_accesses, dependent: :destroy

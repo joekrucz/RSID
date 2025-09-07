@@ -35,14 +35,14 @@ class SearchController < ApplicationController
     page = params[:page]&.to_i || 1
     per_page = [params[:per_page]&.to_i || 10, Rails.application.config.x.max_search_results].min
     
-    # Search R&D Projects
-    if should_search?('projects', filters)
-      projects_query = RndProject.search_global(query, @current_user)
-      results[:projects] = projects_query
+    # Search R&D Claims
+    if should_search?('claims', filters)
+      claims_query = RndClaim.search_global(query, @current_user)
+      results[:claims] = claims_query
         .offset((page - 1) * per_page)
         .limit(per_page)
-        .map { |project| PropsBuilderService.rnd_project_props(project) }
-      results[:projects_total] = projects_query.count
+        .map { |claim| PropsBuilderService.rnd_claim_props(claim) }
+      results[:claims_total] = claims_query.count
     end
     
     # Search Notes

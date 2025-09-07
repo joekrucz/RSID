@@ -91,10 +91,10 @@
         <label class="flex items-center gap-2">
           <input
             type="checkbox"
-            bind:checked={searchFilters.projects}
+            bind:checked={searchFilters.claims}
             class="checkbox checkbox-sm"
           />
-          <span class="text-sm">R&D Projects</span>
+          <span class="text-sm">R&D Claims</span>
         </label>
         
         <label class="flex items-center gap-2">
@@ -148,29 +148,28 @@
         </p>
       </div>
       
-      <!-- R&D Projects -->
-      {#if results.projects && results.projects.length > 0}
+      <!-- R&D Claims -->
+      {#if results.claims && results.claims.length > 0}
         <div class="bg-white rounded-lg shadow-sm border p-6 mb-6">
           <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            🔬 R&D Projects ({results.projects.length})
+            🔬 R&D Claims ({results.claims.length})
           </h3>
           <div class="space-y-4">
-            {#each results.projects as project}
+            {#each results.claims as claim}
               <div class="border rounded-lg p-4 hover:bg-gray-50">
                 <div class="flex justify-between items-start">
                   <div class="flex-1">
-                    <h4 class="font-medium text-gray-900">{project.title}</h4>
-                    <p class="text-sm text-gray-600 mt-1">{project.description}</p>
+                    <h4 class="font-medium text-gray-900">{claim.title}</h4>
+                    <p class="text-sm text-gray-600 mt-1">{claim.description}</p>
                     <div class="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                      <span>Client: {project.client.name}</span>
-                      <span>Status: {project.status}</span>
-                      <span>Created: {project.created_at}</span>
+                      <span>Client: {claim.client.name}</span>
+                      <span>Created: {claim.created_at}</span>
                     </div>
                   </div>
                                      <Button 
                      variant="secondary" 
                      size="sm"
-                     onclick={() => router.visit(`/rnd_projects/${project.id}`)}
+                     onclick={() => router.visit(`/rnd_claims/${claim.id}`)}
                    >
                     View
                   </Button>

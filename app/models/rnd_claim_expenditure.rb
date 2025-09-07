@@ -1,5 +1,5 @@
-class RndExpenditure < ApplicationRecord
-  belongs_to :rnd_project
+class RndClaimExpenditure < ApplicationRecord
+  belongs_to :rnd_claim
   
   # Expenditure type enum
   enum :expenditure_type, { 

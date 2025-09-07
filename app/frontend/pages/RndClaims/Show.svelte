@@ -55,24 +55,6 @@
     router.visit(path);
   }
   
-  function getStatusBadgeClass(status) {
-    switch (status) {
-      case 'draft':
-        return 'badge-neutral';
-      case 'active':
-        return 'badge-info';
-      case 'completed':
-        return 'badge-success';
-      case 'ready_for_claim':
-        return 'badge-warning';
-      default:
-        return 'badge-neutral';
-    }
-  }
-  
-  function getStatusDisplayName(status) {
-    return status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
-  }
   
   function getExpenditureTypeDisplayName(type) {
     return type.replace(/\b\w/g, l => l.toUpperCase());
@@ -118,9 +100,6 @@
           </button>
           <div class="flex items-center space-x-4">
             <h1 class="text-3xl font-bold text-base-content">{rnd_claim.title}</h1>
-            <div class="badge {getStatusBadgeClass(rnd_claim.status)} badge-lg">
-              {getStatusDisplayName(rnd_claim.status)}
-            </div>
           </div>
           <p class="text-base-content/70 mt-2">R&D Project for {rnd_claim.company?.name || 'No Company'}</p>
         </div>
@@ -397,18 +376,6 @@
           </div>
         </div>
         
-        <!-- Claim Status -->
-        {#if rnd_claim.can_be_claimed}
-          <div class="alert alert-success">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <div>
-              <h3 class="font-bold">Ready for Claim</h3>
-              <div class="text-sm">This project is ready for R&D tax credit submission.</div>
-            </div>
-          </div>
-        {/if}
       </div>
     </div>
 </Layout> 

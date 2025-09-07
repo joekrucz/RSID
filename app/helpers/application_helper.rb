@@ -61,20 +61,6 @@ module ApplicationHelper
     end
   end
   
-  def rnd_project_status_color(status)
-    case status.to_s
-    when 'draft'
-      'badge-neutral'
-    when 'active'
-      'badge-info'
-    when 'completed'
-      'badge-success'
-    when 'ready_for_claim'
-      'badge-warning'
-    else
-      'badge-neutral'
-    end
-  end
   
   def todo_priority_color(priority)
     case priority.to_s
@@ -90,9 +76,6 @@ module ApplicationHelper
   end
   
   
-  def rnd_project_status_display(status)
-    status.to_s.replace('_', ' ').titleize
-  end
   
   # File type icon helpers
   def file_type_icon(file_type)

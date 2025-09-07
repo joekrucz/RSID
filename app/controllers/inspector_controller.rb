@@ -51,13 +51,12 @@ class InspectorController < ApplicationController
           admins: User.admins.count
         }
       },
-      rnd_projects: {
-        total: RndProject.count,
-        by_status: RndProject.group(:status).count
+      rnd_claims: {
+        total: RndClaim.count
       },
-      rnd_expenditures: {
-        total: RndExpenditure.count,
-        total_amount: RndExpenditure.sum(:amount)
+      rnd_claim_expenditures: {
+        total: RndClaimExpenditure.count,
+        total_amount: RndClaimExpenditure.sum(:amount)
       },
       notes: {
         total: Note.count
@@ -123,7 +122,7 @@ class InspectorController < ApplicationController
       associations_count: {
         notes: user.notes.count,
         todos: user.todos.count,
-        rnd_projects: RndProject.where(client: user).count,
+        rnd_claims: RndClaim.where(client: user).count,
         file_items: user.file_items.count
       }
     }

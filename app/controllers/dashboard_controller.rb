@@ -39,11 +39,7 @@ class DashboardController < ApplicationController
       storage_used: @current_user.file_items.sum(:file_size) || 0,
       grant_applications: @current_user.grant_applications.count,
       grant_applications_overdue: @current_user.grant_applications.overdue.count,
-      rnd_claims: get_accessible_rnd_claims.count,
-      rnd_claims_draft: get_accessible_rnd_claims.by_status('draft').count,
-      rnd_claims_active: get_accessible_rnd_claims.by_status('active').count,
-      rnd_claims_completed: get_accessible_rnd_claims.by_status('completed').count,
-      rnd_claims_ready_for_claim: get_accessible_rnd_claims.by_status('ready_for_claim').count
+      rnd_claims: get_accessible_rnd_claims.count
     }
     
     # Add role-specific stats
@@ -200,8 +196,6 @@ class DashboardController < ApplicationController
     {
       id: claim.id,
       title: claim.title,
-      status: claim.status,
-      status_color: rnd_claim_status_color(claim.status),
       total_expenditure: claim.total_expenditure,
       client_name: claim.company&.name || 'No Company',
       created_at: format_date(claim.created_at)

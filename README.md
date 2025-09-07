@@ -5,7 +5,7 @@ A modern web application for managing UK R&D Tax Credits applications, built wit
 ## 🚀 Features
 
 ### Core Functionality
-- **R&D Project Management**: Create, view, edit, and delete R&D projects
+- **R&D Claim Management**: Create, view, edit, and delete R&D claims
 - **Expenditure Tracking**: Monitor and categorize R&D expenditures
 - **Grant Applications**: Manage grant applications and documentation
 - **User Management**: Role-based access control (Admin, Employee, Client)
@@ -14,7 +14,7 @@ A modern web application for managing UK R&D Tax Credits applications, built wit
 ### User Roles & Permissions
 - **Admins**: Full system access, can view all projects and manage users
 - **Employees**: Can manage all projects and assist clients
-- **Clients**: Can create, view, edit, and delete their own R&D projects
+- **Clients**: Can create, view, edit, and delete their own R&D claims
 
 ### Technical Features
 - **Modern UI**: Built with Svelte 5 and DaisyUI components
@@ -178,14 +178,14 @@ bin/kamal deploy --rolling
 
 ### Core Models
 - **User**: Authentication and role management
-- **RndProject**: R&D project details and status
+- **RndClaim**: R&D claim details
 - **RndExpenditure**: Project expenditure tracking
 - **GrantApplication**: Grant application management
 - **Client**: Client information and relationships
 
 ### Key Relationships
-- Users can have multiple R&D projects
-- R&D projects can have multiple expenditures
+- Users can have multiple R&D claims
+- R&D claims can have multiple expenditures
 - Clients are linked to users with role-based access
 
 ## 🔐 Security Features

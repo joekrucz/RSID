@@ -50,10 +50,10 @@ Rails.application.routes.draw do
          # Grant Competitions directory
          resources :grant_competitions, only: [:index, :show]
          
-         # R&D Projects (protected)
-         resources :rnd_projects, only: [:index, :show, :new, :create, :edit, :update, :destroy] do
-           resources :rnd_expenditures, only: [:create, :edit, :update, :destroy]
-         end
+        # R&D Claims (protected)
+        resources :rnd_claims, only: [:index, :show, :new, :create, :edit, :update, :destroy] do
+          resources :rnd_claim_expenditures, only: [:create, :edit, :update, :destroy]
+        end
          
          # Grant Applications (protected)
         resources :grant_applications do

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_07_212633) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_07_222950) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -173,37 +173,35 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_212633) do
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
-  create_table "rnd_expenditures", force: :cascade do |t|
-    t.integer "rnd_project_id", null: false
+  create_table "rnd_claim_expenditures", force: :cascade do |t|
+    t.integer "rnd_claim_id", null: false
     t.integer "expenditure_type"
     t.decimal "amount"
     t.text "description"
     t.date "date"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["amount"], name: "index_rnd_expenditures_on_amount"
-    t.index ["date"], name: "index_rnd_expenditures_on_date"
-    t.index ["expenditure_type"], name: "index_rnd_expenditures_on_expenditure_type"
-    t.index ["rnd_project_id"], name: "index_rnd_expenditures_on_rnd_project_id"
+    t.index ["amount"], name: "index_rnd_claim_expenditures_on_amount"
+    t.index ["date"], name: "index_rnd_claim_expenditures_on_date"
+    t.index ["expenditure_type"], name: "index_rnd_claim_expenditures_on_expenditure_type"
+    t.index ["rnd_claim_id"], name: "index_rnd_claim_expenditures_on_rnd_claim_id"
   end
 
-  create_table "rnd_projects", force: :cascade do |t|
+  create_table "rnd_claims", force: :cascade do |t|
     t.string "title"
     t.text "description"
-    t.integer "client_id", null: false
     t.date "start_date"
     t.date "end_date"
-    t.integer "status"
     t.text "qualifying_activities"
     t.text "technical_challenges"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["client_id"], name: "index_rnd_projects_on_client_id"
-    t.index ["created_at"], name: "index_rnd_projects_on_created_at"
-    t.index ["end_date"], name: "index_rnd_projects_on_end_date"
-    t.index ["start_date"], name: "index_rnd_projects_on_start_date"
-    t.index ["status"], name: "index_rnd_projects_on_status"
-    t.index ["title"], name: "index_rnd_projects_on_title"
+    t.integer "company_id"
+    t.index ["company_id"], name: "index_rnd_claims_on_company_id"
+    t.index ["created_at"], name: "index_rnd_claims_on_created_at"
+    t.index ["end_date"], name: "index_rnd_claims_on_end_date"
+    t.index ["start_date"], name: "index_rnd_claims_on_start_date"
+    t.index ["title"], name: "index_rnd_claims_on_title"
   end
 
   create_table "todos", force: :cascade do |t|
@@ -260,9 +258,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_07_212633) do
   add_foreign_key "messages", "users", column: "sender_id"
   add_foreign_key "notes", "users"
   add_foreign_key "notifications", "users"
-  add_foreign_key "rnd_expenditures", "rnd_projects"
-  add_foreign_key "rnd_projects", "clients", on_delete: :cascade
-  add_foreign_key "rnd_projects", "users", column: "client_id"
+  add_foreign_key "rnd_claim_expenditures", "rnd_claims"
+  add_foreign_key "rnd_claims", "companies"
   add_foreign_key "todos", "users"
   add_foreign_key "user_feature_accesses", "feature_flags"
   add_foreign_key "user_feature_accesses", "users"

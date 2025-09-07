@@ -4,60 +4,63 @@
   import Layout from '../../components/Layout.svelte';
   import Button from '../../components/forms/Button.svelte';
   import Input from '../../components/forms/Input.svelte';
-  import Select from '../../components/forms/Select.svelte';
+  import CompanySelector from '../../components/forms/CompanySelector.svelte';
   
-  let { user, clients, errors = [], rnd_project = {} } = $props();
+  let { user, companies = [], errors = [], rnd_claim = {} } = $props();
   
   let formData = $state({
-    title: rnd_project.title || '',
-    description: rnd_project.description || '',
-    client_id: rnd_project.client_id || '',
-    start_date: rnd_project.start_date || '',
-    end_date: rnd_project.end_date || '',
-    qualifying_activities: rnd_project.qualifying_activities || '',
-    technical_challenges: rnd_project.technical_challenges || ''
+    title: rnd_claim.title || '',
+    description: rnd_claim.description || '',
+    company_id: rnd_claim.company_id || '',
+    start_date: rnd_claim.start_date || '',
+    end_date: rnd_claim.end_date || '',
+    qualifying_activities: rnd_claim.qualifying_activities || '',
+    technical_challenges: rnd_claim.technical_challenges || ''
   });
+  
+  let selectedCompany = $state(null);
   
   let loading = $state(false);
   
+  function handleCompanySelect(company) {
+    selectedCompany = company;
+  }
+  
   function handleSubmit() {
-    // Debug logging
-    console.log('Form data:', formData);
-    console.log('User role:', user.role);
-    console.log('Available clients:', clients);
-    console.log('Selected client_id:', formData.client_id);
-    console.log('Client options:', [
-      { value: '', label: 'Select a client...' },
-      ...clients.map(client => ({ value: client.id.toString(), label: client.name }))
-    ]);
-    
-    // For clients, automatically set their own ID as the client_id
-    if (user.role === 'client') {
-      formData.client_id = user.id.toString();
+    // Set company_id from selected company
+    if (selectedCompany) {
+      formData.company_id = selectedCompany.id.toString();
+    } else {
+      formData.company_id = '';
     }
     
     // Client-side validation
-    if ((user.role === 'employee' || user.role === 'admin') && !formData.client_id) {
-      toast.error('Please select a client for this R&D project.');
+    if (!formData.title.trim()) {
+      toast.error('Please enter a title for this R&D claim.');
+      return;
+    }
+    
+    if (!formData.description.trim()) {
+      toast.error('Please enter a description for this R&D claim.');
       return;
     }
     
     loading = true;
     
-    router.post('/rnd_projects', formData, {
+    router.post('/rnd_claims', formData, {
       onSuccess: () => {
-        toast.success('R&D Project created successfully!');
+        toast.success('R&D Claim created successfully!');
         loading = false;
       },
       onError: () => {
-        toast.error('Failed to create R&D Project. Please check the form and try again.');
+        toast.error('Failed to create R&D Claim. Please check the form and try again.');
         loading = false;
       }
     });
   }
   
   function goBack() {
-    router.visit('/rnd_projects');
+    router.visit('/rnd_claims');
   }
   
   function formatCurrency(amount) {
@@ -81,10 +84,10 @@
           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
           </svg>
-          Back to R&D Projects
+          Back to R&D Claims
         </button>
-        <h1 class="text-3xl font-bold text-base-content mb-2">New R&D Project</h1>
-        <p class="text-base-content/70">Create a new research and development project for tax credit claims</p>
+        <h1 class="text-3xl font-bold text-base-content mb-2">New R&D Claim</h1>
+        <p class="text-base-content/70">Create a new research and development claim for tax credit applications</p>
       </div>
     </div>
   </div>
@@ -114,39 +117,16 @@
               </label>
             </div>
             
-            {#if user.role === 'employee' || user.role === 'admin'}
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text font-medium">Client *</span>
-                </label>
-                <div class="text-xs text-blue-500 mb-2">Debug: User role is {user.role}, showing client dropdown</div>
-                <Select
-                  bind:value={formData.client_id}
-                  options={[
-                    { value: '', label: 'Select a client...' },
-                    ...clients.map(client => ({ value: client.id.toString(), label: client.name }))
-                  ]}
-                  error={errors.find(e => e.includes('Client'))}
-                  required
-                />
-                <div class="text-xs text-gray-500 mt-1">Available clients: {clients.length}</div>
-              </div>
-            {:else}
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text font-medium">Client</span>
-                </label>
-                <input
-                  type="text"
-                  class="input input-bordered"
-                  value={user.name}
-                  disabled
-                />
-                <label class="label">
-                  <span class="label-text-alt">This project will be created for your account</span>
-                </label>
-              </div>
-            {/if}
+            <!-- Company Selection -->
+            <div class="form-control">
+              <CompanySelector
+                {companies}
+                {selectedCompany}
+                onSelect={handleCompanySelect}
+                placeholder="Search for a company..."
+                error={errors.find(e => e.includes('Company'))}
+              />
+            </div>
           </div>
           
           <div class="form-control mt-6">

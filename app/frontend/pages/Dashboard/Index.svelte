@@ -122,16 +122,16 @@
         <div class="stat-desc">{stats.grant_applications_draft} draft, {stats.grant_applications_submitted} submitted</div>
       </div>
       
-      <FeatureGate feature="rnd_projects">
+      <FeatureGate feature="rnd_claims">
         <div class="stat bg-base-100 shadow rounded-lg">
           <div class="stat-figure text-error">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
             </svg>
           </div>
-          <div class="stat-title">R&D Projects</div>
-          <div class="stat-value text-error">{stats.rnd_projects}</div>
-          <div class="stat-desc">{stats.rnd_projects_draft} draft, {stats.rnd_projects_ready_for_claim} ready</div>
+          <div class="stat-title">R&D Claims</div>
+          <div class="stat-value text-error">{stats.rnd_claims}</div>
+          <div class="stat-desc">{stats.rnd_claims_draft} draft, {stats.rnd_claims_ready_for_claim} ready</div>
         </div>
       </FeatureGate>
     </div>
@@ -382,25 +382,24 @@
             </div>
           {/if}
 
-          <!-- Recent R&D Projects -->
-          <FeatureGate feature="rnd_projects">
-            {#if recent_activity.rnd_projects && recent_activity.rnd_projects.length > 0}
+          <!-- Recent R&D Claims -->
+          <FeatureGate feature="rnd_claims">
+            {#if recent_activity.rnd_claims && recent_activity.rnd_claims.length > 0}
               <div>
-                <h3 class="text-lg font-semibold mb-2">🔬 Recent R&D Projects</h3>
+                <h3 class="text-lg font-semibold mb-2">🔬 Recent R&D Claims</h3>
                 <div class="space-y-2">
-                  {#each recent_activity.rnd_projects as project}
+                  {#each recent_activity.rnd_claims as claim}
                     <div class="flex items-center justify-between p-3 bg-base-200 rounded-lg">
                       <div class="flex items-center gap-3">
                         <div class="text-2xl">🧪</div>
                         <div>
-                          <div class="font-medium">{project.title}</div>
+                          <div class="font-medium">{claim.title}</div>
                           <div class="text-sm text-base-content/70">
-                            <span class="badge {project.status_color} mr-2">{project.status}</span>
-                            <span class="text-xs">£{project.total_expenditure}</span>
+                            <span class="text-xs">£{claim.total_expenditure}</span>
                           </div>
                         </div>
                       </div>
-                      <button onclick={() => navigateTo(`/rnd_projects/${project.id}`)} class="btn btn-ghost btn-sm">View</button>
+                      <button onclick={() => navigateTo(`/rnd_claims/${claim.id}`)} class="btn btn-ghost btn-sm">View</button>
                     </div>
                   {/each}
                 </div>

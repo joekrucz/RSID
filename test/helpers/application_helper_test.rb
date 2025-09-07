@@ -77,13 +77,6 @@ class ApplicationHelperTest < ActionView::TestCase
     assert_equal "badge-neutral", grant_application_status_color("unknown")
   end
 
-  test "rnd_project_status_color should return correct colors" do
-    assert_equal "badge-neutral", rnd_project_status_color("draft")
-    assert_equal "badge-info", rnd_project_status_color("active")
-    assert_equal "badge-success", rnd_project_status_color("completed")
-    assert_equal "badge-warning", rnd_project_status_color("ready_for_claim")
-    assert_equal "badge-neutral", rnd_project_status_color("unknown")
-  end
 
   test "todo_priority_color should return correct colors" do
     assert_equal "badge-error", todo_priority_color("high")
@@ -99,11 +92,6 @@ class ApplicationHelperTest < ActionView::TestCase
     assert_equal "Ready For Claim", grant_application_status_display("ready_for_claim")
   end
 
-  test "rnd_project_status_display should format status correctly" do
-    assert_equal "Draft", rnd_project_status_display("draft")
-    assert_equal "Under Review", rnd_project_status_display("under_review")
-    assert_equal "Ready For Claim", rnd_project_status_display("ready_for_claim")
-  end
 
   # File type icon tests
   test "file_type_icon should return correct icons" do

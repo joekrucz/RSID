@@ -2,12 +2,13 @@
   import { router } from '@inertiajs/svelte';
   import Layout from '../../components/Layout.svelte';
   import Button from '../../components/forms/Button.svelte';
-  let { user, company, grant_applications = [] } = $props();
+  let { user, company, grant_applications = [], rnd_claims = [] } = $props();
   function back(){ router.visit('/companies'); }
   
   function formatStageName(stage) {
     return stage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
+  
 </script>
 
 <Layout {user}>
@@ -121,6 +122,86 @@
           </p>
           <Button variant="primary" onclick={() => router.visit('/grant_applications/new')}>
             Create Grant Application
+          </Button>
+        </div>
+      {/if}
+    </div>
+    
+    <!-- R&D Claims Section -->
+    <div class="mt-8">
+      <h2 class="text-2xl font-bold mb-4">R&D Claims ({rnd_claims.length})</h2>
+      
+      {#if rnd_claims.length > 0}
+        <div class="bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Expenditure</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each rnd_claims as claim}
+                  <tr>
+                    <td>
+                      <div class="flex items-center space-x-3">
+                        <div class="avatar placeholder">
+                          <div class="bg-primary text-primary-content rounded-full w-8">
+                            <span class="text-xs">R&D</span>
+                          </div>
+                        </div>
+                        <div>
+                          <div class="font-bold">
+                            <a class="link link-hover" href={`/rnd_claims/${claim.id}`}>
+                              {claim.title}
+                            </a>
+                          </div>
+                          <div class="text-sm opacity-70 line-clamp-2">{claim.description}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="font-medium">£{claim.total_expenditure.toLocaleString()}</div>
+                    </td>
+                    <td>
+                      <div class="text-sm">{claim.created_at}</div>
+                    </td>
+                    <td>
+                      <div class="flex items-center space-x-2">
+                        <button 
+                          class="btn btn-ghost btn-xs"
+                          onclick={() => router.visit(`/rnd_claims/${claim.id}`)}
+                        >
+                          View
+                        </button>
+                        <button 
+                          class="btn btn-ghost btn-xs"
+                          onclick={() => router.visit(`/rnd_claims/${claim.id}/edit`)}
+                        >
+                          Edit
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      {:else}
+        <div class="bg-base-100 rounded-lg shadow border border-base-300 p-8 text-center">
+          <svg class="mx-auto h-12 w-12 text-base-content/30 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+          </svg>
+          <h3 class="text-lg font-medium text-base-content mb-2">No R&D claims</h3>
+          <p class="text-base-content/70 mb-4">
+            This company doesn't have any R&D claims yet.
+          </p>
+          <Button variant="primary" onclick={() => router.visit('/rnd_claims/new')}>
+            Create R&D Claim
           </Button>
         </div>
       {/if}

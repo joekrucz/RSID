@@ -1,7 +1,6 @@
 <script>
   import { router } from '@inertiajs/svelte';
   import { toast } from '../stores/toast.js';
-  import NotificationBell from './NotificationBell.svelte';
   
   let { user, currentPage = 'dashboard' } = $props();
   
@@ -37,18 +36,14 @@
           </div>
           <ul class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
             {#if user}
-              <li><button onclick={() => navigateTo('/dashboard')} class:active={isActive('dashboard')}>Dashboard</button></li>
-              
               <li><button onclick={() => navigateTo('/grant_applications')} class:active={isActive('grant_applications')}>Grant Applications</button></li>
               <li><button onclick={() => navigateTo('/companies')} class:active={isActive('companies')}>Companies</button></li>
               <li><button onclick={() => navigateTo('/grant_competitions')} class:active={isActive('grant_competitions')}>Grant Competitions</button></li>
-              <li><button onclick={() => navigateTo('/rnd_projects')} class:active={isActive('rnd_projects')}>R&D Projects</button></li>
+              <li><button onclick={() => navigateTo('/rnd_claims')} class:active={isActive('rnd_claims')}>R&D Claims</button></li>
               
               <!-- Admin only features -->
               {#if user.isAdmin}
                 <li><button onclick={() => navigateTo('/people')} class:active={isActive('people')}>People</button></li>
-                <li><button onclick={() => navigateTo('/admin/feature_flags')} class:active={isActive('feature_flags')}>Feature Flags</button></li>
-                <li><button onclick={() => navigateTo('/inspector')} class:active={isActive('inspector')}>🔍 App Inspector</button></li>
               {/if}
               
               <li><button onclick={() => navigateTo('/settings')} class:active={isActive('settings')}>Settings</button></li>
@@ -61,7 +56,7 @@
         </div>
         
         <!-- App title -->
-        <button class="btn btn-ghost text-xl ml-2" onclick={() => navigateTo('/dashboard')}>RSID App</button>
+        <button class="btn btn-ghost text-xl ml-2" onclick={() => navigateTo('/grant_applications')}>RSID App</button>
         
         <!-- Debug indicator for admin -->
         {#if user?.isAdmin}
@@ -72,9 +67,6 @@
       <!-- Right side -->
       <div class="flex items-center gap-2">
         {#if user}
-          <!-- Notification Bell -->
-          <NotificationBell {user} unreadCount={0} />
-          
           <div class="dropdown dropdown-end">
             <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
               <div class="avatar placeholder">

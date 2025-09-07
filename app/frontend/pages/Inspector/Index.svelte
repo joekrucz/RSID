@@ -135,22 +135,17 @@
               </div>
             </div>
             
-            <!-- R&D Projects -->
+            <!-- R&D Claims -->
             <div class="bg-green-50 rounded-lg p-4">
-              <h3 class="text-lg font-medium text-green-900 mb-3">🔬 R&D Projects</h3>
-              <div class="text-3xl font-bold text-green-600 mb-2">{database_stats.rnd_projects.total}</div>
-              <div class="space-y-1 text-sm">
-                {#each Object.entries(database_stats.rnd_projects.by_status) as [status, count]}
-                  <div class="capitalize">{status}: {count}</div>
-                {/each}
-              </div>
+              <h3 class="text-lg font-medium text-green-900 mb-3">🔬 R&D Claims</h3>
+              <div class="text-3xl font-bold text-green-600 mb-2">{database_stats.rnd_claims.total}</div>
             </div>
             
             <!-- Expenditures -->
             <div class="bg-yellow-50 rounded-lg p-4">
               <h3 class="text-lg font-medium text-yellow-900 mb-3">💰 Expenditures</h3>
-              <div class="text-3xl font-bold text-yellow-600 mb-2">{database_stats.rnd_expenditures.total}</div>
-              <div class="text-sm">Total: £{database_stats.rnd_expenditures.total_amount.toLocaleString()}</div>
+              <div class="text-3xl font-bold text-yellow-600 mb-2">{database_stats.rnd_claim_expenditures.total}</div>
+              <div class="text-sm">Total: £{database_stats.rnd_claim_expenditures.total_amount.toLocaleString()}</div>
             </div>
             
             <!-- Notes -->
@@ -200,7 +195,7 @@
                     <div class="text-xs text-gray-500 mt-1">
                       Notes: {user.associations_count.notes} | 
                       Todos: {user.associations_count.todos} | 
-                      Projects: {user.associations_count.rnd_projects}
+                      Claims: {user.associations_count.rnd_claims}
                     </div>
                   </div>
                 {/each}
@@ -209,7 +204,7 @@
             
             <!-- Recent Projects -->
             <div class="bg-gray-50 rounded-lg p-4">
-              <h3 class="text-lg font-medium text-gray-900 mb-3">🔬 Recent R&D Projects</h3>
+              <h3 class="text-lg font-medium text-gray-900 mb-3">🔬 Recent R&D Claims</h3>
               <div class="space-y-3">
                 {#each sample_data.recent_projects as project}
                   <div class="bg-white rounded p-3 border">

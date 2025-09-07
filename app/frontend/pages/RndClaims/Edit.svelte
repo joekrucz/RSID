@@ -4,51 +4,63 @@
   import Layout from '../../components/Layout.svelte';
   import Button from '../../components/forms/Button.svelte';
   import Input from '../../components/forms/Input.svelte';
-  import Select from '../../components/forms/Select.svelte';
+  import CompanySelector from '../../components/forms/CompanySelector.svelte';
   
-  let { user, rnd_project, clients, errors = [] } = $props();
+  let { user, rnd_claim, companies = [], errors = [] } = $props();
   
   let formData = $state({
-    title: rnd_project.title || '',
-    description: rnd_project.description || '',
-    client_id: rnd_project.client_id?.toString() || '',
-    start_date: rnd_project.start_date || '',
-    end_date: rnd_project.end_date || '',
-    status: rnd_project.status || 'draft',
-    qualifying_activities: rnd_project.qualifying_activities || '',
-    technical_challenges: rnd_project.technical_challenges || ''
+    title: rnd_claim.title || '',
+    description: rnd_claim.description || '',
+    company_id: rnd_claim.company?.id?.toString() || '',
+    start_date: rnd_claim.start_date || '',
+    end_date: rnd_claim.end_date || '',
+    qualifying_activities: rnd_claim.qualifying_activities || '',
+    technical_challenges: rnd_claim.technical_challenges || ''
   });
+  
+  let selectedCompany = $state(rnd_claim.company || null);
   
   let loading = $state(false);
   
+  function handleCompanySelect(company) {
+    selectedCompany = company;
+  }
+  
   function handleSubmit() {
-    // For clients, ensure their own ID is set as the client_id
-    if (user.role === 'client') {
-      formData.client_id = user.id.toString();
+    // Set company_id from selected company
+    if (selectedCompany) {
+      formData.company_id = selectedCompany.id.toString();
+    } else {
+      formData.company_id = '';
     }
     
     // Client-side validation
-    if ((user.role === 'employee' || user.role === 'admin') && !formData.client_id) {
-      toast.error('Please select a client for this R&D project.');
+    if (!formData.title.trim()) {
+      toast.error('Please enter a title for this R&D claim.');
+      return;
+    }
+    
+    if (!formData.description.trim()) {
+      toast.error('Please enter a description for this R&D claim.');
       return;
     }
     
     loading = true;
     
-    router.put(`/rnd_projects/${rnd_project.id}`, formData, {
+    router.put(`/rnd_claims/${rnd_claim.id}`, formData, {
       onSuccess: () => {
-        toast.success('R&D Project updated successfully!');
+        toast.success('R&D Claim updated successfully!');
         loading = false;
       },
       onError: () => {
-        toast.error('Failed to update R&D Project. Please check the form and try again.');
+        toast.error('Failed to update R&D Claim. Please check the form and try again.');
         loading = false;
       }
     });
   }
   
   function goBack() {
-    router.visit(`/rnd_projects/${rnd_project.id}`);
+    router.visit(`/rnd_claims/${rnd_claim.id}`);
   }
   
   function formatCurrency(amount) {
@@ -105,37 +117,16 @@
               </label>
             </div>
             
-            {#if user.role === 'employee' || user.role === 'admin'}
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text font-medium">Client *</span>
-                </label>
-                <Select
-                  bind:value={formData.client_id}
-                  options={[
-                    { value: '', label: 'Select a client...' },
-                    ...clients.map(client => ({ value: client.id.toString(), label: client.name }))
-                  ]}
-                  error={errors.find(e => e.includes('Client'))}
-                  required
-                />
-              </div>
-            {:else}
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text font-medium">Client</span>
-                </label>
-                <input
-                  type="text"
-                  class="input input-bordered"
-                  value={user.name}
-                  disabled
-                />
-                <label class="label">
-                  <span class="label-text-alt">This project belongs to your account</span>
-                </label>
-              </div>
-            {/if}
+            <!-- Company Selection -->
+            <div class="form-control">
+              <CompanySelector
+                {companies}
+                {selectedCompany}
+                onSelect={handleCompanySelect}
+                placeholder="Search for a company..."
+                error={errors.find(e => e.includes('Company'))}
+              />
+            </div>
           </div>
           
           <div class="form-control mt-6">
@@ -186,23 +177,6 @@
             </div>
           </div>
           
-          <div class="form-control mt-6">
-            <label class="label">
-              <span class="label-text font-medium">Project Status</span>
-            </label>
-            <Select
-              bind:value={formData.status}
-              options={[
-                { value: 'draft', label: 'Draft' },
-                { value: 'active', label: 'Active' },
-                { value: 'completed', label: 'Completed' },
-                { value: 'ready_for_claim', label: 'Ready for Claim' }
-              ]}
-            />
-            <label class="label">
-              <span class="label-text-alt">Current status of the R&D project</span>
-            </label>
-          </div>
         </div>
         
         <!-- R&D Activities -->

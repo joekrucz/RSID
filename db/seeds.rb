@@ -5,8 +5,8 @@
 # Create default feature flags
 default_features = [
   {
-    name: 'rnd_projects',
-    description: 'R&D Project Management - Create, view, edit, and delete R&D projects',
+    name: 'rnd_claims',
+    description: 'R&D Claim Management - Create, view, edit, and delete R&D claims',
     enabled: true,
     settings: { employee_enabled: true, client_enabled: true }
   },
@@ -334,6 +334,56 @@ if User.exists?(1)
   puts "All applications are linked to companies"
   puts "Total companies: #{Company.count}"
   puts "Total grant applications: #{GrantApplication.count}"
+  
+  # Create R&D Claims for each company
+  puts "\nCreating R&D Claims for each company..."
+  
+  fiscal_years = ['FY22', 'FY23', 'FY24']
+  created_claims = []
+  
+  Company.all.each_with_index do |company, index|
+    fiscal_year = fiscal_years[index % fiscal_years.length]
+    claim_title = "#{fiscal_year} R&D Claim"
+    
+    # Create start and end dates based on fiscal year
+    case fiscal_year
+    when 'FY22'
+      start_date = Date.new(2022, 4, 1)  # April 1, 2022
+      end_date = Date.new(2023, 3, 31)   # March 31, 2023
+    when 'FY23'
+      start_date = Date.new(2023, 4, 1)  # April 1, 2023
+      end_date = Date.new(2024, 3, 31)   # March 31, 2024
+    when 'FY24'
+      start_date = Date.new(2024, 4, 1)  # April 1, 2024
+      end_date = Date.new(2025, 3, 31)   # March 31, 2025
+    end
+    
+    claim = RndClaim.find_or_create_by!(company: company, title: claim_title) do |c|
+      c.description = "Research and Development activities for #{company.name} during #{fiscal_year}. This includes innovative projects, technical challenges, and qualifying activities that contribute to the company's technological advancement and competitive positioning."
+      c.start_date = start_date
+      c.end_date = end_date
+      c.qualifying_activities = [
+        "Software development and testing",
+        "Prototype development and validation",
+        "Technical research and analysis",
+        "Process improvement and optimization",
+        "Innovation and product development"
+      ].sample(rand(2..4)).join(", ")
+      c.technical_challenges = [
+        "Scalability and performance optimization",
+        "Integration with existing systems",
+        "Data security and compliance requirements",
+        "User experience and interface design",
+        "Algorithm development and optimization"
+      ].sample(rand(2..3)).join(", ")
+    end
+    
+    created_claims << claim
+    puts "Created R&D Claim: #{claim_title} for #{company.name}"
+  end
+  
+  puts "Created #{created_claims.length} R&D claims"
+  puts "Total R&D claims: #{RndClaim.count}"
 else
   puts 'No user with id=1 found. Skipping additional demo data.'
 end
