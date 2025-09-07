@@ -12,40 +12,41 @@
   let currentView = $state(view_mode);
   
   // Filter applications based on search term
-  let filteredApplications = $derived(() => {
-    if (!search.trim()) return grant_applications;
-    
-    const searchTerm = search.toLowerCase();
-    return grant_applications.filter(application => 
-      application.title.toLowerCase().includes(searchTerm) ||
-      application.description.toLowerCase().includes(searchTerm) ||
-      (application.company && application.company.name.toLowerCase().includes(searchTerm))
-    );
-  });
+  let filteredApplications;
+  let filteredPipelineData;
   
-  // Filter pipeline data based on search term
-  let filteredPipelineData = $derived(() => {
-    if (!search.trim()) return pipeline_data;
-    
-    const searchTerm = search.toLowerCase();
-    const filtered = {};
-    
-    Object.entries(pipeline_data).forEach(([stage, data]) => {
-      const filteredApps = data.applications.filter(application => 
+  $: {
+    if (!search.trim()) {
+      filteredApplications = grant_applications;
+      filteredPipelineData = pipeline_data;
+    } else {
+      const searchTerm = search.toLowerCase();
+      
+      // Filter applications
+      filteredApplications = grant_applications.filter(application => 
         application.title.toLowerCase().includes(searchTerm) ||
         application.description.toLowerCase().includes(searchTerm) ||
         (application.company && application.company.name.toLowerCase().includes(searchTerm))
       );
       
-      filtered[stage] = {
-        ...data,
-        applications: filteredApps,
-        count: filteredApps.length
-      };
-    });
-    
-    return filtered;
-  });
+      // Filter pipeline data
+      const filtered = {};
+      Object.entries(pipeline_data).forEach(([stage, data]) => {
+        const filteredApps = data.applications.filter(application => 
+          application.title.toLowerCase().includes(searchTerm) ||
+          application.description.toLowerCase().includes(searchTerm) ||
+          (application.company && application.company.name.toLowerCase().includes(searchTerm))
+        );
+        
+        filtered[stage] = {
+          ...data,
+          applications: filteredApps,
+          count: filteredApps.length
+        };
+      });
+      filteredPipelineData = filtered;
+    }
+  }
   
   // Check localStorage on mount if no explicit view parameter in URL
   onMount(() => {
@@ -238,7 +239,7 @@
                     {/if}
                   </td>
                   <td>
-                    <div class={`badge ${application.stage_badge_class || 'badge-neutral'}`} title={displayLabel(application.stage)}>
+                    <div class={`badge ${application.stage_badge_class || 'badge-neutral'} whitespace-normal min-h-6 h-auto py-1`} title={displayLabel(application.stage)}>
                       {displayLabel(application.stage)}
                     </div>
                   </td>
