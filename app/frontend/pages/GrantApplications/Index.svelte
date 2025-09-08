@@ -274,9 +274,6 @@
                             {application.title}
                           </a>
                         </div>
-                        <div class="text-sm opacity-50 line-clamp-2">
-                          {application.description}
-                        </div>
                       </div>
                     </div>
                   </td>

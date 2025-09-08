@@ -212,7 +212,8 @@
       <div class="mt-2 w-full bg-base-100 rounded-lg border border-base-300 shadow p-4 sticky top-24 z-30">
         <div class="tabs tabs-boxed bg-base-200 inline-flex p-1 mb-3">
           {#each stageGroups as g}
-            <button class={`tab tab-sm ${currentGroup === g.label ? 'tab-active' : ''} flex items-center gap-2`}
+            <button class={`tab tab-sm flex items-center gap-2 ${currentGroup === g.label ? 'tab-active bg-primary text-primary-content font-semibold' : 'bg-base-100 text-base-content/70'}`}
+              aria-selected={currentGroup === g.label}
               onclick={() => currentGroup = g.label}>
               {#if isGroupComplete(g)}
                 <svg class="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
