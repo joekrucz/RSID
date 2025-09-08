@@ -97,30 +97,24 @@
 
   // Hydrate from persistedItems on mount/prop change
   $effect(() => {
-    console.log('Hydrating from persistedItems:', persistedItems);
     const byKey = new Map();
     (persistedItems || []).forEach((pi) => {
       if (pi?.section && pi?.title) {
         byKey.set(`${pi.section}|${pi.title}`, pi);
       }
     });
-    console.log('byKey map:', byKey);
     sections.forEach((section, sIdx) => {
       (section.items || []).forEach((item, iIdx) => {
         const backendSectionName = sectionMapping[section.title] || section.title;
         const found = byKey.get(`${backendSectionName}|${item.title}`);
-        console.log(`Looking for ${backendSectionName}|${item.title}, found:`, found);
         if (found) {
           const k = keyFor(sIdx, iIdx);
           // Sync due date into localSections model
           if (localSections?.[sIdx]?.items?.[iIdx]) {
             localSections[sIdx].items[iIdx].dueDate = found.due_date || localSections[sIdx].items[iIdx].dueDate;
           }
-          // Initialize checked state from server only if not already set locally
-          if (typeof checkedByKey[k] !== 'boolean') {
-            checkedByKey[k] = !!found.checked;
-            console.log(`Set checkedByKey[${k}] = ${checkedByKey[k]} for ${item.title}`);
-          }
+          // Always update checked state from server data
+          checkedByKey[k] = !!found.checked;
           // Optional fields
           subbieByKey[k] = found.subbie || subbieByKey[k];
           noSubbieByKey[k] = !!found.no_subbie;
