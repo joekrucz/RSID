@@ -436,9 +436,8 @@ if User.exists?(1)
     section_order.each_with_index do |section, idx|
       (section_items[section] || []).each do |task_title|
         item = application.grant_checklist_items.find_or_initialize_by(section: section, title: task_title)
-        # Mark items checked for all sections strictly before the desired stage index
-        # Leave the desired section and subsequent sections unchecked for realism
-        item.checked = idx < desired_stage_index
+        # Mark items checked for all sections up to and including the current stage
+        item.checked = idx <= desired_stage_index
         item.save!
       end
     end
