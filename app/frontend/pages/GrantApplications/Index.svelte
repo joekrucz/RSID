@@ -298,7 +298,7 @@
                         <div class="font-bold">
                           <a 
                             href="/grant_applications/{application.id}" 
-                            class="link link-primary hover:link-primary-focus"
+                            class="text-base-content hover:underline"
                           >
                             {application.title}
                           </a>
@@ -311,7 +311,7 @@
                       <div class="text-sm font-medium">
                         <a 
                           href="/companies/{application.company.id}" 
-                          class="link link-primary hover:link-primary-focus"
+                          class="text-base-content hover:underline"
                         >
                           {application.company.name}
                         </a>
@@ -327,7 +327,7 @@
                       <div class="text-sm font-medium">
                         <a 
                           href="/grant_competitions/{application.grant_competition.id}" 
-                          class="link link-primary hover:link-primary-focus"
+                          class="text-base-content hover:underline"
                         >
                           {application.grant_competition.grant_name}
                         </a>
@@ -342,9 +342,9 @@
                     {/if}
                   </td>
                   <td>
-                    <div class={`badge ${application.stage_badge_class || 'badge-neutral'} whitespace-normal min-h-6 h-auto py-1`} title={formatStageLabel(application.stage)}>
+                    <span class="text-sm" title={formatStageLabel(application.stage)}>
                       {formatStageLabel(application.stage)}
-                    </div>
+                    </span>
                   </td>
                   <td>
                     <div class="text-sm">
