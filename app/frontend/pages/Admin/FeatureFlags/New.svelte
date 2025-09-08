@@ -81,9 +81,9 @@
             
             <div class="grid grid-cols-1 gap-6">
               <div class="form-control">
-                <label class="label">
+                <div class="label">
                   <span class="label-text font-medium">Feature Name *</span>
-                </label>
+                </div>
                 <Input
                   type="text"
                   placeholder="e.g., rnd_projects, grant_applications"
@@ -91,23 +91,23 @@
                   error={errors.find(e => e.includes('Name'))}
                   required
                 />
-                <label class="label">
+                <div class="label">
                   <span class="label-text-alt">Use snake_case format (e.g., rnd_projects)</span>
-                </label>
+                </div>
               </div>
               
               <div class="form-control">
-                <label class="label">
+                <div class="label">
                   <span class="label-text font-medium">Description</span>
-                </label>
+                </div>
                 <textarea
                   class="textarea textarea-bordered h-24"
                   placeholder="Describe what this feature does..."
                   bind:value={formData.description}
                 ></textarea>
-                <label class="label">
+                <div class="label">
                   <span class="label-text-alt">Provide a clear description of the feature</span>
-                </label>
+                </div>
               </div>
             </div>
           </div>

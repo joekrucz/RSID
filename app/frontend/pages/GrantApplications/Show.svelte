@@ -4,8 +4,10 @@
   import Layout from '../../components/Layout.svelte';
   import Button from '../../components/forms/Button.svelte';
   import Checklist from '../../components/Checklist.svelte';
+  import ChecklistTaskDetail from '../../components/ChecklistTaskDetail.svelte';
+  let checklistRef;
   
-  let { user, grant_application } = $props();
+  let { user, grant_application, checklist_items = [] } = $props();
   const stages = [
     'client_acquisition_project_qualification',
     'client_invoiced',
@@ -22,9 +24,70 @@
   let currentStage = $state(grant_application.stage || 'pre_delivery');
   let loading = $state(false);
   let stageLoading = $state(false);
-  let applicationDetailsCollapsed = $state(false);
   let checklistSectionsCollapsed = $state({});
   const idxCurrent = $derived(stages.indexOf(currentStage));
+  let sectionComplete = $state([]);
+  const stageGroups = [
+    { label: 'Pre-delivery', keys: ['client_acquisition_project_qualification', 'client_invoiced', 'invoice_paid', 'preparing_for_kick_off_aml_resourcing'] },
+    { label: 'In delivery', keys: ['kicked_off_in_progress', 'submitted'] },
+    { label: 'Post delivery', keys: ['awaiting_funding_decision', 'application_successful_or_not_successful', 'resub_due', 'success_fee_invoiced', 'success_fee_paid'] }
+  ];
+  function groupForStage(stage) {
+    const found = stageGroups.find(g => g.keys.includes(stage));
+    return found?.label || 'Pre-delivery';
+  }
+  let currentGroup = $state(groupForStage(currentStage));
+  $effect(() => { currentGroup = groupForStage(currentStage); });
+
+  function isGroupComplete(group) {
+    return (group?.keys || []).every((s) => !!sectionComplete[stages.indexOf(s)]);
+  }
+  // Master-detail selection
+  let selectedSectionTitle = $state('');
+  let selectedItemTitle = $state('');
+  const grantApplicationId = $derived(grant_application?.id);
+
+  function visibleSectionIndicesForGroup(label) {
+    switch (label) {
+      case 'Pre-delivery':
+        return [0,1,2,3];
+      case 'In delivery':
+        return [4,5];
+      case 'Post delivery':
+        return [6,7,8,9,10];
+      default:
+        return [];
+    }
+  }
+
+  function formatStageLabel(stage) {
+    switch (stage) {
+      case 'client_acquisition_project_qualification':
+        return 'Client Acquisition';
+      case 'client_invoiced':
+        return 'Client invoiced';
+      case 'invoice_paid':
+        return 'Invoice paid';
+      case 'preparing_for_kick_off_aml_resourcing':
+        return 'KO Prep';
+      case 'kicked_off_in_progress':
+        return 'Kicked off';
+      case 'submitted':
+        return 'Submitted';
+      case 'awaiting_funding_decision':
+        return 'Awaiting funding decision';
+      case 'application_successful_or_not_successful':
+        return 'Funding Decision';
+      case 'resub_due':
+        return 'Resub Due';
+      case 'success_fee_invoiced':
+        return 'Success fee invoiced';
+      case 'success_fee_paid':
+        return 'Success fee paid';
+      default:
+        return stage.replaceAll('_', ' ');
+    }
+  }
 
   const stageStyles = {
     client_acquisition_project_qualification: { inactive: 'bg-secondary/20 text-secondary', active: 'bg-secondary text-secondary-content', complete: 'bg-secondary text-secondary-content', fillInactive: 'fill-secondary/20', fillActive: 'fill-secondary', fillComplete: 'fill-secondary' },
@@ -91,12 +154,7 @@
   function goBack() {
     router.visit('/grant_applications');
   }
-  
-  
-  function formatDeadline(deadline) {
-    if (!deadline) return 'No deadline set';
-    return deadline;
-  }
+ 
 </script>
 
 <Layout {user}>
@@ -111,8 +169,29 @@
         
         <div class="flex justify-between items-start">
           <div>
-            <h1 class="text-3xl font-bold text-base-content mb-2">{grant_application.title}</h1>
-            <p class="text-base-content/70 mb-4">{grant_application.description}</p>
+            <h1 class="text-3xl font-bold text-base-content mb-1">{grant_application.title}</h1>
+            <div class="text-base text-base-content/80 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+              {#if grant_application.company}
+                <span>
+                  <span class="opacity-70">Company:</span>
+                  <a href={`/companies/${grant_application.company.id}`} class="link link-primary ml-1">{grant_application.company.name}</a>
+                </span>
+              {/if}
+              {#if grant_application.grant_competition}
+                <span class="text-base-content/60">•</span>
+                <span>
+                  <span class="opacity-70">Competition:</span>
+                  <a href={`/grant_competitions/${grant_application.grant_competition.id}`} class="link link-primary ml-1">{grant_application.grant_competition.grant_name}</a>
+                </span>
+                {#if grant_application.grant_competition.deadline}
+                  <span class="text-base-content/60">•</span>
+                  <span>
+                    <span class="opacity-70">Deadline:</span>
+                    <span class="ml-1">{new Date(grant_application.grant_competition.deadline).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                  </span>
+                {/if}
+              {/if}
+            </div>
           </div>
           
           <div class="flex space-x-2">
@@ -129,130 +208,50 @@
           </div>
         </div>
       </div>
-      <!-- Full-width Pipeline (Chevron Style with inline SVG) -->
-      {#key currentStage}
-      <div class="mt-2 w-full">
-        <ul class="flex items-stretch w-full gap-0">
-          {#each stages as s, i}
-            {@const isComplete = idxCurrent > i}
-            {@const isActive = idxCurrent === i}
-            {@const palette = stageStyles[s] || { inactive: 'bg-base-300 text-base-content', active: 'bg-base-content text-base-100', complete: 'bg-base-content text-base-100', fillInactive: 'fill-base-300', fillActive: 'fill-base-content', fillComplete: 'fill-base-content' }}
-            <li class="relative flex items-stretch flex-1 min-w-0">
-              <button
-                class={`h-6 px-2 rounded-l-md w-full ${isComplete ? palette.complete : isActive ? palette.active : palette.inactive}`}
-                disabled={stageLoading}
-                onclick={() => handleStageChange(s)}
-                title={s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                aria-current={currentStage === s ? 'step' : undefined}
-              >
-                <span class="sr-only">{s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
-              </button>
-              {#if i < stages.length - 1}
-                <svg class="h-6 w-2 -ml-px" viewBox="0 0 14 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                  <polygon points="0,0 14,16 0,32" class={isComplete ? palette.fillComplete : isActive ? palette.fillActive : palette.fillInactive} />
+      <!-- Stage Tabs grouped visually with group tabs -->
+      <div class="mt-2 w-full bg-base-100 rounded-lg border border-base-300 shadow p-4 sticky top-24 z-30">
+        <div class="tabs tabs-boxed bg-base-200 inline-flex p-1 mb-3">
+          {#each stageGroups as g}
+            <button class={`tab tab-sm ${currentGroup === g.label ? 'tab-active' : ''} flex items-center gap-2`}
+              onclick={() => currentGroup = g.label}>
+              {#if isGroupComplete(g)}
+                <svg class="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
               {/if}
-            </li>
+              <span>{g.label}</span>
+            </button>
           {/each}
-        </ul>
-        {#if stageLoading}
-          <span class="loading loading-spinner loading-xs align-middle ml-2"></span>
-        {/if}
-      </div>
-      {/key}
-    </div>
-    
-    <!-- Application Details (full width to match checklist) -->
-      <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6 mt-6">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold text-base-content">Application Details</h2>
-          <button 
-            class="btn btn-sm btn-ghost"
-            onclick={() => applicationDetailsCollapsed = !applicationDetailsCollapsed}
-            aria-label={applicationDetailsCollapsed ? 'Expand Application Details' : 'Collapse Application Details'}
-          >
-            <svg 
-              class="w-4 h-4 transition-transform duration-200 {applicationDetailsCollapsed ? 'rotate-180' : ''}" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-          </button>
         </div>
-        {#if !applicationDetailsCollapsed}
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <!-- Deadline -->
-            <div>
-              <div class="text-sm font-medium mb-1">Deadline</div>
-              <div class="text-sm">
-                {formatDeadline(grant_application.deadline)}
-              </div>
-              {#if grant_application.days_until_deadline !== null}
-                <div class="text-xs opacity-50 mt-1">
-                  {grant_application.days_until_deadline > 0 
-                    ? `${grant_application.days_until_deadline} days left`
-                    : grant_application.days_until_deadline < 0 
-                      ? `${Math.abs(grant_application.days_until_deadline)} days overdue`
-                      : 'Due today'
-                  }
-                </div>
+        <div class="flex flex-wrap gap-2">
+          {#each stageGroups.find(g => g.label === currentGroup)?.keys || [] as s}
+            {@const i = stages.indexOf(s)}
+            {@const isActive = currentStage === s}
+            <div class={`btn btn-sm btn-ghost flex items-center gap-2 pointer-events-none select-none`}
+              title={formatStageLabel(s)}
+              role="status">
+              {#if sectionComplete?.[i]}
+                <input type="checkbox" class="checkbox checkbox-xs checkbox-success" checked disabled aria-label="Section complete" />
               {/if}
+              <span class="whitespace-nowrap">{formatStageLabel(s)}</span>
             </div>
-            
-            <!-- Company -->
-            {#if grant_application.company}
-              <div>
-                <div class="text-sm font-medium mb-1">Company</div>
-                <div class="text-sm">
-                  <a href={`/companies/${grant_application.company.id}`} class="link link-primary">
-                    {grant_application.company.name}
-                  </a>
-                </div>
-              </div>
-            {/if}
-            
-            <!-- Grant Competition -->
-            {#if grant_application.grant_competition}
-              <div>
-                <div class="text-sm font-medium mb-1">Grant Competition</div>
-                <div class="text-sm">
-                  <a href={`/grant_competitions/${grant_application.grant_competition.id}`} class="link link-primary">
-                    {grant_application.grant_competition.grant_name}
-                  </a>
-                  <div class="text-xs text-base-content/70 mt-1">
-                    {grant_application.grant_competition.funding_body}
-                  </div>
-                  <div class="text-xs text-base-content/70">
-                    Deadline: {new Date(grant_application.grant_competition.deadline).toLocaleDateString('en-GB', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric'
-                    })}
-                  </div>
-                </div>
-              </div>
-            {/if}
-            
-            <!-- Created -->
-            <div>
-              <div class="text-sm font-medium mb-1">Created</div>
-              <div class="text-sm">{grant_application.created_at}</div>
-            </div>
-            
-            <!-- Last Updated -->
-            <div>
-              <div class="text-sm font-medium mb-1">Last Updated</div>
-              <div class="text-sm">{grant_application.updated_at}</div>
-            </div>
+          {/each}
+        </div>
+        {#if stageLoading}
+          <div class="mt-3">
+            <span class="loading loading-spinner loading-xs align-middle ml-2"></span>
           </div>
         {/if}
       </div>
-      <!-- Checklist Component -->
-      <div class="mt-6">
-        <h2 class="text-xl font-semibold text-gray-900 mb-3">Project Checklist</h2>
-        <Checklist sections={[
+    </div>
+    
+    
+    
+      <!-- Checklist + Detail (Master-Detail) -->
+      <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        <div class="lg:col-span-5 xl:col-span-4 lg:max-h-[60vh] overflow-y-auto pr-2 lg:pt-2">
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">Project Checklist</h2>
+          <Checklist bind:this={checklistRef} selectedSectionTitle={selectedSectionTitle} selectedItemTitle={selectedItemTitle} on:select={(e) => { selectedSectionTitle = e.detail.sectionTitle; selectedItemTitle = e.detail.itemTitle; }} visibleIndices={visibleSectionIndicesForGroup(currentGroup)} persistedItems={checklist_items} sections={[
           {
             title: 'Client Acquisition/Project Qualification',
             items: [
@@ -298,7 +297,17 @@
           { title: 'Resub Due', items: [ { title: 'Completed' } ] },
           { title: 'Success Fee Invoiced', items: [ { title: 'Completed' } ] },
           { title: 'Success Fee Paid', items: [ { title: 'Completed' } ] }
-        ]} />
+        ]} on:progress={(e) => { sectionComplete = e.detail.sectionComplete; }} on:stage={(e) => { currentStage = e.detail.stage; }} />
+        </div>
+        <div class="lg:col-span-7 xl:col-span-8 lg:sticky lg:top-40">
+          <h2 class="text-xl font-semibold text-gray-900 mb-3">Task Details</h2>
+          <ChecklistTaskDetail {grantApplicationId} sectionTitle={selectedSectionTitle} itemTitle={selectedItemTitle} persistedItems={checklist_items} on:change={(e) => {
+            const { field, value, sectionTitle, itemTitle } = e.detail || {};
+            if (field === 'checked') {
+              checklistRef?.setCheckedByTitle(sectionTitle || selectedSectionTitle, itemTitle || selectedItemTitle, value);
+            }
+          }} />
+        </div>
       </div>
     </div>
 </Layout> 

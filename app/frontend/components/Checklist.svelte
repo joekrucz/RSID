@@ -1,7 +1,11 @@
 <script>
   import { toast } from '../stores/toast.js';
+  import { createEventDispatcher } from 'svelte';
   // Props: sections: Array<{ title: string, items: Array<{ title: string, dueDate?: string }> }>
-  let { sections = [] } = $props();
+  // visibleIndices: number[] of sections to show; if empty, show all
+  // persistedItems: Array<{ section, title, checked, due_date, notes, subbie, no_subbie, contract_link }>
+  // selectedSectionTitle/itemTitle: current selection to highlight row
+  let { sections = [], visibleIndices = [], persistedItems = [], selectedSectionTitle = '', selectedItemTitle = '' } = $props();
 
   // Local copy so due dates can be edited without external persistence yet
   let localSections = $state(sections.map(s => ({
@@ -9,22 +13,42 @@
     items: (s.items || []).map(i => ({ title: i.title, dueDate: i.dueDate || '' }))
   })));
 
-  // Local UI state: expanded map keyed by section index and item index
-  let expanded = $state({});
   // Section collapsed state
   let sectionsCollapsed = $state({});
 
-  function toggle(sectionIdx, itemIdx) {
-    const key = `${sectionIdx}-${itemIdx}`;
-    expanded[key] = !expanded[key];
+  const dispatch = createEventDispatcher();
+
+  function selectItem(sectionIdx, itemIdx) {
+    dispatch('select', { sectionIdx, itemIdx, sectionTitle: sections[sectionIdx]?.title, itemTitle: localSections[sectionIdx]?.items?.[itemIdx]?.title });
   }
 
   function toggleSection(sectionIdx) {
     sectionsCollapsed[sectionIdx] = !sectionsCollapsed[sectionIdx];
   }
 
-  function setDueDate(sectionIdx, itemIdx, value) {
+  async function setDueDate(sectionIdx, itemIdx, value) {
     localSections[sectionIdx].items[itemIdx].dueDate = value;
+    try {
+      const sectionTitle = sections[sectionIdx]?.title;
+      const itemTitle = localSections[sectionIdx]?.items?.[itemIdx]?.title;
+      const grantApplicationId = window?.location?.pathname?.match(/grant_applications\/(\d+)/)?.[1];
+      if (grantApplicationId && sectionTitle && itemTitle) {
+        await fetch(`/grant_applications/${grantApplicationId}/grant_checklist_items/upsert`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          },
+          body: JSON.stringify({
+            section: sectionTitle,
+            title: itemTitle,
+            due_date: value
+          })
+        });
+      }
+    } catch (e) {
+      console.error('Failed to persist due date', e);
+    }
   }
 
   // Special per-item state for Project Qualification
@@ -32,6 +56,7 @@
   let filesByKey = $state({});
   let subbieByKey = $state({});
   let contractLinkByKey = $state({});
+  // Track checked state per item key `${sectionIdx}-${itemIdx}`
   let checkedByKey = $state({});
   let noSubbieByKey = $state({});
   const subbieFees = {
@@ -55,6 +80,39 @@
     return `${sectionIdx}-${itemIdx}`;
   }
 
+  // Hydrate from persistedItems on mount/prop change
+  $effect(() => {
+    const byKey = new Map();
+    (persistedItems || []).forEach((pi) => {
+      if (pi?.section && pi?.title) {
+        byKey.set(`${pi.section}|${pi.title}`, pi);
+      }
+    });
+    sections.forEach((section, sIdx) => {
+      (section.items || []).forEach((item, iIdx) => {
+        const found = byKey.get(`${section.title}|${item.title}`);
+        if (found) {
+          const k = keyFor(sIdx, iIdx);
+          // Sync due date into localSections model
+          if (localSections?.[sIdx]?.items?.[iIdx]) {
+            localSections[sIdx].items[iIdx].dueDate = found.due_date || localSections[sIdx].items[iIdx].dueDate;
+          }
+          // Initialize checked state from server only if not already set locally
+          if (typeof checkedByKey[k] !== 'boolean') {
+            checkedByKey[k] = !!found.checked;
+          }
+          // Optional fields
+          notesByKey[k] = found.notes || notesByKey[k];
+          subbieByKey[k] = found.subbie || subbieByKey[k];
+          noSubbieByKey[k] = !!found.no_subbie;
+          contractLinkByKey[k] = found.contract_link || contractLinkByKey[k];
+        }
+      });
+    });
+    // Emit progress after hydration
+    emitProgress();
+  });
+
   function isProjectQualification(sectionIdx, itemIdx) {
     return sections[sectionIdx]?.title === 'Client Acquisition/Project Qualification'
       && sections[sectionIdx]?.items?.[itemIdx]?.title === 'Project Qualification';
@@ -71,15 +129,69 @@
     filesByKey[key] = files;
   }
 
-  function handleItemCheck(sectionIdx, itemIdx, event) {
-    if (event.currentTarget.checked) {
-      toast.success('notification sent to slack');
+  function emitProgress() {
+    // Compute completion using local checked state where available,
+    // otherwise fall back to persisted items from server
+    const persistedMap = new Map();
+    (persistedItems || []).forEach((pi) => {
+      if (pi?.section && pi?.title) persistedMap.set(`${pi.section}|${pi.title}`, !!pi.checked);
+    });
+    const sectionComplete = sections.map((section, sIdx) => {
+      return (section.items || []).every((item, iIdx) => {
+        const local = checkedByKey[keyFor(sIdx, iIdx)];
+        if (typeof local === 'boolean') return local;
+        const sKey = `${section.title}|${item.title}`;
+        return persistedMap.get(sKey) === true;
+      });
+    });
+    dispatch('progress', { sectionComplete });
+  }
+
+  async function persistChecked(sectionTitle, itemTitle, value) {
+    try {
+      const grantApplicationId = window?.location?.pathname?.match(/grant_applications\/(\d+)/)?.[1];
+      if (!grantApplicationId) return;
+      const res = await fetch(`/grant_applications/${grantApplicationId}/grant_checklist_items/upsert`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ section: sectionTitle, title: itemTitle, checked: !!value })
+      });
+      if (!res.ok) throw new Error('Request failed');
+      const data = await res.json().catch(() => ({}));
+      if (data?.stage) dispatch('stage', { stage: data.stage });
+    } catch (e) {
+      console.error('Failed to persist checked', e);
+      toast.error('Failed to save change');
     }
+  }
+
+  function toggleChecked(sectionIdx, itemIdx, value) {
+    const sectionTitle = sections[sectionIdx]?.title;
+    const itemTitle = localSections[sectionIdx]?.items?.[itemIdx]?.title;
+    const k = keyFor(sectionIdx, itemIdx);
+    checkedByKey[k] = !!value;
+    persistChecked(sectionTitle, itemTitle, !!value);
+    emitProgress();
+    // Progress is derived from persisted items; we optimistically emit, but
+    // stage update will come from server response and be dispatched separately.
+  }
+
+  // Expose method for parent to set checked by title
+  export function setCheckedByTitle(sectionTitle, itemTitle, value) {
+    const sIdx = sections.findIndex((s) => s.title === sectionTitle);
+    if (sIdx === -1) return;
+    const iIdx = (sections[sIdx]?.items || []).findIndex((i) => i.title === itemTitle);
+    if (iIdx === -1) return;
+    toggleChecked(sIdx, iIdx, value);
   }
 </script>
 
 <div class="space-y-4">
   {#each sections as section, sIdx}
+    {#if visibleIndices.length === 0 || visibleIndices.includes(sIdx)}
     <div class="bg-white rounded-lg shadow-sm border">
       <div class="px-4 py-3 border-b">
         <div class="flex items-center justify-between">
@@ -103,74 +215,27 @@
       {#if !sectionsCollapsed[sIdx]}
         <ul class="divide-y">
         {#each localSections[sIdx].items as item, iIdx}
-          <li class="px-4 py-3">
+          {@const isSelected = sections[sIdx]?.title === selectedSectionTitle && localSections[sIdx]?.items?.[iIdx]?.title === selectedItemTitle}
+          {@const k = keyFor(sIdx, iIdx)}
+          <li class={`px-4 py-3 cursor-pointer rounded ${isSelected ? 'bg-base-200 border border-base-300' : ''}`} tabindex="0" onclick={() => selectItem(sIdx, iIdx)} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectItem(sIdx, iIdx); } }}>
             <div class="flex items-start justify-between gap-4">
-              <div class="flex items-start">
-                <input type="checkbox" class="checkbox checkbox-primary mr-3 mt-1" aria-label={`Mark ${item.title} complete`} onchange={(e) => handleItemCheck(sIdx, iIdx, e)} />
-                <div>
-                  <div class="font-medium text-gray-900 text-sm">{item.title}</div>
-                </div>
+              <div class="flex items-start gap-2">
+                <input type="checkbox" class="checkbox checkbox-sm checkbox-primary mt-0.5"
+                  checked={!!checkedByKey[k]}
+                  onclick={(e) => e.stopPropagation()}
+                  oninput={(e) => toggleChecked(sIdx, iIdx, e.currentTarget.checked)}
+                  aria-label={`Mark ${item.title} as ${checkedByKey[k] ? 'incomplete' : 'complete'}`} />
+                <div class="font-medium text-gray-900 text-sm">{item.title}</div>
               </div>
-              <div class="flex items-center gap-2">
-                <label class="text-xs text-gray-600" for={`due-${sIdx}-${iIdx}`}>Due</label>
-                <input id={`due-${sIdx}-${iIdx}`} type="date" class="input input-sm input-bordered" bind:value={item.dueDate} onchange={(e) => setDueDate(sIdx, iIdx, e.currentTarget.value)} />
-                <button class="btn btn-ghost btn-xs" onclick={() => toggle(sIdx, iIdx)} aria-expanded={expanded[`${sIdx}-${iIdx}`] ? 'true' : 'false'} aria-controls={`item-${sIdx}-${iIdx}`}>
-                  {expanded[`${sIdx}-${iIdx}`] ? 'Hide' : 'Show'} details
-                </button>
-              </div>
+              
             </div>
-            {#if expanded[`${sIdx}-${iIdx}`]}
-              <div id={`item-${sIdx}-${iIdx}`} class="mt-3 rounded-md bg-gray-50 p-3 text-sm text-gray-700 space-y-4">
-                {#if isProjectQualification(sIdx, iIdx)}
-                  <div>
-                    <div class="text-sm font-medium mb-1">Upload supporting documents</div>
-                    <input type="file" class="file-input file-input-bordered file-input-sm w-full max-w-md" multiple onchange={(e) => handleFileChange(sIdx, iIdx, e)} />
-                    {#if (filesByKey[keyFor(sIdx, iIdx)] || []).length > 0}
-                      <ul class="mt-2 list-disc list-inside text-xs text-gray-600">
-                        {#each filesByKey[keyFor(sIdx, iIdx)] as f}
-                          <li>{f.name} ({Math.ceil(f.size / 1024)} KB)</li>
-                        {/each}
-                      </ul>
-                    {/if}
-                  </div>
-                  <div>
-                    <div class="text-sm font-medium mb-1">Notes</div>
-                    <textarea class="textarea textarea-bordered w-full max-w-xl" rows="3" bind:value={notesByKey[keyFor(sIdx, iIdx)]} placeholder="Enter notes for Project Qualification..."></textarea>
-                  </div>
-                  <div>
-                    <div class="text-sm font-medium mb-1">Subbie</div>
-                    <div class="flex items-center gap-3 flex-wrap">
-                      <select class="select select-bordered select-sm w-full max-w-xs" bind:value={subbieByKey[keyFor(sIdx, iIdx)]} disabled={noSubbieByKey[keyFor(sIdx, iIdx)]}>
-                        <option value="" disabled>Select subbie</option>
-                        <option value="Leon Lever">Leon Lever</option>
-                        <option value="John Smith">John Smith</option>
-                      </select>
-                      <label class="flex items-center gap-2 text-sm">
-                        <input type="checkbox" class="checkbox checkbox-sm" bind:checked={noSubbieByKey[keyFor(sIdx, iIdx)]} />
-                        No subbie
-                      </label>
-                      {#if feeFor(keyFor(sIdx, iIdx)) !== null}
-                        <span class="text-sm text-gray-700 whitespace-nowrap">
-                          {formatGBP(feeFor(keyFor(sIdx, iIdx)))}
-                        </span>
-                      {/if}
-                    </div>
-                  </div>
-                {:else if isAgreementSent(sIdx, iIdx)}
-                  <div>
-                    <div class="text-sm font-medium mb-1">Contract Link</div>
-                    <input type="url" class="input input-bordered w-full max-w-xl" placeholder="https://example.com/contract" bind:value={contractLinkByKey[keyFor(sIdx, iIdx)]} />
-                  </div>
-                {:else}
-                  No additional details yet.
-                {/if}
-              </div>
-            {/if}
           </li>
         {/each}
         </ul>
       {/if}
     </div>
+    {/if}
   {/each}
 </div>
+ 
  

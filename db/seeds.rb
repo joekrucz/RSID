@@ -99,9 +99,64 @@ if User.exists?(1)
     GrantApplication.find_or_create_by!(user: user, title: s[:title]) do |ga|
       ga.description = s[:description]
       ga.deadline = deadline
-      ga.stage = GrantApplication.stages.keys.sample if GrantApplication.respond_to?(:stages)
+      # Choose a stage and create matching checklist items
+      stage_keys = GrantApplication.stages.keys
+      chosen_stage = stage_keys.sample
+      ga.stage = chosen_stage if GrantApplication.respond_to?(:stages)
       # Assign a random company to each application
       ga.company = companies.sample if companies.any?
+    end
+    # Ensure checklist items reflect the current stage
+    app = GrantApplication.find_by!(user: user, title: s[:title])
+    stage_index = GrantApplication.stages[app.stage]
+    section_order = [
+      'Client Acquisition/Project Qualification',
+      'Client Invoiced',
+      'Invoice Paid',
+      'Preparing for Kick Off/AML/Resourcing',
+      'Kicked Off/In Progress',
+      'Submitted',
+      'Awaiting Funding Decision',
+      'Application Successful/Not Successful',
+      'Resub Due',
+      'Success Fee Invoiced',
+      'Success Fee Paid'
+    ]
+    section_items = {
+      'Client Acquisition/Project Qualification' => [
+        'Project Qualification',
+        'Proposal Presented',
+        'Agreement Sent',
+        'New Project Handover Sent To Delivery',
+        'Deal marked as "won" / "lost"'
+      ],
+      'Client Invoiced' => ['Invoice Sent'],
+      'Invoice Paid' => ['Payment Received'],
+      'Preparing for Kick Off/AML/Resourcing' => [
+        'AML Checks Completed',
+        'Project Resourced',
+        'Project Set Up - Slack Channel, Delivery Folders, Etc.'
+      ],
+      'Kicked Off/In Progress' => [
+        'Kick Off Call Confirmed',
+        'Timeline Confirmed and Accepted by Client',
+        'Drafting',
+        'Reviews Confirmed',
+        'Eligibility Checks Completed'
+      ],
+      'Submitted' => ['Application Submitted'],
+      'Awaiting Funding Decision' => ['Completed'],
+      'Application Successful/Not Successful' => ['Completed'],
+      'Resub Due' => ['Completed'],
+      'Success Fee Invoiced' => ['Completed'],
+      'Success Fee Paid' => ['Completed']
+    }
+    section_order.each_with_index do |section, idx|
+      (section_items[section] || []).each do |title|
+        item = app.grant_checklist_items.find_or_initialize_by(section: section, title: title)
+        item.checked = idx <= stage_index
+        item.save!
+      end
     end
   end
 

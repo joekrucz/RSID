@@ -121,9 +121,9 @@
             onkeypress={handleKeyPress}
           />
           {#if fieldErrors.email}
-            <label class="label">
+            <div class="label">
               <span class="label-text-alt text-error">{fieldErrors.email}</span>
-            </label>
+            </div>
           {/if}
         </div>
         
@@ -142,9 +142,9 @@
             onkeypress={handleKeyPress}
           />
           {#if fieldErrors.password}
-            <label class="label">
+            <div class="label">
               <span class="label-text-alt text-error">{fieldErrors.password}</span>
-            </label>
+            </div>
           {/if}
         </div>
       </div>

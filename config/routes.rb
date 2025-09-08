@@ -64,6 +64,11 @@ Rails.application.routes.draw do
    member do
      patch :change_stage
    end
+  resources :grant_checklist_items, only: [] do
+    collection do
+      post :upsert
+    end
+  end
    collection do
      post :link_companies
      post :add_demo_data
@@ -71,7 +76,6 @@ Rails.application.routes.draw do
      get :debug_data
      post :fix_company_links
    end
-   resources :grant_checklist_items, only: [:create, :update]
  end
          
          # CNF Communications (protected)

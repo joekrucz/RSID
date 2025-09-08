@@ -235,6 +235,41 @@ class GrantApplicationsController < ApplicationController
         stage: GrantApplication.stages.keys.sample,
         company: companies.sample
       )
+      # Seed checklist items to match stage
+      section_order = [
+        'Client Acquisition/Project Qualification',
+        'Client Invoiced',
+        'Invoice Paid',
+        'Preparing for Kick Off/AML/Resourcing',
+        'Kicked Off/In Progress',
+        'Submitted',
+        'Awaiting Funding Decision',
+        'Application Successful/Not Successful',
+        'Resub Due',
+        'Success Fee Invoiced',
+        'Success Fee Paid'
+      ]
+      section_items = {
+        'Client Acquisition/Project Qualification' => [
+          'Project Qualification', 'Proposal Presented', 'Agreement Sent', 'New Project Handover Sent To Delivery', 'Deal marked as "won" / "lost"'
+        ],
+        'Client Invoiced' => ['Invoice Sent'],
+        'Invoice Paid' => ['Payment Received'],
+        'Preparing for Kick Off/AML/Resourcing' => ['AML Checks Completed', 'Project Resourced', 'Project Set Up - Slack Channel, Delivery Folders, Etc.'],
+        'Kicked Off/In Progress' => ['Kick Off Call Confirmed', 'Timeline Confirmed and Accepted by Client', 'Drafting', 'Reviews Confirmed', 'Eligibility Checks Completed'],
+        'Submitted' => ['Application Submitted'],
+        'Awaiting Funding Decision' => ['Completed'],
+        'Application Successful/Not Successful' => ['Completed'],
+        'Resub Due' => ['Completed'],
+        'Success Fee Invoiced' => ['Completed'],
+        'Success Fee Paid' => ['Completed']
+      }
+      current_idx = GrantApplication.stages[application.stage]
+      section_order.each_with_index do |section, idx|
+        (section_items[section] || []).each do |title|
+          application.grant_checklist_items.create!(section: section, title: title, checked: idx <= current_idx)
+        end
+      end
       created_count += 1
     end
 
@@ -302,6 +337,41 @@ class GrantApplicationsController < ApplicationController
         stage: GrantApplication.stages.keys.sample,
         company: company
       )
+      # Seed checklist items to match stage
+      section_order = [
+        'Client Acquisition/Project Qualification',
+        'Client Invoiced',
+        'Invoice Paid',
+        'Preparing for Kick Off/AML/Resourcing',
+        'Kicked Off/In Progress',
+        'Submitted',
+        'Awaiting Funding Decision',
+        'Application Successful/Not Successful',
+        'Resub Due',
+        'Success Fee Invoiced',
+        'Success Fee Paid'
+      ]
+      section_items = {
+        'Client Acquisition/Project Qualification' => [
+          'Project Qualification', 'Proposal Presented', 'Agreement Sent', 'New Project Handover Sent To Delivery', 'Deal marked as "won" / "lost"'
+        ],
+        'Client Invoiced' => ['Invoice Sent'],
+        'Invoice Paid' => ['Payment Received'],
+        'Preparing for Kick Off/AML/Resourcing' => ['AML Checks Completed', 'Project Resourced', 'Project Set Up - Slack Channel, Delivery Folders, Etc.'],
+        'Kicked Off/In Progress' => ['Kick Off Call Confirmed', 'Timeline Confirmed and Accepted by Client', 'Drafting', 'Reviews Confirmed', 'Eligibility Checks Completed'],
+        'Submitted' => ['Application Submitted'],
+        'Awaiting Funding Decision' => ['Completed'],
+        'Application Successful/Not Successful' => ['Completed'],
+        'Resub Due' => ['Completed'],
+        'Success Fee Invoiced' => ['Completed'],
+        'Success Fee Paid' => ['Completed']
+      }
+      current_idx = GrantApplication.stages[application.stage]
+      section_order.each_with_index do |section, idx|
+        (section_items[section] || []).each do |item_title|
+          application.grant_checklist_items.create!(section: section, title: item_title, checked: idx <= current_idx)
+        end
+      end
       created_applications << application
     end
 
