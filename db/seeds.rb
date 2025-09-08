@@ -475,24 +475,8 @@ if User.exists?(1)
     claim = RndClaim.find_or_create_by!(company: company, title: claim_title) do |c|
       c.start_date = start_date
       c.end_date = end_date
-      # Different stage distributions for dev vs production
-      if Rails.env.development?
-        # Development: More variety, including completed stages for testing
-        c.stage = ['upcoming', 'readying_for_delivery', 'in_progress', 'finalised', 'filed_awaiting_hmrc', 'claim_processed', 'client_invoiced', 'paid'].sample
-      else
-        # Production: More realistic distribution - mostly early stages
-        # 50% upcoming, 30% readying_for_delivery, 15% in_progress, 5% finalised
-        rand_num = rand(100)
-        if rand_num < 50
-          c.stage = 'upcoming'
-        elsif rand_num < 80
-          c.stage = 'readying_for_delivery'
-        elsif rand_num < 95
-          c.stage = 'in_progress'
-        else
-          c.stage = 'finalised'
-        end
-      end
+      # Use the same rich distribution in all environments so prod matches local demo look
+      c.stage = ['upcoming', 'readying_for_delivery', 'in_progress', 'finalised', 'filed_awaiting_hmrc', 'claim_processed', 'client_invoiced', 'paid'].sample
       c.qualifying_activities = [
         "Software development and testing",
         "Prototype development and validation",
