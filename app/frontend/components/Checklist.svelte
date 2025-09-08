@@ -201,12 +201,10 @@
   }
 
   function toggleChecked(sectionIdx, itemIdx, value) {
-    console.log('toggleChecked called:', { sectionIdx, itemIdx, value });
     const frontendSectionTitle = sections[sectionIdx]?.title;
     const backendSectionTitle = sectionMapping[frontendSectionTitle] || frontendSectionTitle;
     const itemTitle = localSections[sectionIdx]?.items?.[itemIdx]?.title;
     const k = keyFor(sectionIdx, itemIdx);
-    console.log('Setting checkedByKey:', { k, value: !!value });
     checkedByKey[k] = !!value;
     persistChecked(backendSectionTitle, itemTitle, !!value);
     emitProgress();
