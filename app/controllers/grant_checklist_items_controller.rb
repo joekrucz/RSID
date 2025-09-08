@@ -58,6 +58,61 @@ class GrantChecklistItemsController < ApplicationController
     end
   end
 
+  # Upload a document linked to a specific checklist item (by section + title)
+  def upload_document
+    section = params[:section]
+    title = params[:title]
+    file = params[:file]
+    unless file && section.present? && title.present?
+      return render json: { success: false, error: 'Missing file, section or title' }, status: :bad_request
+    end
+
+    # Ensure directory exists: storage/uploads/grant_applications/:id/:section/:title
+    section_slug = section.to_s.downcase.gsub(/[^0-9a-z]+/i, '-').gsub(/^-+|-+$/,'')
+    title_slug = title.to_s.downcase.gsub(/[^0-9a-z]+/i, '-').gsub(/^-+|-+$/,'')
+    dir = Rails.root.join('storage', 'uploads', 'grant_applications', @grant_application.id.to_s, section_slug, title_slug)
+    FileUtils.mkdir_p(dir)
+
+    # Build safe filename
+    original = file.original_filename
+    timestamp = Time.now.utc.strftime('%Y%m%d%H%M%S')
+    safe_name = original.gsub(/[^0-9A-Za-z.\-]+/, '_')
+    stored_name = "#{timestamp}_#{safe_name}"
+    path = dir.join(stored_name)
+
+    # Save file to disk
+    File.open(path, 'wb') { |f| f.write(file.read) }
+
+    # Persist GrantDocument
+    doc = @grant_application.grant_documents.create!(
+      name: original,
+      file_path: path.to_s,
+      file_type: File.extname(original).delete('.').downcase
+    )
+
+    render json: { success: true, document: { id: doc.id, name: doc.name } }, status: :ok
+  rescue => e
+    render json: { success: false, error: e.message }, status: :unprocessable_entity
+  end
+
+  # List documents for a specific checklist item
+  def list_documents
+    section = params[:section]
+    title = params[:title]
+    section_slug = section.to_s.downcase.gsub(/[^0-9a-z]+/i, '-').gsub(/^-+|-+$/,'')
+    title_slug = title.to_s.downcase.gsub(/[^0-9a-z]+/i, '-').gsub(/^-+|-+$/,'')
+    base = Rails.root.join('storage', 'uploads', 'grant_applications', @grant_application.id.to_s, section_slug, title_slug).to_s
+    docs = @grant_application.grant_documents.where("file_path LIKE ?", "#{base}/%").order(created_at: :desc)
+    render json: { success: true, documents: docs.map { |d| { id: d.id, name: d.name } } }
+  end
+
+  # Download a specific document by id (ensuring it belongs to this app and matches the item)
+  def download_document
+    doc = @grant_application.grant_documents.find(params[:id])
+    return head :not_found unless File.exist?(doc.file_path)
+    send_file doc.file_path, filename: doc.name, type: Rack::Mime.mime_type(".#{doc.file_type}"), disposition: 'attachment'
+  end
+
   private
 
   def set_grant_application

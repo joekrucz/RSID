@@ -10,6 +10,7 @@
   let noSubbie = $state(false);
   let contractLink = $state('');
   let files = $state([]);
+  let documents = $state([]);
   let checked = $state(false);
   let dueDate = $state('');
 
@@ -30,6 +31,14 @@
 
   // Hydrate local state from persistedItems when selection changes
   $effect(() => {
+    // Immediately clear fields on task change for a clean slate
+    notes = '';
+    subbie = '';
+    noSubbie = false;
+    contractLink = '';
+    checked = false;
+    dueDate = '';
+
     const found = (persistedItems || []).find(pi => pi.section === sectionTitle && pi.title === itemTitle);
     if (found) {
       notes = found.notes || '';
@@ -38,14 +47,9 @@
       contractLink = found.contract_link || '';
       checked = !!found.checked;
       dueDate = found.due_date || '';
-    } else {
-      notes = '';
-      subbie = '';
-      noSubbie = false;
-      contractLink = '';
-      checked = false;
-      dueDate = '';
     }
+    // Load documents for current selection
+    loadDocuments();
   });
 
   const dispatch = createEventDispatcher();
@@ -78,8 +82,47 @@
     files = Array.from(event.currentTarget.files || []);
   }
 
+  async function loadDocuments() {
+    documents = [];
+    if (!grantApplicationId || !sectionTitle || !itemTitle) return;
+    try {
+      const res = await fetch(`/grant_applications/${grantApplicationId}/grant_checklist_items/list_documents?section=${encodeURIComponent(sectionTitle)}&title=${encodeURIComponent(itemTitle)}`);
+      const data = await res.json();
+      if (data?.success) {
+        documents = data.documents || [];
+      }
+    } catch (e) {
+      console.error('Failed to load documents', e);
+    }
+  }
+
+  async function uploadSelectedFiles() {
+    if (!grantApplicationId || !sectionTitle || !itemTitle) return;
+    for (const f of (files || [])) {
+      const form = new FormData();
+      form.append('section', sectionTitle);
+      form.append('title', itemTitle);
+      form.append('file', f);
+      try {
+        await fetch(`/grant_applications/${grantApplicationId}/grant_checklist_items/upload_document`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          },
+          body: form
+        });
+      } catch (e) {
+        console.error('Failed to upload file', e);
+      }
+    }
+    files = [];
+    await loadDocuments();
+  }
+
   function isProjectQualification() {
-    return sectionTitle === 'Client Acquisition/Project Qualification' && itemTitle === 'Project Qualification';
+    // Show the documents UI whenever the selected item is "Project Qualification",
+    // regardless of the exact section title string.
+    return (itemTitle || '').trim() === 'Project Qualification';
   }
 
   function isAgreementSent() {
@@ -104,14 +147,26 @@
         </label>
       </div>
       <div>
-        <div class="text-sm font-medium mb-1">Upload supporting documents</div>
+        <div class="text-sm font-medium mb-1">Documents</div>
         <input type="file" class="file-input file-input-bordered file-input-sm w-full max-w-md" multiple onchange={handleFileChange} />
-        {#if (files || []).length > 0}
-          <ul class="mt-2 list-disc list-inside text-xs text-base-content/70">
-            {#each files as f}
-              <li>{f.name} ({Math.ceil(f.size / 1024)} KB)</li>
+        <div class="mt-2 flex items-center gap-2">
+          <button class="btn btn-sm btn-primary" disabled={(files || []).length === 0} onclick={uploadSelectedFiles}>Upload</button>
+          {#if (files || []).length > 0}
+            <span class="text-xs opacity-60">{(files || []).length} file(s) selected</span>
+          {/if}
+        </div>
+        {#if (documents || []).length > 0}
+          <ul class="mt-3 space-y-1">
+            {#each documents as d}
+              <li>
+                <a class="link link-primary text-sm" href={`/grant_applications/${grantApplicationId}/grant_checklist_items/download_document?id=${encodeURIComponent(d.id)}`}>
+                  {d.name}
+                </a>
+              </li>
             {/each}
           </ul>
+        {:else}
+          <div class="text-xs opacity-60 mt-2">No documents uploaded yet.</div>
         {/if}
       </div>
       <div>
@@ -146,6 +201,10 @@
       </div>
       <div class="text-sm font-medium mb-1">Contract Link</div>
       <input type="url" class="input input-bordered w-full" placeholder="https://example.com/contract" bind:value={contractLink} onchange={() => save({ contract_link: contractLink })} />
+      <div class="mt-4">
+        <div class="text-sm font-medium mb-1">Notes</div>
+        <textarea class="textarea textarea-bordered w-full" rows="4" bind:value={notes} onchange={() => save({ notes })}></textarea>
+      </div>
     </div>
     {:else}
     <div class="space-y-4">
@@ -155,7 +214,10 @@
           <input type="date" class="input input-sm input-bordered" bind:value={dueDate} onchange={() => save({ due_date: dueDate })} />
         </label>
       </div>
-      <div class="text-base-content/70">No additional details yet.</div>
+      <div>
+        <div class="text-sm font-medium mb-1">Notes</div>
+        <textarea class="textarea textarea-bordered w-full" rows="4" bind:value={notes} onchange={() => save({ notes })}></textarea>
+      </div>
     </div>
     {/if}
   {/if}

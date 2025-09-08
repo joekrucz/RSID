@@ -67,6 +67,9 @@ Rails.application.routes.draw do
   resources :grant_checklist_items, only: [] do
     collection do
       post :upsert
+      post :upload_document
+      get :list_documents
+      get :download_document
     end
   end
    collection do

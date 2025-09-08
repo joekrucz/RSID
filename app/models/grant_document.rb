@@ -1,5 +1,8 @@
 class GrantDocument < ApplicationRecord
   belongs_to :grant_application
+  # Optional linkage to a specific checklist item
+  attribute :section, :string
+  attribute :item_title, :string
   
   validates :name, presence: true, length: { minimum: 1, maximum: 255 }
   validates :file_path, presence: true
