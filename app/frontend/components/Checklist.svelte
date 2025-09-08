@@ -159,19 +159,13 @@
   async function persistChecked(sectionTitle, itemTitle, value) {
     try {
       const grantApplicationId = window?.location?.pathname?.match(/grant_applications\/(\d+)/)?.[1];
-      if (!grantApplicationId) {
-        console.error('No grant application ID found in URL');
-        return;
-      }
+      if (!grantApplicationId) return;
       
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       if (!csrfToken) {
-        console.error('No CSRF token found');
         toast.error('Security token missing. Please refresh the page.');
         return;
       }
-      
-      console.log('Sending request:', { section: sectionTitle, title: itemTitle, checked: !!value });
       
       const res = await fetch(`/grant_applications/${grantApplicationId}/grant_checklist_items/upsert`, {
         method: 'POST',
@@ -182,8 +176,6 @@
         credentials: 'same-origin',
         body: JSON.stringify({ section: sectionTitle, title: itemTitle, checked: !!value })
       });
-      
-      console.log('Response status:', res.status);
       
       if (!res.ok) {
         if (res.status === 302) {
