@@ -500,7 +500,6 @@ class GrantApplicationsController < ApplicationController
       title: item.title,
       due_date: item.due_date&.strftime('%Y-%m-%d'),
       checked: item.checked,
-      notes: item.notes,
       subbie: item.subbie,
       no_subbie: item.no_subbie,
       contract_link: item.contract_link
