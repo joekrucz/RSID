@@ -159,17 +159,41 @@
   async function persistChecked(sectionTitle, itemTitle, value) {
     try {
       const grantApplicationId = window?.location?.pathname?.match(/grant_applications\/(\d+)/)?.[1];
-      if (!grantApplicationId) return;
+      if (!grantApplicationId) {
+        console.error('No grant application ID found in URL');
+        return;
+      }
+      
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      if (!csrfToken) {
+        console.error('No CSRF token found');
+        toast.error('Security token missing. Please refresh the page.');
+        return;
+      }
+      
+      console.log('Sending request:', { section: sectionTitle, title: itemTitle, checked: !!value });
+      
       const res = await fetch(`/grant_applications/${grantApplicationId}/grant_checklist_items/upsert`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          'X-CSRF-Token': csrfToken
         },
         credentials: 'same-origin',
         body: JSON.stringify({ section: sectionTitle, title: itemTitle, checked: !!value })
       });
-      if (!res.ok) throw new Error('Request failed');
+      
+      console.log('Response status:', res.status);
+      
+      if (!res.ok) {
+        if (res.status === 302) {
+          toast.error('Session expired. Please log in again.');
+          window.location.href = '/login';
+          return;
+        }
+        throw new Error(`Request failed with status ${res.status}`);
+      }
+      
       const data = await res.json().catch(() => ({}));
       if (data?.stage) dispatch('stage', { stage: data.stage });
       if (data?.conflict_warning) {

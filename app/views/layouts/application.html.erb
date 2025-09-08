@@ -58,6 +58,18 @@
             document.documentElement.setAttribute('data-theme', savedTheme);
           })();
           
+          // Ensure CSS is properly loaded to prevent preload warnings
+          (function() {
+            // Force CSS to be used immediately to prevent preload warnings
+            const preloadedLinks = document.querySelectorAll('link[rel="preload"][as="style"]');
+            preloadedLinks.forEach(link => {
+              if (link.href && !link.href.includes('data:')) {
+                // Convert preload to stylesheet to ensure it's used
+                link.rel = 'stylesheet';
+              }
+            });
+          })();
+          
           // Auto-hide flash messages after 5 seconds
           setTimeout(() => {
             const notices = document.querySelectorAll('#flash-notice, #flash-alert');
