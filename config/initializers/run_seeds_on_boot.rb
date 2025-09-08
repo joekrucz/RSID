@@ -1,7 +1,7 @@
 # Automatically run db:seed once on first boot in production (or when enabled explicitly)
 # To force-run again, delete tmp/seeds_ran marker file or set AUTO_RUN_SEEDS_FORCE=true.
 
-// Only run when explicitly enabled via env. Avoid running during image build/asset compile.
+# Only run when explicitly enabled via env. Avoid running during image build/asset compile.
 if ENV["AUTO_RUN_SEEDS"] == "true" && !ENV["AUTO_RUN_SEEDS_DISABLED"]
   begin
     marker_path = Rails.root.join("tmp", "seeds_ran")
