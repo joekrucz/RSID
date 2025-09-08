@@ -1,5 +1,6 @@
 class GrantChecklistItemsController < ApplicationController
   before_action :require_login
+  before_action :set_current_user
   before_action :set_grant_application
 
   # Upsert a checklist item for a grant application by section + title
@@ -9,7 +10,6 @@ class GrantChecklistItemsController < ApplicationController
     attrs = {
       due_date: params[:due_date],
       checked: params[:checked],
-      notes: params[:notes],
       subbie: params[:subbie],
       no_subbie: params[:no_subbie],
       contract_link: params[:contract_link]
@@ -84,10 +84,10 @@ class GrantChecklistItemsController < ApplicationController
           end
         end
       end
-
-      render json: { 
-        success: true, 
-        item: item.as_json, 
+      
+      render json: {
+        success: true,
+        item: item.as_json,
         stage: @grant_application.stage,
         conflict_warning: conflict_warning,
         conflict_details: @grant_application.stage_conflict_details,
@@ -98,99 +98,9 @@ class GrantChecklistItemsController < ApplicationController
     end
   end
 
-  # Upload a document linked to a specific checklist item (by section + title)
-  def upload_document
-    section = params[:section]
-    title = params[:title]
-    file = params[:file]
-    unless file && section.present? && title.present?
-      return render json: { success: false, error: 'Missing file, section or title' }, status: :bad_request
-    end
-
-    # Ensure directory exists: storage/uploads/grant_applications/:id/:section/:title
-    section_slug = section.to_s.downcase.gsub(/[^0-9a-z]+/i, '-').gsub(/^-+|-+$/,'')
-    title_slug = title.to_s.downcase.gsub(/[^0-9a-z]+/i, '-').gsub(/^-+|-+$/,'')
-    dir = Rails.root.join('storage', 'uploads', 'grant_applications', @grant_application.id.to_s, section_slug, title_slug)
-    FileUtils.mkdir_p(dir)
-
-    # Build safe filename
-    original = file.original_filename
-    timestamp = Time.now.utc.strftime('%Y%m%d%H%M%S')
-    safe_name = original.gsub(/[^0-9A-Za-z.\-]+/, '_')
-    stored_name = "#{timestamp}_#{safe_name}"
-    path = dir.join(stored_name)
-
-    # Save file to disk
-    File.open(path, 'wb') { |f| f.write(file.read) }
-
-    # Persist GrantDocument
-    doc = @grant_application.grant_documents.create!(
-      name: original,
-      file_path: path.to_s,
-      file_type: File.extname(original).delete('.').downcase
-    )
-
-    render json: { success: true, document: { id: doc.id, name: doc.name } }, status: :ok
-  rescue => e
-    render json: { success: false, error: e.message }, status: :unprocessable_entity
-  end
-
-  # List documents for a specific checklist item
-  def list_documents
-    section = params[:section]
-    title = params[:title]
-    section_slug = section.to_s.downcase.gsub(/[^0-9a-z]+/i, '-').gsub(/^-+|-+$/,'')
-    title_slug = title.to_s.downcase.gsub(/[^0-9a-z]+/i, '-').gsub(/^-+|-+$/,'')
-    base = Rails.root.join('storage', 'uploads', 'grant_applications', @grant_application.id.to_s, section_slug, title_slug).to_s
-    docs = @grant_application.grant_documents.where("file_path LIKE ?", "#{base}/%").order(created_at: :desc)
-    render json: { success: true, documents: docs.map { |d| { id: d.id, name: d.name } } }
-  end
-
-  # Download a specific document by id (ensuring it belongs to this app and matches the item)
-  def download_document
-    doc = @grant_application.grant_documents.find(params[:id])
-    return head :not_found unless File.exist?(doc.file_path)
-    send_file doc.file_path, filename: doc.name, type: Rack::Mime.mime_type(".#{doc.file_type}"), disposition: 'attachment'
-  end
-
   private
 
   def set_grant_application
-    @grant_application = @current_user.grant_applications.find(params[:grant_application_id])
+    @grant_application = current_user.grant_applications.find(params[:grant_application_id])
   end
 end
-
-class GrantChecklistItemsController < ApplicationController
-  before_action :require_login
-  before_action :set_grant_application
-
-  def create
-    item = @grant_application.grant_checklist_items.find_or_initialize_by(title: item_params[:title], section: item_params[:section])
-    item.assign_attributes(item_params)
-    if item.save
-      head :ok
-    else
-      render json: { errors: item.errors.full_messages }, status: :unprocessable_entity
-    end
-  end
-
-  def update
-    item = @grant_application.grant_checklist_items.find(params[:id])
-    if item.update(item_params)
-      head :ok
-    else
-      render json: { errors: item.errors.full_messages }, status: :unprocessable_entity
-    end
-  end
-
-  private
-
-  def set_grant_application
-    @grant_application = @current_user.grant_applications.find(params[:grant_application_id])
-  end
-
-  def item_params
-    params.require(:grant_checklist_item).permit(:section, :title, :due_date, :checked, :notes, :subbie, :no_subbie, :contract_link)
-  end
-end
-

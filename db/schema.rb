@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_08_214344) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_08_223652) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -48,34 +48,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_08_214344) do
     t.index ["name"], name: "index_feature_flags_on_name", unique: true
   end
 
-  create_table "file_items", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.string "name", null: false
-    t.text "description"
-    t.string "file_type"
-    t.integer "file_size"
-    t.string "category", default: "personal"
-    t.string "original_filename", null: false
-    t.string "content_type"
-    t.string "file_path"
-    t.string "checksum"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["category"], name: "index_file_items_on_category"
-    t.index ["created_at"], name: "index_file_items_on_created_at"
-    t.index ["file_type"], name: "index_file_items_on_file_type"
-    t.index ["name"], name: "index_file_items_on_name"
-    t.index ["user_id", "category"], name: "index_file_items_on_user_id_and_category"
-    t.index ["user_id", "created_at"], name: "index_file_items_on_user_id_and_created_at"
-    t.index ["user_id", "file_type"], name: "index_file_items_on_user_id_and_file_type"
-    t.index ["user_id", "name"], name: "index_file_items_on_user_id_and_name"
-    t.index ["user_id"], name: "index_file_items_on_user_id"
-  end
-
   create_table "grant_applications", force: :cascade do |t|
     t.string "title"
     t.text "description"
-    t.datetime "deadline"
     t.integer "user_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -85,7 +60,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_08_214344) do
     t.boolean "manual_stage_override", default: false, null: false
     t.index ["company_id"], name: "index_grant_applications_on_company_id"
     t.index ["created_at"], name: "index_grant_applications_on_created_at"
-    t.index ["deadline"], name: "index_grant_applications_on_deadline"
     t.index ["grant_competition_id"], name: "index_grant_applications_on_grant_competition_id"
     t.index ["title"], name: "index_grant_applications_on_title"
     t.index ["user_id"], name: "index_grant_applications_on_user_id"
@@ -140,18 +114,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_08_214344) do
     t.index ["recipient_id"], name: "index_messages_on_recipient_id"
     t.index ["sender_id"], name: "index_messages_on_sender_id"
     t.index ["subject"], name: "index_messages_on_subject"
-  end
-
-  create_table "notes", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.string "title"
-    t.text "content"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["created_at"], name: "index_notes_on_created_at"
-    t.index ["title"], name: "index_notes_on_title"
-    t.index ["updated_at"], name: "index_notes_on_updated_at"
-    t.index ["user_id"], name: "index_notes_on_user_id"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -221,23 +183,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_08_214344) do
     t.index ["title"], name: "index_rnd_claims_on_title"
   end
 
-  create_table "todos", force: :cascade do |t|
-    t.integer "user_id", null: false
-    t.string "title"
-    t.text "description"
-    t.boolean "completed"
-    t.string "priority"
-    t.date "due_date"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["completed"], name: "index_todos_on_completed"
-    t.index ["created_at"], name: "index_todos_on_created_at"
-    t.index ["due_date"], name: "index_todos_on_due_date"
-    t.index ["priority"], name: "index_todos_on_priority"
-    t.index ["title"], name: "index_todos_on_title"
-    t.index ["user_id"], name: "index_todos_on_user_id"
-  end
-
   create_table "user_feature_accesses", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "feature_flag_id", null: false
@@ -264,7 +209,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_08_214344) do
 
   add_foreign_key "clients", "users"
   add_foreign_key "clients", "users", column: "employee_id"
-  add_foreign_key "file_items", "users"
   add_foreign_key "grant_applications", "companies"
   add_foreign_key "grant_applications", "grant_competitions"
   add_foreign_key "grant_applications", "users"
@@ -273,12 +217,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_08_214344) do
   add_foreign_key "messages", "clients"
   add_foreign_key "messages", "users", column: "recipient_id"
   add_foreign_key "messages", "users", column: "sender_id"
-  add_foreign_key "notes", "users"
   add_foreign_key "notifications", "users"
   add_foreign_key "rnd_claim_expenditures", "rnd_claims"
   add_foreign_key "rnd_claim_projects", "rnd_claims"
   add_foreign_key "rnd_claims", "companies"
-  add_foreign_key "todos", "users"
   add_foreign_key "user_feature_accesses", "feature_flags"
   add_foreign_key "user_feature_accesses", "users"
 end

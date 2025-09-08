@@ -73,7 +73,7 @@
                     </td>
                     <td>
                       <div class="text-sm">
-                        {application.deadline || 'No deadline set'}
+                        {application.grant_competition?.deadline || 'No deadline set'}
                       </div>
                       {#if application.days_until_deadline !== null}
                         <div class="text-xs opacity-50">

@@ -12,7 +12,6 @@ class PropsBuilderService
       isClient: user.client?,
       canManageClients: user.can_manage_clients?,
       canAccessGrantPipeline: user.can_access_grant_pipeline?,
-      canViewInternalNotes: user.can_view_internal_notes?,
       availableFeatures: user.available_features.map(&:name)
     }
   end
@@ -46,30 +45,6 @@ class PropsBuilderService
     }
   end
 
-  def self.note_props(note)
-    {
-      id: note.id,
-      title: note.title,
-      content: note.content,
-      created_at: format_date(note.created_at),
-      updated_at: format_date(note.updated_at)
-    }
-  end
-
-  def self.todo_props(todo)
-    {
-      id: todo.id,
-      title: todo.title,
-      description: todo.description,
-      completed: todo.completed,
-      priority: todo.priority,
-      due_date: todo.due_date&.strftime("%Y-%m-%d"),
-      created_at: format_date(todo.created_at),
-      due_date_formatted: format_due_date(todo.due_date),
-      overdue: todo.overdue?,
-      due_soon: todo.due_soon?
-    }
-  end
 
   def self.message_props(message)
     {
@@ -85,16 +60,6 @@ class PropsBuilderService
     }
   end
 
-  def self.file_item_props(file_item)
-    {
-      id: file_item.id,
-      name: file_item.name,
-      file_type: file_item.file_type,
-      file_size: file_item.file_size,
-      formatted_size: format_file_size(file_item.file_size),
-      created_at: format_date(file_item.created_at)
-    }
-  end
 
   def self.grant_application_props(application)
     {

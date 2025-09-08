@@ -40,6 +40,7 @@
             'Content-Type': 'application/json',
             'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
           },
+          credentials: 'same-origin',
           body: JSON.stringify({
             section: backendSectionTitle,
             title: itemTitle,
@@ -52,9 +53,7 @@
     }
   }
 
-  // Special per-item state for Project Qualification
-  let notesByKey = $state({});
-  let filesByKey = $state({});
+  // Special per-item state
   let subbieByKey = $state({});
   let contractLinkByKey = $state({});
   // Track checked state per item key `${sectionIdx}-${itemIdx}`
@@ -119,7 +118,6 @@
             checkedByKey[k] = !!found.checked;
           }
           // Optional fields
-          notesByKey[k] = found.notes || notesByKey[k];
           subbieByKey[k] = found.subbie || subbieByKey[k];
           noSubbieByKey[k] = !!found.no_subbie;
           contractLinkByKey[k] = found.contract_link || contractLinkByKey[k];
@@ -140,11 +138,6 @@
       && sections[sectionIdx]?.items?.[itemIdx]?.title === 'Agreement Sent';
   }
 
-  function handleFileChange(sectionIdx, itemIdx, event) {
-    const key = keyFor(sectionIdx, itemIdx);
-    const files = Array.from(event.currentTarget.files || []);
-    filesByKey[key] = files;
-  }
 
   function emitProgress() {
     // Compute completion using local checked state where available,
@@ -175,6 +168,7 @@
           'Content-Type': 'application/json',
           'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
+        credentials: 'same-origin',
         body: JSON.stringify({ section: sectionTitle, title: itemTitle, checked: !!value })
       });
       if (!res.ok) throw new Error('Request failed');

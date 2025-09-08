@@ -20,26 +20,6 @@ Rails.application.routes.draw do
   # Settings (protected)
   get 'settings', to: 'settings#index'
   
-  # Notes (protected)
-  resources :notes, only: [:index, :show, :edit, :create, :update, :destroy]
-  
-  # Todos (protected)
-  resources :todos, only: [:index, :show, :edit, :create, :update, :destroy] do
-    member do
-      patch :toggle
-    end
-    collection do
-      delete :clear_completed
-    end
-  end
-  
-  # File Items (protected)
-  resources :file_items, only: [:index, :show, :edit, :create, :update, :destroy] do
-    member do
-      get :download
-      get :preview
-    end
-  end
   
   # Messages (protected)
          resources :messages, only: [:index, :show, :create]
@@ -67,9 +47,6 @@ Rails.application.routes.draw do
   resources :grant_checklist_items, only: [] do
     collection do
       post :upsert
-      post :upload_document
-      get :list_documents
-      get :download_document
     end
   end
    collection do

@@ -58,7 +58,7 @@ class CompaniesController < ApplicationController
       description: application.description,
       stage: application.stage,
       stage_badge_class: view_context.grant_stage_badge_class(application.stage),
-      deadline: application.deadline&.strftime("%B %d, %Y at %I:%M %p"),
+      deadline: application.grant_competition&.deadline&.strftime("%B %d, %Y at %I:%M %p"),
       days_until_deadline: application.days_until_deadline,
       overdue: application.overdue?,
       created_at: application.created_at.strftime("%B %d, %Y"),

@@ -455,7 +455,7 @@ class GrantApplicationsController < ApplicationController
   end
   
   def grant_application_params
-    params.require(:grant_application).permit(:title, :description, :deadline, :stage, :company_id, :grant_competition_id)
+    params.require(:grant_application).permit(:title, :description, :stage, :company_id, :grant_competition_id)
   end
   
   def grant_application_props(application)
@@ -465,9 +465,6 @@ class GrantApplicationsController < ApplicationController
       description: application.description,
       stage: application.stage,
       stage_badge_class: view_context.grant_stage_badge_class(application.stage),
-      deadline: application.deadline&.strftime("%B %d, %Y at %I:%M %p"),
-      deadline_date: application.deadline&.strftime("%Y-%m-%d"),
-      deadline_time: application.deadline&.strftime("%H:%M"),
       days_until_deadline: application.days_until_deadline,
       overdue: application.overdue?,
       can_edit: application.can_edit?,

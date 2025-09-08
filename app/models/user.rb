@@ -2,9 +2,6 @@ class User < ApplicationRecord
   has_secure_password
   
   # Role-based associations
-  has_many :notes, dependent: :destroy
-  has_many :todos, dependent: :destroy
-  has_many :file_items, dependent: :destroy
   has_many :clients, dependent: :destroy
   
   # Employee-specific associations
@@ -88,9 +85,6 @@ class User < ApplicationRecord
     employee?
   end
   
-  def can_view_internal_notes?
-    employee?
-  end
   
   # Feature flag methods
   def feature_enabled?(feature_name)

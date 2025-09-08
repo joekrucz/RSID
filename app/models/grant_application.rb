@@ -24,11 +24,10 @@ class GrantApplication < ApplicationRecord
   
   validates :title, presence: true, length: { minimum: 3, maximum: 255 }
   validates :description, presence: true, length: { minimum: 10 }
-  validates :deadline, presence: true
   
   # Scopes
-  scope :upcoming_deadlines, -> { where('deadline > ?', Time.current).order(:deadline) }
-  scope :overdue, -> { where('deadline < ?', Time.current) }
+  scope :upcoming_deadlines, -> { joins(:grant_competition).where('grant_competitions.deadline > ?', Time.current).order('grant_competitions.deadline') }
+  scope :overdue, -> { joins(:grant_competition).where('grant_competitions.deadline < ?', Time.current) }
   
   # Search scope
   scope :search_by_content, ->(query) {
@@ -37,12 +36,12 @@ class GrantApplication < ApplicationRecord
   
   # Helper methods
   def overdue?
-    deadline < Time.current
+    grant_competition&.deadline && grant_competition.deadline < Time.current
   end
   
   def days_until_deadline
-    return nil if deadline.nil?
-    (deadline.to_date - Date.current).to_i
+    return nil if grant_competition&.deadline.nil?
+    (grant_competition.deadline.to_date - Date.current).to_i
   end
   
   def humanize_stage

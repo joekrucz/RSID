@@ -95,10 +95,8 @@ if User.exists?(1)
   companies = Company.all
   
   samples.each_with_index do |s, i|
-    deadline = Time.current + s[:days_from_now].days
     GrantApplication.find_or_create_by!(user: user, title: s[:title]) do |ga|
       ga.description = s[:description]
-      ga.deadline = deadline
       # Choose a stage and create matching checklist items
       stage_keys = GrantApplication.stages.keys
       chosen_stage = stage_keys.sample
@@ -371,13 +369,11 @@ if User.exists?(1)
 
   created_applications = []
   additional_application_titles.each_with_index do |title, index|
-    deadline = Time.current + rand(1..90).days
     # Link each application to a corresponding newly created company
     company = created_companies[index % created_companies.length]
 
     application = GrantApplication.find_or_create_by!(user: user, title: title) do |app|
       app.description = "Advanced research and development project for #{title}"
-      app.deadline = deadline
       app.stage = GrantApplication.stages.keys.sample
       app.company = company
       app.grant_competition = GrantCompetition.all.sample

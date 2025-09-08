@@ -10,7 +10,7 @@ class SearchController < ApplicationController
     results = if query.present?
       perform_search(query, filters)
     else
-      { projects: [], notes: [], todos: [], messages: [], users: [] }
+      { projects: [], messages: [], users: [] }
     end
     
     render inertia: 'Search/Index', props: {
@@ -21,7 +21,7 @@ class SearchController < ApplicationController
       pagination: {
         page: page,
         per_page: per_page,
-        total_results: results.values_at(:projects_total, :notes_total, :todos_total, :messages_total, :users_total).compact.sum
+        total_results: results.values_at(:projects_total, :messages_total, :users_total).compact.sum
       }
     }
   end
@@ -43,26 +43,6 @@ class SearchController < ApplicationController
         .limit(per_page)
         .map { |claim| PropsBuilderService.rnd_claim_props(claim) }
       results[:claims_total] = claims_query.count
-    end
-    
-    # Search Notes
-    if should_search?('notes', filters)
-      notes_query = Note.search_global(query, @current_user)
-      results[:notes] = notes_query
-        .offset((page - 1) * per_page)
-        .limit(per_page)
-        .map { |note| PropsBuilderService.note_props(note) }
-      results[:notes_total] = notes_query.count
-    end
-    
-    # Search Todos
-    if should_search?('todos', filters)
-      todos_query = Todo.search_global(query, @current_user)
-      results[:todos] = todos_query
-        .offset((page - 1) * per_page)
-        .limit(per_page)
-        .map { |todo| PropsBuilderService.todo_props(todo) }
-      results[:todos_total] = todos_query.count
     end
     
     # Search Messages
@@ -91,5 +71,14 @@ class SearchController < ApplicationController
   def should_search?(type, filters)
     return true if filters.empty?
     filters[type] == 'true' || filters[type] == true
+  end
+
+  def user_props
+    {
+      id: @current_user.id,
+      name: @current_user.name,
+      email: @current_user.email,
+      role: @current_user.role
+    }
   end
 end

@@ -181,7 +181,7 @@
             </button>
             <div>
               <h1 class="text-3xl font-bold text-base-content mb-1">{grant_application.title}</h1>
-              <div class="text-base text-base-content/80 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+              <div class="text-base text-base-content/80 mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
                 {#if grant_application.company}
                   <span>
                     <span class="opacity-70">Company:</span>
@@ -225,7 +225,7 @@
       
       <!-- Stage Conflict Warning -->
       {#if stageConflictWarning}
-        <div class="alert alert-warning mb-4">
+        <div class="alert alert-warning mb-2 -mt-4">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
           </svg>
@@ -265,7 +265,7 @@
       {/if}
       
       <!-- Stage Tabs grouped visually with group tabs -->
-      <div class="mt-2 w-full bg-base-100 rounded-lg border border-base-300 shadow p-4 sticky top-24 z-30">
+      <div class="mt-1 w-full bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 sticky top-24 z-30">
         <div class="tabs tabs-boxed bg-base-200 inline-flex p-1 mb-3">
           {#each stageGroups as g}
             <button class={`tab tab-sm flex items-center gap-2 ${currentGroup === g.label ? 'tab-active bg-primary text-primary-content font-semibold' : 'bg-base-100 text-base-content/70'}`}
@@ -304,8 +304,8 @@
     
     
       <!-- Checklist + Detail (Master-Detail) -->
-      <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        <div class="lg:col-span-5 xl:col-span-4 lg:max-h-[60vh] overflow-y-auto pr-2 lg:pt-2">
+      <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="lg:col-span-5 xl:col-span-4 bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:max-h-[60vh] overflow-y-auto">
           <h2 class="text-xl font-semibold text-gray-900 mb-3">Project Checklist</h2>
           <Checklist bind:this={checklistRef} selectedSectionTitle={selectedSectionTitle} selectedItemTitle={selectedItemTitle} on:select={(e) => { selectedSectionTitle = e.detail.sectionTitle; selectedItemTitle = e.detail.itemTitle; }} on:conflict-warning={(e) => { stageConflictWarning = e.detail.message; stageConflictDetails = e.detail.details; }} visibleIndices={visibleSectionIndicesForGroup(currentGroup)} persistedItems={checklist_items} sections={[
           {
@@ -355,7 +355,7 @@
           { title: 'Success Fee Paid', items: [ { title: 'Completed' } ] }
         ]} on:progress={(e) => { sectionComplete = e.detail.sectionComplete; }} on:stage={(e) => { currentStage = e.detail.stage; }} />
         </div>
-        <div class="lg:col-span-7 xl:col-span-8 lg:sticky lg:top-40">
+        <div class="lg:col-span-7 xl:col-span-8 bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:sticky lg:top-40">
           <h2 class="text-xl font-semibold text-gray-900 mb-3">Task Details</h2>
           <ChecklistTaskDetail {grantApplicationId} sectionTitle={selectedSectionTitle} itemTitle={selectedItemTitle} persistedItems={checklist_items} on:change={(e) => {
             const { field, value, sectionTitle, itemTitle } = e.detail || {};

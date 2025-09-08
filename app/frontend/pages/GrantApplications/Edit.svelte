@@ -11,26 +11,21 @@
   
   let title = $state(grant_application.title || '');
   let description = $state(grant_application.description || '');
-  let deadlineDate = $state(grant_application.deadline_date || '');
-  let deadlineTime = $state(grant_application.deadline_time || '12:00');
   let selectedCompany = $state(grant_application.company || null);
   let selectedCompetition = $state(grant_application.grant_competition || null);
   let loading = $state(false);
   
   function handleSubmit() {
-    if (!title.trim() || !description.trim() || !deadlineDate) {
+    if (!title.trim() || !description.trim()) {
       toast.error('Please fill in all required fields.');
       return;
     }
-    
-    const deadline = new Date(`${deadlineDate}T${deadlineTime}`);
     
     loading = true;
     router.put(`/grant_applications/${grant_application.id}`, {
       grant_application: {
         title: title.trim(),
         description: description.trim(),
-        deadline: deadline.toISOString(),
         company_id: selectedCompany?.id || null,
         grant_competition_id: selectedCompetition?.id || null
       }
@@ -99,31 +94,6 @@
               {/if}
             </div>
             
-            <!-- Deadline -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Deadline Date *</span>
-                </label>
-                <input
-                  type="date"
-                  class="input input-bordered w-full"
-                  bind:value={deadlineDate}
-                  required
-                />
-              </div>
-              
-              <div class="form-control">
-                <label class="label">
-                  <span class="label-text">Deadline Time</span>
-                </label>
-                <input
-                  type="time"
-                  class="input input-bordered w-full"
-                  bind:value={deadlineTime}
-                />
-              </div>
-            </div>
             
             <!-- Company Selection -->
             <div class="form-control">
