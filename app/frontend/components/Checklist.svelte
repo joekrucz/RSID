@@ -201,10 +201,12 @@
   }
 
   function toggleChecked(sectionIdx, itemIdx, value) {
+    console.log('toggleChecked called:', { sectionIdx, itemIdx, value });
     const frontendSectionTitle = sections[sectionIdx]?.title;
     const backendSectionTitle = sectionMapping[frontendSectionTitle] || frontendSectionTitle;
     const itemTitle = localSections[sectionIdx]?.items?.[itemIdx]?.title;
     const k = keyFor(sectionIdx, itemIdx);
+    console.log('Setting checkedByKey:', { k, value: !!value });
     checkedByKey[k] = !!value;
     persistChecked(backendSectionTitle, itemTitle, !!value);
     emitProgress();
@@ -255,8 +257,10 @@
               <div class="flex items-start gap-2">
                 <input type="checkbox" class="checkbox checkbox-sm checkbox-primary mt-0.5"
                   checked={!!checkedByKey[k]}
-                  onclick={(e) => e.stopPropagation()}
-                  oninput={(e) => toggleChecked(sIdx, iIdx, e.currentTarget.checked)}
+                  onchange={(e) => {
+                    e.stopPropagation();
+                    toggleChecked(sIdx, iIdx, e.currentTarget.checked);
+                  }}
                   aria-label={`Mark ${item.title} as ${checkedByKey[k] ? 'incomplete' : 'complete'}`} />
                 <div class="font-medium text-gray-900 text-sm">{item.title}</div>
               </div>
