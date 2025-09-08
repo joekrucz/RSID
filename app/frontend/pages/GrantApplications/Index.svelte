@@ -128,6 +128,35 @@
   function displayLabel(value) {
     return (value || '').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
+
+  function formatStageLabel(stage) {
+    switch (stage) {
+      case 'client_acquisition_project_qualification':
+        return 'Client Acquisition';
+      case 'client_invoiced':
+        return 'Client invoiced';
+      case 'invoice_paid':
+        return 'Invoice paid';
+      case 'preparing_for_kick_off_aml_resourcing':
+        return 'KO Prep';
+      case 'kicked_off_in_progress':
+        return 'Kicked off';
+      case 'submitted':
+        return 'Submitted';
+      case 'awaiting_funding_decision':
+        return 'Awaiting funding decision';
+      case 'application_successful_or_not_successful':
+        return 'Funding Decision';
+      case 'resub_due':
+        return 'Resub Due';
+      case 'success_fee_invoiced':
+        return 'Success fee invoiced';
+      case 'success_fee_paid':
+        return 'Success fee paid';
+      default:
+        return displayLabel(stage);
+    }
+  }
 </script>
 
 <Layout {user}>
@@ -313,8 +342,8 @@
                     {/if}
                   </td>
                   <td>
-                    <div class={`badge ${application.stage_badge_class || 'badge-neutral'} whitespace-normal min-h-6 h-auto py-1`} title={displayLabel(application.stage)}>
-                      {displayLabel(application.stage)}
+                    <div class={`badge ${application.stage_badge_class || 'badge-neutral'} whitespace-normal min-h-6 h-auto py-1`} title={formatStageLabel(application.stage)}>
+                      {formatStageLabel(application.stage)}
                     </div>
                   </td>
                   <td>

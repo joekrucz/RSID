@@ -254,7 +254,7 @@
           <h2 class="text-xl font-semibold text-gray-900 mb-3">Project Checklist</h2>
           <Checklist bind:this={checklistRef} selectedSectionTitle={selectedSectionTitle} selectedItemTitle={selectedItemTitle} on:select={(e) => { selectedSectionTitle = e.detail.sectionTitle; selectedItemTitle = e.detail.itemTitle; }} visibleIndices={visibleSectionIndicesForGroup(currentGroup)} persistedItems={checklist_items} sections={[
           {
-            title: 'Client Acquisition/Project Qualification',
+            title: 'Client Acquisition',
             items: [
               { title: 'Project Qualification' },
               { title: 'Proposal Presented' },
@@ -272,7 +272,7 @@
             items: [ { title: 'Payment Received' } ]
           },
           {
-            title: 'Preparing for Kick Off/AML/Resourcing',
+            title: 'KO Prep',
             items: [
               { title: 'AML Checks Completed' },
               { title: 'Project Resourced' },
@@ -280,7 +280,7 @@
             ]
           },
           {
-            title: 'Kicked Off/In Progress',
+            title: 'Kicked Off',
             items: [
               { title: 'Kick Off Call Confirmed' },
               { title: 'Timeline Confirmed and Accepted by Client' },
@@ -294,7 +294,7 @@
             items: [ { title: 'Application Submitted' } ]
           },
           { title: 'Awaiting Funding Decision', items: [ { title: 'Completed' } ] },
-          { title: 'Application Successful/Not Successful', items: [ { title: 'Completed' } ] },
+          { title: 'Funding Decision', items: [ { title: 'Completed' } ] },
           { title: 'Resub Due', items: [ { title: 'Completed' } ] },
           { title: 'Success Fee Invoiced', items: [ { title: 'Completed' } ] },
           { title: 'Success Fee Paid', items: [ { title: 'Completed' } ] }
