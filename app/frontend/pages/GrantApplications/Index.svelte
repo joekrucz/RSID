@@ -11,7 +11,7 @@
   let search = $state(filters.search || '');
   let currentView = $state(view_mode);
   let currentPage = $state(pagination?.current_page || 1);
-  let perPage = $state(filters.per_page || 25);
+  let perPage = $state(Number(filters.per_page) || 25);
   
   // Use server-side pagination and search
   let filteredApplications = $state(grant_applications);
@@ -57,7 +57,7 @@
   function loadPage(page) {
     const params = new URLSearchParams();
     if (search.trim()) params.set('search', search);
-    if (perPage !== 25) params.set('per_page', perPage);
+    if (perPage !== 25) params.set('per_page', String(perPage));
     if (currentView !== 'list') params.set('view', currentView);
     if (page > 1) params.set('page', page);
     
@@ -225,9 +225,9 @@
               bind:value={perPage}
               onchange={() => handlePerPageChange(perPage)}
             >
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
             </select>
           </div>
           
