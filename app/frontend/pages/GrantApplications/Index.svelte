@@ -258,18 +258,6 @@
         </div>
       </div>
       
-      <!-- Stats Cards -->
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-6">
-        <div class="stat bg-base-100 shadow rounded-lg">
-          <div class="stat-title">Total</div>
-          <div class="stat-value text-primary">{stats.total}</div>
-        </div>
-        
-        <div class="stat bg-base-100 shadow rounded-lg">
-          <div class="stat-title">Overdue</div>
-          <div class="stat-value text-error">{stats.overdue}</div>
-        </div>
-      </div>
     </div>
     
     <!-- Applications Content -->

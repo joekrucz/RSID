@@ -29,10 +29,11 @@
   async function setDueDate(sectionIdx, itemIdx, value) {
     localSections[sectionIdx].items[itemIdx].dueDate = value;
     try {
-      const sectionTitle = sections[sectionIdx]?.title;
+      const frontendSectionTitle = sections[sectionIdx]?.title;
+      const backendSectionTitle = sectionMapping[frontendSectionTitle] || frontendSectionTitle;
       const itemTitle = localSections[sectionIdx]?.items?.[itemIdx]?.title;
       const grantApplicationId = window?.location?.pathname?.match(/grant_applications\/(\d+)/)?.[1];
-      if (grantApplicationId && sectionTitle && itemTitle) {
+      if (grantApplicationId && backendSectionTitle && itemTitle) {
         await fetch(`/grant_applications/${grantApplicationId}/grant_checklist_items/upsert`, {
           method: 'POST',
           headers: {
@@ -40,7 +41,7 @@
             'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
           },
           body: JSON.stringify({
-            section: sectionTitle,
+            section: backendSectionTitle,
             title: itemTitle,
             due_date: value
           })
@@ -80,6 +81,21 @@
     return `${sectionIdx}-${itemIdx}`;
   }
 
+  // Map frontend section names to backend section names
+  const sectionMapping = {
+    'Client Acquisition': 'Client Acquisition/Project Qualification',
+    'Client Invoiced': 'Client Invoiced',
+    'Invoice Paid': 'Invoice Paid',
+    'KO Prep': 'Preparing for Kick Off/AML/Resourcing',
+    'Kicked Off': 'Kicked Off/In Progress',
+    'Submitted': 'Submitted',
+    'Awaiting Funding Decision': 'Awaiting Funding Decision',
+    'Funding Decision': 'Application Successful/Not Successful',
+    'Resub Due': 'Resub Due',
+    'Success Fee Invoiced': 'Success Fee Invoiced',
+    'Success Fee Paid': 'Success Fee Paid'
+  };
+
   // Hydrate from persistedItems on mount/prop change
   $effect(() => {
     const byKey = new Map();
@@ -90,7 +106,8 @@
     });
     sections.forEach((section, sIdx) => {
       (section.items || []).forEach((item, iIdx) => {
-        const found = byKey.get(`${section.title}|${item.title}`);
+        const backendSectionName = sectionMapping[section.title] || section.title;
+        const found = byKey.get(`${backendSectionName}|${item.title}`);
         if (found) {
           const k = keyFor(sIdx, iIdx);
           // Sync due date into localSections model
@@ -140,7 +157,8 @@
       return (section.items || []).every((item, iIdx) => {
         const local = checkedByKey[keyFor(sIdx, iIdx)];
         if (typeof local === 'boolean') return local;
-        const sKey = `${section.title}|${item.title}`;
+        const backendSectionName = sectionMapping[section.title] || section.title;
+        const sKey = `${backendSectionName}|${item.title}`;
         return persistedMap.get(sKey) === true;
       });
     });
@@ -162,6 +180,12 @@
       if (!res.ok) throw new Error('Request failed');
       const data = await res.json().catch(() => ({}));
       if (data?.stage) dispatch('stage', { stage: data.stage });
+      if (data?.conflict_warning) {
+        dispatch('conflict-warning', { 
+          message: data.conflict_warning,
+          details: data.conflict_details || []
+        });
+      }
     } catch (e) {
       console.error('Failed to persist checked', e);
       toast.error('Failed to save change');
@@ -169,11 +193,12 @@
   }
 
   function toggleChecked(sectionIdx, itemIdx, value) {
-    const sectionTitle = sections[sectionIdx]?.title;
+    const frontendSectionTitle = sections[sectionIdx]?.title;
+    const backendSectionTitle = sectionMapping[frontendSectionTitle] || frontendSectionTitle;
     const itemTitle = localSections[sectionIdx]?.items?.[itemIdx]?.title;
     const k = keyFor(sectionIdx, itemIdx);
     checkedByKey[k] = !!value;
-    persistChecked(sectionTitle, itemTitle, !!value);
+    persistChecked(backendSectionTitle, itemTitle, !!value);
     emitProgress();
     // Progress is derived from persisted items; we optimistically emit, but
     // stage update will come from server response and be dispatched separately.
@@ -217,7 +242,7 @@
         {#each localSections[sIdx].items as item, iIdx}
           {@const isSelected = sections[sIdx]?.title === selectedSectionTitle && localSections[sIdx]?.items?.[iIdx]?.title === selectedItemTitle}
           {@const k = keyFor(sIdx, iIdx)}
-          <li class={`px-4 py-3 cursor-pointer rounded ${isSelected ? 'bg-base-200 border border-base-300' : ''}`} tabindex="0" onclick={() => selectItem(sIdx, iIdx)} onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectItem(sIdx, iIdx); } }}>
+          <button class={`w-full text-left px-4 py-3 cursor-pointer rounded ${isSelected ? 'bg-base-200 border border-base-300' : ''}`} onclick={() => selectItem(sIdx, iIdx)}>
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-start gap-2">
                 <input type="checkbox" class="checkbox checkbox-sm checkbox-primary mt-0.5"
@@ -229,7 +254,7 @@
               </div>
               
             </div>
-          </li>
+          </button>
         {/each}
         </ul>
       {/if}

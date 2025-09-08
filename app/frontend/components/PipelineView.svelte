@@ -10,7 +10,32 @@
   let hasDragged = $state(false);
   
   function formatStageName(stage) {
-    return stage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    switch (stage) {
+      case 'client_acquisition_project_qualification':
+        return 'Client Acquisition';
+      case 'client_invoiced':
+        return 'Client invoiced';
+      case 'invoice_paid':
+        return 'Invoice paid';
+      case 'preparing_for_kick_off_aml_resourcing':
+        return 'KO Prep';
+      case 'kicked_off_in_progress':
+        return 'Kicked off';
+      case 'submitted':
+        return 'Submitted';
+      case 'awaiting_funding_decision':
+        return 'Awaiting funding decision';
+      case 'application_successful_or_not_successful':
+        return 'Funding Decision';
+      case 'resub_due':
+        return 'Resub Due';
+      case 'success_fee_invoiced':
+        return 'Success fee invoiced';
+      case 'success_fee_paid':
+        return 'Success fee paid';
+      default:
+        return stage.replaceAll('_', ' ');
+    }
   }
   
   function handleDelete(applicationId) {
@@ -82,7 +107,17 @@
         const data = await response.json();
         
         if (data.success) {
-          toast.success(`Moved to ${formatStageName(targetStage)}`);
+          if (data.conflict_warning) {
+            let warningMessage = data.conflict_warning;
+            if (data.conflict_details && data.conflict_details.length > 0) {
+              const actionCount = data.conflict_details.length;
+              const actionText = data.conflict_details[0].action === 'tick' ? 'tick' : 'untick';
+              warningMessage += ` (${actionCount} item${actionCount > 1 ? 's' : ''} need${actionCount > 1 ? '' : 's'} to be ${actionText}ed)`;
+            }
+            toast.warning(warningMessage);
+          } else {
+            toast.success(`Moved to ${formatStageName(targetStage)}`);
+          }
           // Refresh the page to update the pipeline data
           router.reload();
         } else {
@@ -145,14 +180,19 @@
                         {application.title}
                       </h4>
                     </div>
-                    {#if application.overdue}
-                      <div class="badge badge-error badge-xs">Overdue</div>
-                    {/if}
+                    <div class="flex gap-1">
+                      {#if application.stage_conflict}
+                        <div class="badge badge-warning badge-xs" title={application.stage_conflict_message}>⚠️ Conflict</div>
+                      {/if}
+                      {#if application.overdue}
+                        <div class="badge badge-error badge-xs">Overdue</div>
+                      {/if}
+                    </div>
                   </div>
                   
                   {#if application.company}
                     <div class="text-xs text-base-content/70 mb-2">
-                      <a href={`/companies/${application.company.id}`} class="link link-primary">
+                      <a href={`/companies/${application.company.id}`} class="text-base-content hover:underline">
                         {application.company.name}
                       </a>
                     </div>
@@ -160,50 +200,12 @@
                   
                   {#if application.grant_competition}
                     <div class="text-xs text-base-content/70 mb-2">
-                      <a href={`/grant_competitions/${application.grant_competition.id}`} class="link link-primary">
+                      <a href={`/grant_competitions/${application.grant_competition.id}`} class="text-base-content hover:underline">
                         {application.grant_competition.grant_name}
                       </a>
                     </div>
                   {/if}
                   
-                  <div class="text-xs text-base-content/50 mb-2 line-clamp-2">
-                    {application.description}
-                  </div>
-                  
-                  <div class="flex items-center justify-between text-xs text-base-content/60">
-                    <span>{application.deadline || 'No deadline'}</span>
-                    <span>{application.documents_count} docs</span>
-                  </div>
-                  
-                  <div class="flex items-center justify-between mt-3 pt-2 border-t border-base-300">
-                    <div class="text-xs text-base-content/50">
-                      {application.created_at}
-                    </div>
-                    <div class="flex space-x-1">
-                      <button 
-                        class="btn btn-xs btn-ghost"
-                        onclick={(e) => { e.stopPropagation(); router.visit(`/grant_applications/${application.id}/edit`); }}
-                        onmousedown={(e) => e.stopPropagation()}
-                        title="Edit"
-                        aria-label="Edit {application.title}"
-                      >
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                      </button>
-                      <button 
-                        class="btn btn-xs btn-ghost text-error"
-                        onclick={(e) => { e.stopPropagation(); handleDelete(application.id); }}
-                        onmousedown={(e) => e.stopPropagation()}
-                        title="Delete"
-                        aria-label="Delete {application.title}"
-                      >
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
                 </div>
               {/each}
               

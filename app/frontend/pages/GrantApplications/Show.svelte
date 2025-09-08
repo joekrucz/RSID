@@ -8,6 +8,10 @@
   let checklistRef;
   
   let { user, grant_application, checklist_items = [] } = $props();
+  
+  // Stage conflict warning state
+  let stageConflictWarning = $state(grant_application.stage_conflict_message || null);
+  let stageConflictDetails = $state(grant_application.stage_conflict_details || []);
   const stages = [
     'client_acquisition_project_qualification',
     'client_invoiced',
@@ -36,7 +40,7 @@
     const found = stageGroups.find(g => g.keys.includes(stage));
     return found?.label || 'Pre-delivery';
   }
-  let currentGroup = $state(groupForStage(currentStage));
+  let currentGroup = $state('Pre-delivery');
   $effect(() => { currentGroup = groupForStage(currentStage); });
 
   function isGroupComplete(group) {
@@ -163,57 +167,108 @@
     <div class="sticky top-16 z-10 bg-base-200/95 backdrop-blur-sm border-b border-base-300 pb-4">
       <!-- Header -->
       <div class="mb-6">
-        <Button variant="secondary" onclick={goBack} class="mb-4">
-          ← Back to Grant Applications
-        </Button>
-        
         <div class="flex justify-between items-start">
-          <div>
-            <h1 class="text-3xl font-bold text-base-content mb-1">{grant_application.title}</h1>
-            <div class="text-base text-base-content/80 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1">
-              {#if grant_application.company}
-                <span>
-                  <span class="opacity-70">Company:</span>
-                  <a href={`/companies/${grant_application.company.id}`} class="link link-primary ml-1">{grant_application.company.name}</a>
-                </span>
-              {/if}
-              {#if grant_application.grant_competition}
-                <span class="text-base-content/60">•</span>
-                <span>
-                  <span class="opacity-70">Competition:</span>
-                  <a href={`/grant_competitions/${grant_application.grant_competition.id}`} class="link link-primary ml-1">{grant_application.grant_competition.grant_name}</a>
-                </span>
-                {#if grant_application.grant_competition.deadline}
-                  <span class="text-base-content/60">•</span>
+          <div class="flex items-start gap-3">
+            <button 
+              onclick={goBack} 
+              class="btn btn-ghost btn-sm p-2 hover:bg-base-300"
+              title="Back to Grant Applications"
+              aria-label="Back to Grant Applications"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+            </button>
+            <div>
+              <h1 class="text-3xl font-bold text-base-content mb-1">{grant_application.title}</h1>
+              <div class="text-base text-base-content/80 mb-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+                {#if grant_application.company}
                   <span>
-                    <span class="opacity-70">Deadline:</span>
-                    <span class="ml-1">{new Date(grant_application.grant_competition.deadline).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                    <span class="opacity-70">Company:</span>
+                    <a href={`/companies/${grant_application.company.id}`} class="link link-primary ml-1">{grant_application.company.name}</a>
                   </span>
                 {/if}
-              {/if}
+                {#if grant_application.grant_competition}
+                  <span class="text-base-content/60">•</span>
+                  <span>
+                    <span class="opacity-70">Competition:</span>
+                    <a href={`/grant_competitions/${grant_application.grant_competition.id}`} class="link link-primary ml-1">{grant_application.grant_competition.grant_name}</a>
+                  </span>
+                  {#if grant_application.grant_competition.deadline}
+                    <span class="text-base-content/60">•</span>
+                    <span>
+                      <span class="opacity-70">Deadline:</span>
+                      <span class="ml-1">{new Date(grant_application.grant_competition.deadline).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                    </span>
+                  {/if}
+                {/if}
+              </div>
             </div>
           </div>
           
           <div class="flex space-x-2">
             {#if grant_application.can_edit}
-              <Button variant="secondary" onclick={() => router.visit(`/grant_applications/${grant_application.id}/edit`)}>
-                Edit
-              </Button>
-            {/if}
-            {#if grant_application.can_edit}
-              <Button variant="error" onclick={handleDelete} disabled={loading}>
-                Delete
-              </Button>
+              <button 
+                onclick={() => router.visit(`/grant_applications/${grant_application.id}/edit`)}
+                class="btn btn-ghost btn-sm p-2 hover:bg-base-300"
+                title="Edit Application"
+                aria-label="Edit Application"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+              </button>
             {/if}
           </div>
         </div>
       </div>
+      
+      <!-- Stage Conflict Warning -->
+      {#if stageConflictWarning}
+        <div class="alert alert-warning mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+          </svg>
+          <div class="flex-1">
+            <h3 class="font-bold">Stage Conflict Detected</h3>
+            <div class="text-xs mb-2">{stageConflictWarning}</div>
+            
+            {#if stageConflictDetails && stageConflictDetails.length > 0}
+              <div class="text-xs">
+                <div class="font-medium mb-1">To resolve this conflict, you need to:</div>
+                <ul class="list-disc list-inside space-y-1">
+                  {#each stageConflictDetails as detail}
+                    <li class="flex items-center gap-2">
+                      <span class="text-xs">
+                        {#if detail.action === 'tick'}
+                          <span class="text-success">✓</span>
+                        {:else}
+                          <span class="text-error">✗</span>
+                        {/if}
+                      </span>
+                      <span>{detail.message}</span>
+                    </li>
+                  {/each}
+                </ul>
+              </div>
+            {:else}
+              <div class="text-xs mt-1">
+                You can either:
+                <ul class="list-disc list-inside mt-1">
+                  <li>Complete the required checklist items to match the current stage</li>
+                  <li>Manually change the stage to match the checklist completion</li>
+                </ul>
+              </div>
+            {/if}
+          </div>
+        </div>
+      {/if}
+      
       <!-- Stage Tabs grouped visually with group tabs -->
       <div class="mt-2 w-full bg-base-100 rounded-lg border border-base-300 shadow p-4 sticky top-24 z-30">
         <div class="tabs tabs-boxed bg-base-200 inline-flex p-1 mb-3">
           {#each stageGroups as g}
             <button class={`tab tab-sm flex items-center gap-2 ${currentGroup === g.label ? 'tab-active bg-primary text-primary-content font-semibold' : 'bg-base-100 text-base-content/70'}`}
-              aria-selected={currentGroup === g.label}
               onclick={() => currentGroup = g.label}>
               {#if isGroupComplete(g)}
                 <svg class="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -252,7 +307,7 @@
       <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         <div class="lg:col-span-5 xl:col-span-4 lg:max-h-[60vh] overflow-y-auto pr-2 lg:pt-2">
           <h2 class="text-xl font-semibold text-gray-900 mb-3">Project Checklist</h2>
-          <Checklist bind:this={checklistRef} selectedSectionTitle={selectedSectionTitle} selectedItemTitle={selectedItemTitle} on:select={(e) => { selectedSectionTitle = e.detail.sectionTitle; selectedItemTitle = e.detail.itemTitle; }} visibleIndices={visibleSectionIndicesForGroup(currentGroup)} persistedItems={checklist_items} sections={[
+          <Checklist bind:this={checklistRef} selectedSectionTitle={selectedSectionTitle} selectedItemTitle={selectedItemTitle} on:select={(e) => { selectedSectionTitle = e.detail.sectionTitle; selectedItemTitle = e.detail.itemTitle; }} on:conflict-warning={(e) => { stageConflictWarning = e.detail.message; stageConflictDetails = e.detail.details; }} visibleIndices={visibleSectionIndicesForGroup(currentGroup)} persistedItems={checklist_items} sections={[
           {
             title: 'Client Acquisition',
             items: [

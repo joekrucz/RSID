@@ -167,11 +167,14 @@ class GrantApplicationsController < ApplicationController
   def change_stage
     new_stage = params[:stage]
     if GrantApplication.stages.key?(new_stage)
-      @grant_application.update(stage: new_stage)
+      @grant_application.update(stage: new_stage, manual_stage_override: true)
       render json: { 
         success: true, 
         message: "Stage updated to #{new_stage.humanize}!", 
-        stage: new_stage 
+        stage: new_stage,
+        manual_override: true,
+        conflict_warning: @grant_application.stage_conflict_message,
+        conflict_details: @grant_application.stage_conflict_details
       }
     else
       render json: { 
@@ -473,7 +476,12 @@ class GrantApplicationsController < ApplicationController
       updated_at: application.updated_at.strftime("%B %d, %Y"),
       documents_count: application.grant_documents.count,
       company: application.company ? company_props(application.company) : nil,
-      grant_competition: application.grant_competition ? competition_props(application.grant_competition) : nil
+      grant_competition: application.grant_competition ? competition_props(application.grant_competition) : nil,
+      manual_stage_override: application.manual_stage_override?,
+      stage_conflict: application.stage_conflict?,
+      stage_conflict_message: application.stage_conflict_message,
+      stage_conflict_details: application.stage_conflict_details,
+      automatic_stage: application.automatic_stage
     }
   end
   
