@@ -383,6 +383,65 @@ if User.exists?(1)
       app.grant_competition = GrantCompetition.all.sample
     end
     created_applications << application
+
+    # Ensure checklist items and stage are in sync with varying completion
+    stage_keys = GrantApplication.stages.keys
+    # Choose a target stage index for demo variety
+    desired_stage_index = GrantApplication.stages[application.stage] || rand(0..(stage_keys.length - 1))
+    application.update!(stage: stage_keys[desired_stage_index])
+
+    section_order = [
+      'Client Acquisition/Project Qualification',
+      'Client Invoiced',
+      'Invoice Paid',
+      'Preparing for Kick Off/AML/Resourcing',
+      'Kicked Off/In Progress',
+      'Submitted',
+      'Awaiting Funding Decision',
+      'Application Successful/Not Successful',
+      'Resub Due',
+      'Success Fee Invoiced',
+      'Success Fee Paid'
+    ]
+    section_items = {
+      'Client Acquisition/Project Qualification' => [
+        'Project Qualification',
+        'Proposal Presented',
+        'Agreement Sent',
+        'New Project Handover Sent To Delivery',
+        'Deal marked as "won" / "lost"'
+      ],
+      'Client Invoiced' => ['Invoice Sent'],
+      'Invoice Paid' => ['Payment Received'],
+      'Preparing for Kick Off/AML/Resourcing' => [
+        'AML Checks Completed',
+        'Project Resourced',
+        'Project Set Up - Slack Channel, Delivery Folders, Etc.'
+      ],
+      'Kicked Off/In Progress' => [
+        'Kick Off Call Confirmed',
+        'Timeline Confirmed and Accepted by Client',
+        'Drafting',
+        'Reviews Confirmed',
+        'Eligibility Checks Completed'
+      ],
+      'Submitted' => ['Application Submitted'],
+      'Awaiting Funding Decision' => ['Completed'],
+      'Application Successful/Not Successful' => ['Completed'],
+      'Resub Due' => ['Completed'],
+      'Success Fee Invoiced' => ['Completed'],
+      'Success Fee Paid' => ['Completed']
+    }
+
+    section_order.each_with_index do |section, idx|
+      (section_items[section] || []).each do |task_title|
+        item = application.grant_checklist_items.find_or_initialize_by(section: section, title: task_title)
+        # Mark items checked for all sections strictly before the desired stage index
+        # Leave the desired section and subsequent sections unchecked for realism
+        item.checked = idx < desired_stage_index
+        item.save!
+      end
+    end
   end
 
   puts "Created #{created_applications.length} additional grant applications"
