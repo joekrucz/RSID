@@ -263,6 +263,61 @@
     <!-- Applications Content -->
     {#if currentView === 'list'}
       <!-- List View -->
+      
+      <!-- Top Pagination Controls -->
+      {#if pagination && pagination.total_pages > 1}
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6 p-4 bg-base-100 rounded-lg border border-base-300">
+          <!-- Pagination Info -->
+          <div class="text-sm text-base-content/70">
+            Showing {((pagination.current_page - 1) * pagination.per_page) + 1} to {Math.min(pagination.current_page * pagination.per_page, pagination.total_count)} of {pagination.total_count} applications
+          </div>
+          
+          <!-- Pagination Navigation -->
+          <div class="flex items-center space-x-2">
+            <!-- Previous Button -->
+            <button 
+              class="btn btn-sm btn-outline"
+              disabled={!pagination.has_prev_page}
+              onclick={() => goToPage(pagination.current_page - 1)}
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+              </svg>
+              Previous
+            </button>
+            
+            <!-- Page Numbers -->
+            <div class="flex items-center space-x-1">
+              {#each Array.from({length: Math.min(5, pagination.total_pages)}, (_, i) => {
+                const startPage = Math.max(1, pagination.current_page - 2);
+                const endPage = Math.min(pagination.total_pages, startPage + 4);
+                const adjustedStartPage = Math.max(1, endPage - 4);
+                return adjustedStartPage + i;
+              }).filter(page => page <= pagination.total_pages) as page}
+                <button 
+                  class="btn btn-sm {page === pagination.current_page ? 'btn-primary' : 'btn-outline'}"
+                  onclick={() => goToPage(page)}
+                >
+                  {page}
+                </button>
+              {/each}
+            </div>
+            
+            <!-- Next Button -->
+            <button 
+              class="btn btn-sm btn-outline"
+              disabled={!pagination.has_next_page}
+              onclick={() => goToPage(pagination.current_page + 1)}
+            >
+              Next
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      {/if}
+      
       <div class="bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden">
       {#if filteredApplications.length > 0}
         <div class="overflow-x-auto">

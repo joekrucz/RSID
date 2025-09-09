@@ -1,6 +1,5 @@
 class GrantChecklistItemsController < ApplicationController
   before_action :require_login
-  before_action :set_current_user
   before_action :set_grant_application
 
   # Upsert a checklist item for a grant application by section + title
@@ -101,6 +100,6 @@ class GrantChecklistItemsController < ApplicationController
   private
 
   def set_grant_application
-    @grant_application = current_user.grant_applications.find(params[:grant_application_id])
+    @grant_application = @current_user.grant_applications.find(params[:grant_application_id])
   end
 end

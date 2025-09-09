@@ -19,6 +19,7 @@
   const dispatch = createEventDispatcher();
 
   function selectItem(sectionIdx, itemIdx) {
+    console.log('selectItem called:', { sectionIdx, itemIdx });
     dispatch('select', { sectionIdx, itemIdx, sectionTitle: sections[sectionIdx]?.title, itemTitle: localSections[sectionIdx]?.items?.[itemIdx]?.title });
   }
 
@@ -97,6 +98,7 @@
 
   // Hydrate from persistedItems on mount/prop change
   $effect(() => {
+    console.log('$effect running, persistedItems:', persistedItems);
     const byKey = new Map();
     (persistedItems || []).forEach((pi) => {
       if (pi?.section && pi?.title) {
@@ -113,8 +115,10 @@
           if (localSections?.[sIdx]?.items?.[iIdx]) {
             localSections[sIdx].items[iIdx].dueDate = found.due_date || localSections[sIdx].items[iIdx].dueDate;
           }
-          // Always update checked state from server data
-          checkedByKey[k] = !!found.checked;
+          // Only update checked state if not already set locally
+          if (checkedByKey[k] === undefined) {
+            checkedByKey[k] = !!found.checked;
+          }
           // Optional fields
           subbieByKey[k] = found.subbie || subbieByKey[k];
           noSubbieByKey[k] = !!found.no_subbie;
@@ -122,7 +126,8 @@
         }
       });
     });
-    // Emit progress after hydration
+    console.log('$effect completed, checkedByKey:', checkedByKey);
+    // Emit progress after hydration to update stage ticks
     emitProgress();
   });
 
@@ -138,6 +143,7 @@
 
 
   function emitProgress() {
+    console.log('emitProgress called');
     // Compute completion using local checked state where available,
     // otherwise fall back to persisted items from server
     const persistedMap = new Map();
@@ -153,37 +159,52 @@
         return persistedMap.get(sKey) === true;
       });
     });
+    console.log('Emitting progress with sectionComplete:', sectionComplete);
     dispatch('progress', { sectionComplete });
   }
 
   async function persistChecked(sectionTitle, itemTitle, value) {
     try {
       const grantApplicationId = window?.location?.pathname?.match(/grant_applications\/(\d+)/)?.[1];
-      if (!grantApplicationId) return;
+      if (!grantApplicationId) {
+        console.error('No grant application ID found in URL');
+        return;
+      }
       
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       if (!csrfToken) {
+        console.error('No CSRF token found');
         toast.error('Security token missing. Please refresh the page.');
         return;
       }
       
+      // Use FormData for better Rails compatibility
+      const formData = new FormData();
+      formData.append('section', sectionTitle);
+      formData.append('title', itemTitle);
+      formData.append('checked', value.toString());
+      formData.append('authenticity_token', csrfToken);
+      
       const res = await fetch(`/grant_applications/${grantApplicationId}/grant_checklist_items/upsert`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken
+          'X-CSRF-Token': csrfToken,
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
         },
-        credentials: 'same-origin',
-        body: JSON.stringify({ section: sectionTitle, title: itemTitle, checked: !!value })
+        body: formData
       });
       
       if (!res.ok) {
         if (res.status === 302) {
+          console.error('Session expired - redirecting to login');
           toast.error('Session expired. Please log in again.');
           window.location.href = '/login';
           return;
         }
-        throw new Error(`Request failed with status ${res.status}`);
+        const errorText = await res.text();
+        console.error('Request failed:', errorText);
+        throw new Error(`Request failed with status ${res.status}: ${errorText}`);
       }
       
       const data = await res.json().catch(() => ({}));
@@ -201,15 +222,21 @@
   }
 
   function toggleChecked(sectionIdx, itemIdx, value) {
+    console.log('toggleChecked called:', { sectionIdx, itemIdx, value });
     const frontendSectionTitle = sections[sectionIdx]?.title;
     const backendSectionTitle = sectionMapping[frontendSectionTitle] || frontendSectionTitle;
     const itemTitle = localSections[sectionIdx]?.items?.[itemIdx]?.title;
     const k = keyFor(sectionIdx, itemIdx);
+    
+    // Update the state directly and force reactivity
     checkedByKey[k] = !!value;
-    persistChecked(backendSectionTitle, itemTitle, !!value);
+    // Force reactivity by creating a new object reference
+    checkedByKey = { ...checkedByKey };
+    console.log('Updated checkedByKey:', checkedByKey);
+    
+    // Emit progress after state update
     emitProgress();
-    // Progress is derived from persisted items; we optimistically emit, but
-    // stage update will come from server response and be dispatched separately.
+    persistChecked(backendSectionTitle, itemTitle, !!value);
   }
 
   // Expose method for parent to set checked by title
