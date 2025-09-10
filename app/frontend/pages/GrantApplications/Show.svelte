@@ -185,14 +185,14 @@
                 {#if grant_application.company}
                   <span>
                     <span class="opacity-70">Company:</span>
-                    <a href={`/companies/${grant_application.company.id}`} class="link link-primary ml-1">{grant_application.company.name}</a>
+                    <a href={`/companies/${grant_application.company.id}`} class="text-black hover:underline ml-1">{grant_application.company.name}</a>
                   </span>
                 {/if}
                 {#if grant_application.grant_competition}
                   <span class="text-base-content/60">•</span>
                   <span>
                     <span class="opacity-70">Competition:</span>
-                    <a href={`/grant_competitions/${grant_application.grant_competition.id}`} class="link link-primary ml-1">{grant_application.grant_competition.grant_name}</a>
+                    <a href={`/grant_competitions/${grant_application.grant_competition.id}`} class="text-black hover:underline ml-1">{grant_application.grant_competition.grant_name}</a>
                   </span>
                   {#if grant_application.grant_competition.deadline}
                     <span class="text-base-content/60">•</span>
