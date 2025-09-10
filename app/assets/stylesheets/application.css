@@ -1,1 +1,49 @@
 /* Application styles */
+
+/* Enforce master–detail layout on Grant Applications Show */
+.grant-master-detail {
+  display: grid !important;
+  grid-template-columns: 480px 1fr !important;
+  gap: 1.5rem !important; /* 24px */
+  align-items: start !important;
+  width: 100% !important;
+}
+
+/* Clearfix for legacy float fallback */
+.grant-master-detail::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+/* Desktop-only enforce (in case utilities aren't present) */
+@media (min-width: 1024px) {
+  .grant-grid {
+    display: grid !important;
+    grid-template-columns: 480px 1fr !important;
+    gap: 1.5rem !important;
+    align-items: start !important;
+  }
+  .grant-grid .grant-left { grid-column: 1 !important; }
+  .grant-grid .grant-right { grid-column: 2 !important; min-width: 0 !important; }
+}
+
+.grant-master-detail .grant-left {
+  grid-column: 1 !important;
+  width: 480px !important;
+  max-width: 480px !important;
+  min-width: 480px !important;
+  float: left; /* fallback */
+}
+
+.grant-master-detail .grant-right {
+  grid-column: 2 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  justify-self: stretch !important;
+  margin-left: 1.5rem; /* fallback gap (24px) */
+  /* place to the right of left column in float fallback */
+  @media (min-width: 0px) {
+    margin-left: calc(480px + 1.5rem);
+  }
+}

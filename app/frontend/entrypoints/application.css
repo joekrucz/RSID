@@ -4,3 +4,43 @@
 @plugin "daisyui" {
   themes: light --default, dark, cyberpunk, bumblebee, emerald, corporate, synthwave, retro, valentine, halloween, garden, forest, aqua, lofi, pastel, fantasy, wireframe, black, luxury, dracula, cmyk, autumn, business, acid, lemonade, night, coffee, winter;
 };
+
+/* Grant Applications Show: enforce two-column master–detail on desktop */
+/* Remove global float fallback; only apply on desktop to avoid squeezing on mobile */
+
+@media (min-width: 768px) {
+  .grant-grid {
+    display: grid !important;
+    grid-template-columns: 480px 1fr !important;
+    gap: 1.5rem !important;
+    align-items: start !important;
+  }
+  .grant-grid .grant-left { grid-column: 1 !important; }
+  .grant-grid .grant-right { grid-column: 2 !important; min-width: 0 !important; }
+
+  /* Desktop float fallback if grid is overridden by utility classes */
+  .grant-grid.use-floats { display: block !important; }
+  .grant-grid.use-floats::after { content: ""; display: block; clear: both; }
+  .grant-grid.use-floats .grant-left {
+    float: left !important;
+    width: 480px !important;
+    max-width: 480px !important;
+    min-width: 480px !important;
+  }
+  .grant-grid.use-floats .grant-right {
+    min-width: 0 !important;
+    width: calc(100% - 480px - 1.5rem) !important;
+    margin-left: 1.5rem !important;
+    display: block !important;
+  }
+}
+
+/* Optional float fallback if ever needed (kept minimal) */
+.grant-master-detail .grant-left {
+  grid-column: 1 !important;
+  width: 480px !important;
+}
+.grant-master-detail .grant-right {
+  grid-column: 2 !important;
+  min-width: 0 !important;
+}
