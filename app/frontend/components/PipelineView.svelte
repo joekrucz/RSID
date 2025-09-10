@@ -160,7 +160,7 @@
     <div>
       <div class="flex space-x-6 overflow-x-auto overflow-y-hidden pb-4 pt-2 pl-3 pr-1">
         <!-- Group 1: Pre-Delivery (first 3 columns) -->
-        <div class="flex-shrink-0 rounded-2xl border border-red-300/60 bg-red-300/10 px-3 py-4">
+        <div class="flex-shrink-0 rounded-2xl border border-sky-300/60 bg-sky-300/10 px-3 py-4">
           <div class="text-sm font-semibold text-base-content/70 mb-2 pl-1">Pre-Delivery</div>
           <div class="flex space-x-6">
             {#each stageOrder.slice(0, 3).filter((s) => pipeline_data && pipeline_data[s]).map((s) => [s, pipeline_data[s]]) as [stage, data]}
@@ -239,7 +239,7 @@
         </div>
 
         <!-- Group 2: In Delivery (next 2 columns) -->
-        <div class="flex-shrink-0 rounded-2xl border border-orange-300/60 bg-orange-300/10 px-3 py-4">
+        <div class="flex-shrink-0 rounded-2xl border border-indigo-300/60 bg-indigo-300/10 px-3 py-4">
           <div class="text-sm font-semibold text-base-content/70 mb-2 pl-1">In Delivery</div>
           <div class="flex space-x-6">
             {#each stageOrder.slice(3, 5).filter((s) => pipeline_data && pipeline_data[s]).map((s) => [s, pipeline_data[s]]) as [stage, data]}
@@ -318,7 +318,7 @@
         </div>
 
         <!-- Group 3: Post Delivery (remaining columns) -->
-        <div class="flex-shrink-0 rounded-2xl border border-yellow-300/60 bg-yellow-300/10 px-3 py-4">
+        <div class="flex-shrink-0 rounded-2xl border border-emerald-300/60 bg-emerald-300/10 px-3 py-4">
           <div class="text-sm font-semibold text-base-content/70 mb-2 pl-1">Post Delivery</div>
           <div class="flex space-x-6">
             {#each stageOrder.slice(5).filter((s) => pipeline_data && pipeline_data[s]).map((s) => [s, pipeline_data[s]]) as [stage, data]}
