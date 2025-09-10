@@ -236,7 +236,7 @@
             <span class="text-sm font-medium text-base-content">View:</span>
             <div class="btn-group">
               <button 
-                class="btn btn-sm {currentView === 'list' ? 'btn-primary' : 'btn-outline'}"
+                class="btn btn-sm {currentView === 'list' ? 'bg-black text-white border-black' : 'btn-outline border-black text-black'}"
                 onclick={() => switchView('list')}
               >
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,7 +245,7 @@
                 List
               </button>
               <button 
-                class="btn btn-sm {currentView === 'pipeline' ? 'btn-primary' : 'btn-outline'}"
+                class="btn btn-sm {currentView === 'pipeline' ? 'bg-black text-white border-black' : 'btn-outline border-black text-black'}"
                 onclick={() => switchView('pipeline')}
               >
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,7 +276,7 @@
           <div class="flex items-center space-x-2">
             <!-- Previous Button -->
             <button 
-              class="btn btn-sm btn-outline"
+              class="btn btn-sm btn-outline border-black text-black"
               disabled={!pagination.has_prev_page}
               onclick={() => goToPage(pagination.current_page - 1)}
             >
@@ -295,7 +295,7 @@
                 return adjustedStartPage + i;
               }).filter(page => page <= pagination.total_pages) as page}
                 <button 
-                  class="btn btn-sm {page === pagination.current_page ? 'btn-primary' : 'btn-outline'}"
+                  class="btn btn-sm {page === pagination.current_page ? 'bg-black text-white border-black' : 'btn-outline border-black text-black'}"
                   onclick={() => goToPage(page)}
                 >
                   {page}
@@ -305,7 +305,7 @@
             
             <!-- Next Button -->
             <button 
-              class="btn btn-sm btn-outline"
+              class="btn btn-sm btn-outline border-black text-black"
               disabled={!pagination.has_next_page}
               onclick={() => goToPage(pagination.current_page + 1)}
             >
@@ -494,7 +494,7 @@
           <div class="flex items-center space-x-2">
             <!-- Previous Button -->
             <button 
-              class="btn btn-sm btn-outline"
+              class="btn btn-sm btn-outline border-black text-black"
               disabled={!pagination.has_prev_page}
               onclick={() => goToPage(pagination.current_page - 1)}
             >
@@ -513,7 +513,7 @@
                 return adjustedStartPage + i;
               }).filter(page => page <= pagination.total_pages) as page}
                 <button 
-                  class="btn btn-sm {page === pagination.current_page ? 'btn-primary' : 'btn-outline'}"
+                  class="btn btn-sm {page === pagination.current_page ? 'bg-black text-white border-black' : 'btn-outline border-black text-black'}"
                   onclick={() => goToPage(page)}
                 >
                   {page}
@@ -523,7 +523,7 @@
             
             <!-- Next Button -->
             <button 
-              class="btn btn-sm btn-outline"
+              class="btn btn-sm btn-outline border-black text-black"
               disabled={!pagination.has_next_page}
               onclick={() => goToPage(pagination.current_page + 1)}
             >
