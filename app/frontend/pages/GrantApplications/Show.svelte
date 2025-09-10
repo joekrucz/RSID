@@ -264,18 +264,39 @@
         </div>
       {/if}
       
-      <!-- Stage Tabs grouped visually with group tabs -->
+      <!-- Stage Group Tabs as Chevrons -->
       <div class="mt-1 w-full bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 sticky top-24 z-30">
-        <div class="tabs tabs-boxed bg-base-200 inline-flex p-1 mb-3">
-          {#each stageGroups as g}
-            <button class={`tab tab-sm flex items-center gap-2 ${currentGroup === g.label ? 'tab-active bg-gray-200 text-gray-900 font-semibold border border-gray-200' : 'bg-base-100 text-gray-700 border border-gray-300'}`}
-              onclick={() => currentGroup = g.label}>
+        <div class="inline-flex items-stretch select-none mb-3">
+          {#each stageGroups as g, gi}
+            {@const isActive = currentGroup === g.label}
+            {@const bgClass = isActive ? 'bg-gray-200 text-gray-900 font-semibold' : 'bg-gray-100 text-gray-700'}
+            <button
+              class={`relative flex items-center gap-2 px-5 py-2 text-sm transition-colors whitespace-nowrap ${bgClass} ${gi > 0 ? 'pl-12 -ml-6' : ''} outline-none focus:outline-none focus:ring-0`}
+              onclick={() => currentGroup = g.label}
+              aria-current={isActive ? 'page' : undefined}
+              style={`border-top-left-radius:${gi === 0 ? '0.5rem' : '0'}; border-bottom-left-radius:${gi === 0 ? '0.5rem' : '0'}; z-index:${100 - gi};`}
+            >
+              <!-- Left cap divider for middle/last items -->
+              {#if gi > 0}
+                <span class="absolute left-0 top-0 h-full w-px bg-base-300"></span>
+              {/if}
               {#if isGroupComplete(g)}
                 <svg class="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
               {/if}
               <span>{g.label}</span>
+              <!-- Chevron tip (except on last) -->
+              {#if gi < stageGroups.length - 1}
+                <span class="pointer-events-none absolute -right-6 top-0 h-full w-6" aria-hidden="true" style={`z-index:${101 - gi}` }>
+                  <!-- Fill matches button background -->
+                  <span class={`absolute inset-0 ${isActive ? 'bg-gray-200' : 'bg-gray-100'}`}
+                        style="clip-path: polygon(0% 0%, 100% 50%, 0% 100%);"></span>
+                  <!-- Edge divider to separate tabs -->
+                  <span class="absolute inset-y-0 right-5 w-px bg-base-300"
+                        style="transform: skewX(-25deg);"></span>
+                </span>
+              {/if}
             </button>
           {/each}
         </div>
