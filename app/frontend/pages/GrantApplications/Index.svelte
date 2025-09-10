@@ -157,6 +157,13 @@
         return displayLabel(stage);
     }
   }
+
+  function formatDateToDay(value) {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  }
 </script>
 
 <Layout {user}>
@@ -391,7 +398,7 @@
                   </td>
                   <td>
                     <div class="text-sm">
-                      {application.grant_competition?.deadline || 'No deadline set'}
+                      {application.grant_competition?.deadline ? formatDateToDay(application.grant_competition.deadline) : 'No deadline set'}
                     </div>
                     {#if application.days_until_deadline !== null}
                       <div class="text-xs opacity-50">
