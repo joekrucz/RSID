@@ -280,7 +280,7 @@
           <button class={`w-full text-left px-4 py-3 cursor-pointer rounded ${isSelected ? 'bg-base-200 border border-base-300' : ''}`} onclick={() => selectItem(sIdx, iIdx)}>
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-start gap-2">
-                <input type="checkbox" class="checkbox checkbox-sm checkbox-primary mt-0.5"
+                <input type="checkbox" class="checkbox checkbox-sm accent-green-300 mt-0.5"
                   checked={!!checkedByKey[k]}
                   onchange={(e) => {
                     e.stopPropagation();

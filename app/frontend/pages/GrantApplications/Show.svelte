@@ -287,7 +287,7 @@
               title={formatStageLabel(s)}
               role="status">
               {#if sectionComplete?.[i]}
-                <input type="checkbox" class="checkbox checkbox-xs checkbox-success" checked disabled aria-label="Section complete" />
+                <input type="checkbox" class="checkbox checkbox-xs accent-green-300" checked disabled aria-label="Section complete" />
               {/if}
               <span class="whitespace-nowrap">{formatStageLabel(s)}</span>
             </div>
