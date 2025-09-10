@@ -176,7 +176,7 @@
                           <path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                         </svg>
                       </div>
-                      <h4 class="font-medium text-sm text-base-content line-clamp-2 flex-1">
+                      <h4 class="font-medium text-sm text-base-content line-clamp-2 flex-1 hover:underline">
                         {application.title}
                       </h4>
                     </div>
@@ -192,7 +192,7 @@
                   
                   {#if application.company}
                     <div class="text-xs text-base-content/70 mb-2">
-                      <a href={`/companies/${application.company.id}`} class="text-base-content hover:underline">
+                      <a href={`/companies/${application.company.id}`} class="text-base-content">
                         {application.company.name}
                       </a>
                     </div>
@@ -200,7 +200,7 @@
                   
                   {#if application.grant_competition}
                     <div class="text-xs text-base-content/70 mb-2">
-                      <a href={`/grant_competitions/${application.grant_competition.id}`} class="text-base-content hover:underline">
+                      <a href={`/grant_competitions/${application.grant_competition.id}`} class="text-base-content">
                         {application.grant_competition.grant_name}
                       </a>
                     </div>
