@@ -62,7 +62,7 @@
         
         <!-- Debug indicator for admin -->
         {#if user?.isAdmin}
-          <div class="badge ml-2 bg-neutral text-neutral-content">ADMIN</div>
+          <div class="badge ml-2 bg-gray-200 text-gray-900">ADMIN</div>
         {/if}
       </div>
 
