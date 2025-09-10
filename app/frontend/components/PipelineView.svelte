@@ -175,7 +175,7 @@
                     <h3 class="font-semibold text-base-content">
                       {formatStageName(stage)}
                     </h3>
-                    <div class="badge badge-neutral">{data.count}</div>
+                    <div class="text-sky-700 font-extrabold">{data.count}</div>
                   </div>
                   <div class="space-y-3">
                     {#each data.applications as application}
@@ -254,7 +254,7 @@
                     <h3 class="font-semibold text-base-content">
                       {formatStageName(stage)}
                     </h3>
-                    <div class="badge badge-neutral">{data.count}</div>
+                    <div class="text-indigo-700 font-extrabold">{data.count}</div>
                   </div>
                   <div class="space-y-3">
                     {#each data.applications as application}
@@ -333,7 +333,7 @@
                     <h3 class="font-semibold text-base-content">
                       {formatStageName(stage)}
                     </h3>
-                    <div class="badge badge-neutral">{data.count}</div>
+                    <div class="text-emerald-700 font-extrabold">{data.count}</div>
                   </div>
                   <div class="space-y-3">
                     {#each data.applications as application}
