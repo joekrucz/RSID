@@ -268,7 +268,7 @@
       <div class="mt-1 w-full bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 sticky top-24 z-30">
         <div class="tabs tabs-boxed bg-base-200 inline-flex p-1 mb-3">
           {#each stageGroups as g}
-            <button class={`tab tab-sm flex items-center gap-2 ${currentGroup === g.label ? 'tab-active bg-primary text-primary-content font-semibold' : 'bg-base-100 text-base-content/70'}`}
+            <button class={`tab tab-sm flex items-center gap-2 ${currentGroup === g.label ? 'tab-active bg-gray-200 text-gray-900 font-semibold border border-gray-200' : 'bg-base-100 text-gray-700 border border-gray-300'}`}
               onclick={() => currentGroup = g.label}>
               {#if isGroupComplete(g)}
                 <svg class="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
