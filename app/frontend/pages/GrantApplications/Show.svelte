@@ -270,9 +270,9 @@
     
     
       <!-- Checklist + Detail (Master-Detail) -->
-      <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div class="lg:col-span-5 xl:col-span-4 bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:max-h-[60vh] overflow-y-auto">
-          <div class="sticky top-0 z-10 bg-white pt-0 pb-3">
+      <div class="mt-6 grid gap-6 items-start" style="grid-template-columns: 420px 1fr;">
+        <div>
+          <div class="bg-white rounded-lg border border-base-300 shadow-sm p-3 mb-3 relative overflow-hidden">
             <div class="inline-flex items-stretch select-none">
               {#each stageGroups as g, gi}
                 {@const isActive = currentGroup === g.label}
@@ -304,7 +304,8 @@
               {/each}
             </div>
           </div>
-          <Checklist bind:this={checklistRef} selectedSectionTitle={selectedSectionTitle} selectedItemTitle={selectedItemTitle} on:select={(e) => { selectedSectionTitle = e.detail.sectionTitle; selectedItemTitle = e.detail.itemTitle; }} on:conflict-warning={(e) => { stageConflictWarning = e.detail.message; stageConflictDetails = e.detail.details; }} visibleIndices={visibleSectionIndicesForGroup(currentGroup)} persistedItems={checklist_items} sections={[
+          <div class="bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:max-h-[60vh] overflow-y-auto z-0">
+            <Checklist bind:this={checklistRef} selectedSectionTitle={selectedSectionTitle} selectedItemTitle={selectedItemTitle} on:select={(e) => { selectedSectionTitle = e.detail.sectionTitle; selectedItemTitle = e.detail.itemTitle; }} on:conflict-warning={(e) => { stageConflictWarning = e.detail.message; stageConflictDetails = e.detail.details; }} visibleIndices={visibleSectionIndicesForGroup(currentGroup)} persistedItems={checklist_items} sections={[
           {
             title: 'Client Acquisition',
             items: [
@@ -352,7 +353,8 @@
           { title: 'Success Fee Paid', items: [ { title: 'Completed' } ] }
         ]} on:progress={(e) => { sectionComplete = e.detail.sectionComplete; }} on:stage={(e) => { currentStage = e.detail.stage; }} />
         </div>
-        <div class="lg:col-span-7 xl:col-span-8 bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:sticky lg:top-40">
+        <!-- Right column -->
+        <div class="bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:sticky lg:top-40 relative z-10">
           <h2 class="text-xl font-semibold text-gray-900 mb-3">Task Details</h2>
           <ChecklistTaskDetail {grantApplicationId} sectionTitle={selectedSectionTitle} itemTitle={selectedItemTitle} persistedItems={checklist_items} on:change={(e) => {
             const { field, value, sectionTitle, itemTitle } = e.detail || {};
