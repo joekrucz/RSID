@@ -6,10 +6,10 @@
   import Button from '../../components/forms/Button.svelte';
   import PipelineView from '../../components/PipelineView.svelte';
   
-  let { user, grant_applications, pipeline_data, filters, stats, pagination, view_mode = 'list' } = $props();
+  let { user, grant_applications, pipeline_data, filters, stats, pagination, view_mode = 'pipeline' } = $props();
   
   let search = $state(filters.search || '');
-  let currentView = $state(view_mode);
+  let currentView = $state(view_mode || 'pipeline');
   let currentPage = $state(pagination?.current_page || 1);
   let perPage = $state(Number(filters.per_page) || 25);
   
@@ -243,15 +243,6 @@
             <span class="text-sm font-medium text-base-content">View:</span>
             <div class="btn-group">
               <button 
-                class="btn btn-sm {currentView === 'list' ? 'bg-gray-200 text-gray-900 border-gray-200' : 'btn-outline border-gray-300 text-gray-700'}"
-                onclick={() => switchView('list')}
-              >
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-                </svg>
-                List
-              </button>
-              <button 
                 class="btn btn-sm {currentView === 'pipeline' ? 'bg-gray-200 text-gray-900 border-gray-200' : 'btn-outline border-gray-300 text-gray-700'}"
                 onclick={() => switchView('pipeline')}
               >
@@ -259,6 +250,15 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
                 </svg>
                 Pipeline
+              </button>
+              <button 
+                class="btn btn-sm {currentView === 'list' ? 'bg-gray-200 text-gray-900 border-gray-200' : 'btn-outline border-gray-300 text-gray-700'}"
+                onclick={() => switchView('list')}
+              >
+                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                </svg>
+                List
               </button>
             </div>
           </div>
