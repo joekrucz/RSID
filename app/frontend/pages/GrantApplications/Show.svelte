@@ -300,25 +300,7 @@
             </button>
           {/each}
         </div>
-        <div class="flex flex-wrap gap-2">
-          {#each stageGroups.find(g => g.label === currentGroup)?.keys || [] as s}
-            {@const i = stages.indexOf(s)}
-            {@const isActive = currentStage === s}
-            <div class={`btn btn-sm btn-ghost flex items-center gap-2 pointer-events-none select-none`}
-              title={formatStageLabel(s)}
-              role="status">
-              {#if sectionComplete?.[i]}
-                <input type="checkbox" class="checkbox checkbox-xs checkbox-success disabled:opacity-100" checked disabled aria-label="Section complete" />
-              {/if}
-              <span class="whitespace-nowrap">{formatStageLabel(s)}</span>
-            </div>
-          {/each}
-        </div>
-        {#if stageLoading}
-          <div class="mt-3">
-            <span class="loading loading-spinner loading-xs align-middle ml-2"></span>
-          </div>
-        {/if}
+        
       </div>
     </div>
     
