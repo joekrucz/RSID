@@ -169,7 +169,7 @@
 <Layout {user} fullWidth={currentView === 'pipeline'}>
   <div class="w-full">
     <!-- Header -->
-    <div class="mb-6 {currentView === 'pipeline' ? 'max-w-7xl mx-auto px-6' : ''}">
+    <div class="mb-6 max-w-7xl mx-auto px-6">
       <div class="flex justify-between items-center mb-4">
         <div>
                 <h1 class="text-3xl font-bold text-base-content mb-2">Grant Applications</h1>
