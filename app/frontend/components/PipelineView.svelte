@@ -157,91 +157,244 @@
 
 <div class="bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden">
   <div class="p-6">
-    <div class="relative">
-      <!-- Group pill spanning first 3 columns (w-80 = 20rem, gap=1.5rem) -->
-      <div class="absolute -top-3 left-0" style="width: calc(3 * 20rem + 2 * 1.5rem);">
-        <div class="rounded-full bg-gray-200 text-gray-900 text-xs font-medium px-3 py-1 text-center border border-gray-200">
-          Pre-delivery
-        </div>
-      </div>
-      <div class="flex space-x-6 overflow-x-auto pb-4">
-        {#each stageOrder.filter((s) => pipeline_data && pipeline_data[s]).map((s) => [s, pipeline_data[s]]) as [stage, data]}
-          <div class="flex-shrink-0 w-80">
-            <div class="bg-base-200 rounded-lg p-4 min-h-96 {getDropZoneClass(stage)}"
-                 role="region"
-                 aria-label="Drop zone for {formatStageName(stage)}"
-                 ondragover={(e) => handleDragOver(e, stage)}
-                 ondragleave={handleDragLeave}
-                 ondrop={(e) => handleDrop(e, stage)}>
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="font-semibold text-base-content">
-                  {formatStageName(stage)}
-                </h3>
-                <div class="badge badge-neutral">{data.count}</div>
-              </div>
-              
-              <div class="space-y-3">
-                {#each data.applications as application}
-                  <div class="bg-base-100 rounded-lg p-4 shadow-sm border border-base-300 hover:shadow-md transition-shadow"
-                       role="button"
-                       tabindex="0"
-                       draggable="true"
-                       ondragstart={(e) => handleDragStart(e, application, stage)}
-                       ondragend={handleDragEnd}
-                       onclick={() => { if (!hasDragged) { router.visit(`/grant_applications/${application.id}`); } }}
-                       onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.visit(`/grant_applications/${application.id}`); } }}>
-                    <div class="flex items-start justify-between mb-2">
-                      <div class="flex items-start space-x-2 flex-1">
-                        <div class="text-base-content/30 mt-1 cursor-move" title="Drag to move">
-                          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
-                          </svg>
+    <div>
+      <div class="flex space-x-6 overflow-x-auto overflow-y-hidden pb-4 pt-2 pl-3 pr-1">
+        <!-- Group 1: Pre-Delivery (first 3 columns) -->
+        <div class="flex-shrink-0 rounded-2xl border border-red-300/60 bg-red-300/10 px-3 py-4">
+          <div class="text-sm font-semibold text-base-content/70 mb-2 pl-1">Pre-Delivery</div>
+          <div class="flex space-x-6">
+            {#each stageOrder.slice(0, 3).filter((s) => pipeline_data && pipeline_data[s]).map((s) => [s, pipeline_data[s]]) as [stage, data]}
+              <div class="flex-shrink-0 w-80">
+                <div class="relative z-10 bg-base-200 rounded-lg p-4 min-h-96 border border-gray-600 {getDropZoneClass(stage)}"
+                     role="region"
+                     aria-label="Drop zone for {formatStageName(stage)}"
+                     ondragover={(e) => handleDragOver(e, stage)}
+                     ondragleave={handleDragLeave}
+                     ondrop={(e) => handleDrop(e, stage)}>
+                  <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold text-base-content">
+                      {formatStageName(stage)}
+                    </h3>
+                    <div class="badge badge-neutral">{data.count}</div>
+                  </div>
+                  <div class="space-y-3">
+                    {#each data.applications as application}
+                      <div class="bg-base-100 rounded-lg p-4 shadow-sm border border-base-300 hover:shadow-md transition-shadow"
+                           role="button"
+                           tabindex="0"
+                           draggable="true"
+                           ondragstart={(e) => handleDragStart(e, application, stage)}
+                           ondragend={handleDragEnd}
+                           onclick={() => { if (!hasDragged) { router.visit(`/grant_applications/${application.id}`); } }}
+                           onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.visit(`/grant_applications/${application.id}`); } }}>
+                        <div class="flex items-start justify-between mb-2">
+                          <div class="flex items-start space-x-2 flex-1">
+                            <div class="text-base-content/30 mt-1 cursor-move" title="Drag to move">
+                              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                              </svg>
+                            </div>
+                            <h4 class="font-medium text-sm text-base-content line-clamp-2 flex-1 hover:underline cursor-pointer">
+                              {application.title}
+                            </h4>
+                          </div>
+                          <div class="flex gap-1">
+                            {#if application.stage_conflict}
+                              <div class="badge badge-warning badge-xs" title={application.stage_conflict_message}>⚠️ Conflict</div>
+                            {/if}
+                            {#if application.overdue}
+                              <div class="badge badge-error badge-xs">Overdue</div>
+                            {/if}
+                          </div>
                         </div>
-                        <h4 class="font-medium text-sm text-base-content line-clamp-2 flex-1 hover:underline cursor-pointer">
-                          {application.title}
-                        </h4>
-                      </div>
-                      <div class="flex gap-1">
-                        {#if application.stage_conflict}
-                          <div class="badge badge-warning badge-xs" title={application.stage_conflict_message}>⚠️ Conflict</div>
+                        {#if application.company}
+                          <div class="text-xs text-base-content/70 mb-2">
+                            <a href={`/companies/${application.company.id}`} class="text-base-content">
+                              {application.company.name}
+                            </a>
+                          </div>
                         {/if}
-                        {#if application.overdue}
-                          <div class="badge badge-error badge-xs">Overdue</div>
+                        {#if application.grant_competition}
+                          <div class="text-xs text-base-content/70 mb-2">
+                            <a href={`/grant_competitions/${application.grant_competition.id}`} class="text-base-content">
+                              {application.grant_competition.grant_name}
+                            </a>
+                          </div>
                         {/if}
                       </div>
-                    </div>
-                    
-                    {#if application.company}
-                      <div class="text-xs text-base-content/70 mb-2">
-                        <a href={`/companies/${application.company.id}`} class="text-base-content">
-                          {application.company.name}
-                        </a>
+                    {/each}
+                    {#if data.count === 0}
+                      <div class="text-center py-8 text-base-content/50">
+                        <svg class="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        <p class="text-sm">No applications</p>
                       </div>
                     {/if}
-                    
-                    {#if application.grant_competition}
-                      <div class="text-xs text-base-content/70 mb-2">
-                        <a href={`/grant_competitions/${application.grant_competition.id}`} class="text-base-content">
-                          {application.grant_competition.grant_name}
-                        </a>
-                      </div>
-                    {/if}
-                    
                   </div>
-                {/each}
-                
-                {#if data.count === 0}
-                  <div class="text-center py-8 text-base-content/50">
-                    <svg class="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                    <p class="text-sm">No applications</p>
-                  </div>
-                {/if}
+                </div>
               </div>
-            </div>
+            {/each}
           </div>
-        {/each}
+        </div>
+
+        <!-- Group 2: In Delivery (next 2 columns) -->
+        <div class="flex-shrink-0 rounded-2xl border border-orange-300/60 bg-orange-300/10 px-3 py-4">
+          <div class="text-sm font-semibold text-base-content/70 mb-2 pl-1">In Delivery</div>
+          <div class="flex space-x-6">
+            {#each stageOrder.slice(3, 5).filter((s) => pipeline_data && pipeline_data[s]).map((s) => [s, pipeline_data[s]]) as [stage, data]}
+              <div class="flex-shrink-0 w-80">
+                <div class="relative z-10 bg-base-200 rounded-lg p-4 min-h-96 border border-gray-600 {getDropZoneClass(stage)}"
+                     role="region"
+                     aria-label="Drop zone for {formatStageName(stage)}"
+                     ondragover={(e) => handleDragOver(e, stage)}
+                     ondragleave={handleDragLeave}
+                     ondrop={(e) => handleDrop(e, stage)}>
+                  <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold text-base-content">
+                      {formatStageName(stage)}
+                    </h3>
+                    <div class="badge badge-neutral">{data.count}</div>
+                  </div>
+                  <div class="space-y-3">
+                    {#each data.applications as application}
+                      <div class="bg-base-100 rounded-lg p-4 shadow-sm border border-base-300 hover:shadow-md transition-shadow"
+                           role="button"
+                           tabindex="0"
+                           draggable="true"
+                           ondragstart={(e) => handleDragStart(e, application, stage)}
+                           ondragend={handleDragEnd}
+                           onclick={() => { if (!hasDragged) { router.visit(`/grant_applications/${application.id}`); } }}
+                           onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.visit(`/grant_applications/${application.id}`); } }}>
+                        <div class="flex items-start justify-between mb-2">
+                          <div class="flex items-start space-x-2 flex-1">
+                            <div class="text-base-content/30 mt-1 cursor-move" title="Drag to move">
+                              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                              </svg>
+                            </div>
+                            <h4 class="font-medium text-sm text-base-content line-clamp-2 flex-1 hover:underline cursor-pointer">
+                              {application.title}
+                            </h4>
+                          </div>
+                          <div class="flex gap-1">
+                            {#if application.stage_conflict}
+                              <div class="badge badge-warning badge-xs" title={application.stage_conflict_message}>⚠️ Conflict</div>
+                            {/if}
+                            {#if application.overdue}
+                              <div class="badge badge-error badge-xs">Overdue</div>
+                            {/if}
+                          </div>
+                        </div>
+                        {#if application.company}
+                          <div class="text-xs text-base-content/70 mb-2">
+                            <a href={`/companies/${application.company.id}`} class="text-base-content">
+                              {application.company.name}
+                            </a>
+                          </div>
+                        {/if}
+                        {#if application.grant_competition}
+                          <div class="text-xs text-base-content/70 mb-2">
+                            <a href={`/grant_competitions/${application.grant_competition.id}`} class="text-base-content">
+                              {application.grant_competition.grant_name}
+                            </a>
+                          </div>
+                        {/if}
+                      </div>
+                    {/each}
+                    {#if data.count === 0}
+                      <div class="text-center py-8 text-base-content/50">
+                        <svg class="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        <p class="text-sm">No applications</p>
+                      </div>
+                    {/if}
+                  </div>
+                </div>
+              </div>
+            {/each}
+          </div>
+        </div>
+
+        <!-- Group 3: Post Delivery (remaining columns) -->
+        <div class="flex-shrink-0 rounded-2xl border border-yellow-300/60 bg-yellow-300/10 px-3 py-4">
+          <div class="text-sm font-semibold text-base-content/70 mb-2 pl-1">Post Delivery</div>
+          <div class="flex space-x-6">
+            {#each stageOrder.slice(5).filter((s) => pipeline_data && pipeline_data[s]).map((s) => [s, pipeline_data[s]]) as [stage, data]}
+              <div class="flex-shrink-0 w-80">
+                <div class="relative z-10 bg-base-200 rounded-lg p-4 min-h-96 border border-gray-600 {getDropZoneClass(stage)}"
+                     role="region"
+                     aria-label="Drop zone for {formatStageName(stage)}"
+                     ondragover={(e) => handleDragOver(e, stage)}
+                     ondragleave={handleDragLeave}
+                     ondrop={(e) => handleDrop(e, stage)}>
+                  <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-semibold text-base-content">
+                      {formatStageName(stage)}
+                    </h3>
+                    <div class="badge badge-neutral">{data.count}</div>
+                  </div>
+                  <div class="space-y-3">
+                    {#each data.applications as application}
+                      <div class="bg-base-100 rounded-lg p-4 shadow-sm border border-base-300 hover:shadow-md transition-shadow"
+                           role="button"
+                           tabindex="0"
+                           draggable="true"
+                           ondragstart={(e) => handleDragStart(e, application, stage)}
+                           ondragend={handleDragEnd}
+                           onclick={() => { if (!hasDragged) { router.visit(`/grant_applications/${application.id}`); } }}
+                           onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.visit(`/grant_applications/${application.id}`); } }}>
+                        <div class="flex items-start justify-between mb-2">
+                          <div class="flex items-start space-x-2 flex-1">
+                            <div class="text-base-content/30 mt-1 cursor-move" title="Drag to move">
+                              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                              </svg>
+                            </div>
+                            <h4 class="font-medium text-sm text-base-content line-clamp-2 flex-1 hover:underline cursor-pointer">
+                              {application.title}
+                            </h4>
+                          </div>
+                          <div class="flex gap-1">
+                            {#if application.stage_conflict}
+                              <div class="badge badge-warning badge-xs" title={application.stage_conflict_message}>⚠️ Conflict</div>
+                            {/if}
+                            {#if application.overdue}
+                              <div class="badge badge-error badge-xs">Overdue</div>
+                            {/if}
+                          </div>
+                        </div>
+                        {#if application.company}
+                          <div class="text-xs text-base-content/70 mb-2">
+                            <a href={`/companies/${application.company.id}`} class="text-base-content">
+                              {application.company.name}
+                            </a>
+                          </div>
+                        {/if}
+                        {#if application.grant_competition}
+                          <div class="text-xs text-base-content/70 mb-2">
+                            <a href={`/grant_competitions/${application.grant_competition.id}`} class="text-base-content">
+                              {application.grant_competition.grant_name}
+                            </a>
+                          </div>
+                        {/if}
+                      </div>
+                    {/each}
+                    {#if data.count === 0}
+                      <div class="text-center py-8 text-base-content/50">
+                        <svg class="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        <p class="text-sm">No applications</p>
+                      </div>
+                    {/if}
+                  </div>
+                </div>
+              </div>
+            {/each}
+          </div>
+        </div>
       </div>
     </div>
   </div>

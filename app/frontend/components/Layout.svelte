@@ -4,7 +4,7 @@
   import Toast from './Toast.svelte';
   import { setAvailableFeatures } from '../stores/features.js';
   
-  let { user, currentPage = 'dashboard', children } = $props();
+  let { user, currentPage = 'dashboard', children, fullWidth = false } = $props();
   
   onMount(() => {
     if (user?.availableFeatures) {
@@ -18,7 +18,7 @@
     <Navbar {user} {currentPage} />
   </div>
   
-  <main class="container mx-auto px-4 py-8">
+  <main class="{fullWidth ? 'w-full px-0' : 'container mx-auto px-4'} py-8">
     {@render children()}
   </main>
   

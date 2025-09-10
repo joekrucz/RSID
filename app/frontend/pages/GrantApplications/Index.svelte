@@ -166,10 +166,10 @@
   }
 </script>
 
-<Layout {user}>
-  <div class="max-w-7xl mx-auto">
+<Layout {user} fullWidth={currentView === 'pipeline'}>
+  <div class="w-full">
     <!-- Header -->
-    <div class="mb-6">
+    <div class="mb-6 {currentView === 'pipeline' ? 'max-w-7xl mx-auto px-6' : ''}">
       <div class="flex justify-between items-center mb-4">
         <div>
                 <h1 class="text-3xl font-bold text-base-content mb-2">Grant Applications</h1>
@@ -263,13 +263,15 @@
             </div>
           </div>
         </div>
+        
       </div>
       
     </div>
     
     <!-- Applications Content -->
     {#if currentView === 'list'}
-      <!-- List View -->
+      <!-- List View (constrained width) -->
+      <div class="max-w-7xl mx-auto">
       
       <!-- Top Pagination Controls -->
       {#if pagination && pagination.total_pages > 1}
@@ -493,6 +495,7 @@
           </div>
         </div>
       {/if}
+      </div>
     {:else}
       <!-- Pipeline View -->
       <PipelineView pipeline_data={filteredPipelineData} />
