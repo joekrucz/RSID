@@ -272,7 +272,7 @@
       <!-- Checklist + Detail (Master-Detail) -->
       <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <div class="lg:col-span-5 xl:col-span-4 bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:max-h-[60vh] overflow-y-auto">
-          <div class="sticky top-0 z-10 bg-base-100 pt-0 pb-3">
+          <div class="sticky top-0 z-10 bg-white pt-0 pb-3">
             <div class="inline-flex items-stretch select-none">
               {#each stageGroups as g, gi}
                 {@const isActive = currentGroup === g.label}
