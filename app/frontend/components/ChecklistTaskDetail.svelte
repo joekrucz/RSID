@@ -107,8 +107,11 @@
       form.append('file', file);
       form.append('section', sectionTitle);
       form.append('title', itemTitle);
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      if (csrfToken) form.append('authenticity_token', csrfToken);
       const res = await fetch(`/grant_applications/${grantApplicationId}/grant_documents`, {
         method: 'POST',
+        headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {},
         body: form
       });
       const data = await res.json();
@@ -126,7 +129,8 @@
   async function deleteDocument(id) {
     if (!id || !grantApplicationId) return;
     try {
-      const res = await fetch(`/grant_applications/${grantApplicationId}/grant_documents/${id}`, { method: 'DELETE' });
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      const res = await fetch(`/grant_applications/${grantApplicationId}/grant_documents/${id}`, { method: 'DELETE', headers: csrfToken ? { 'X-CSRF-Token': csrfToken } : {} });
       const data = await res.json();
       if (data?.success) {
         documents = documents.filter(d => d.id !== id);
