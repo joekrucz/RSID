@@ -277,7 +277,7 @@
         {#each localSections[sIdx].items as item, iIdx}
           {@const isSelected = sections[sIdx]?.title === selectedSectionTitle && localSections[sIdx]?.items?.[iIdx]?.title === selectedItemTitle}
           {@const k = keyFor(sIdx, iIdx)}
-          <button class={`w-full text-left px-4 py-3 cursor-pointer rounded ${isSelected ? 'bg-base-200 border border-base-300' : ''}`} onclick={() => selectItem(sIdx, iIdx)}>
+          <button class={`w-full text-left px-4 py-3 cursor-pointer rounded ${isSelected ? 'bg-base-200 border border-base-300 rounded-lg' : ''}`} onclick={() => selectItem(sIdx, iIdx)}>
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-start gap-2">
                 <input type="checkbox" class="checkbox checkbox-sm checkbox-success mt-0.5"
