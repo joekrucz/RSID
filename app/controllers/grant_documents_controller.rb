@@ -25,15 +25,16 @@ class GrantDocumentsController < ApplicationController
       return render json: { success: false, error: 'No file uploaded' }, status: :unprocessable_entity
     end
 
-    # Save file under storage/uploads/<grant_application_id>/
-    dir = Rails.root.join('storage', 'uploads', @grant_application.id.to_s)
+    # Save file under public/uploads/grant_applications/<grant_application_id>/ so it is web-accessible
+    dir = Rails.root.join('public', 'uploads', 'grant_applications', @grant_application.id.to_s)
     FileUtils.mkdir_p(dir)
     dest_path = dir.join(uploaded.original_filename)
     File.open(dest_path, 'wb') { |f| f.write(uploaded.read) }
+    public_path = File.join('/uploads', 'grant_applications', @grant_application.id.to_s, uploaded.original_filename)
 
     doc = @grant_application.grant_documents.build(
       name: uploaded.original_filename,
-      file_path: dest_path.to_s,
+      file_path: public_path,
       file_type: File.extname(uploaded.original_filename).delete('.').downcase,
       grant_checklist_item_id: item&.id
     )
