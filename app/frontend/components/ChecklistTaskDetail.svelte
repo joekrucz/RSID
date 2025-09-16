@@ -72,9 +72,9 @@
     }
   }
 
-  function isAgreementSent() {
+  function isProjectQualification() {
     // Match actual section/item titles from the checklist
-    return sectionTitle === 'Client Acquisition' && itemTitle === 'Agreement Sent';
+    return sectionTitle === 'Client Acquisition' && itemTitle === 'Project Qualification';
   }
 
   function isInvoiceSent() {
@@ -98,7 +98,7 @@
       <div class="text-sm text-base-content/60">{sectionTitle}</div>
       <h3 class="text-lg font-semibold text-base-content">{itemTitle}</h3>
     </div>
-    {#if isAgreementSent()}
+    {#if isProjectQualification()}
       <div class="space-y-4">
         <div class="flex items-center gap-4">
           <label class="flex items-center gap-2 text-sm">
