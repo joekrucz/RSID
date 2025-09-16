@@ -73,7 +73,20 @@
   }
 
   function isAgreementSent() {
-    return sectionTitle === 'Client Acquisition/Project Qualification' && itemTitle === 'Agreement Sent';
+    // Match actual section/item titles from the checklist
+    return sectionTitle === 'Client Acquisition' && itemTitle === 'Agreement Sent';
+  }
+
+  function isInvoiceSent() {
+    return sectionTitle === 'Client Invoiced' && itemTitle === 'Invoice Sent';
+  }
+
+  function isPaymentReceived() {
+    return sectionTitle === 'Invoice Paid' && itemTitle === 'Payment Received';
+  }
+
+  function isKickOffConfirmed() {
+    return sectionTitle === 'Kicked Off' && itemTitle === 'Kick Off Call Confirmed';
   }
 </script>
 
@@ -115,6 +128,39 @@
           <input type="url" class="input input-bordered input-sm w-full" placeholder="https://..." bind:value={contractLink} onchange={() => save({ contract_link: contractLink })} />
         </div>
       </div>
+    {:else if isInvoiceSent()}
+      <div class="space-y-4">
+        <div>
+          <div class="text-sm font-medium mb-1">Invoice Number</div>
+          <input type="text" class="input input-bordered input-sm w-full" placeholder="INV-..." onchange={(e) => save({ invoice_number: e.target.value })} />
+        </div>
+        <div>
+          <div class="text-sm font-medium mb-1">Invoice Date</div>
+          <input type="date" class="input input-sm input-bordered" onchange={(e) => save({ invoice_date: e.target.value })} />
+        </div>
+      </div>
+    {:else if isPaymentReceived()}
+      <div class="space-y-4">
+        <div>
+          <div class="text-sm font-medium mb-1">Amount Received</div>
+          <input type="number" min="0" step="0.01" class="input input-bordered input-sm w-full" placeholder="0.00" onchange={(e) => save({ amount_received: e.target.value })} />
+        </div>
+        <div>
+          <div class="text-sm font-medium mb-1">Payment Date</div>
+          <input type="date" class="input input-sm input-bordered" onchange={(e) => save({ payment_date: e.target.value })} />
+        </div>
+      </div>
+    {:else if isKickOffConfirmed()}
+      <div class="space-y-4">
+        <div>
+          <div class="text-sm font-medium mb-1">Kick Off Date</div>
+          <input type="date" class="input input-sm input-bordered" onchange={(e) => save({ kick_off_date: e.target.value })} />
+        </div>
+        <div>
+          <div class="text-sm font-medium mb-1">Notes</div>
+          <textarea class="textarea textarea-bordered textarea-sm w-full" placeholder="Notes..." onchange={(e) => save({ notes: e.target.value })}></textarea>
+        </div>
+      </div>
     {:else}
       <div class="space-y-4">
         <div class="flex items-center gap-4">
@@ -124,25 +170,8 @@
           </label>
         </div>
         <div>
-          <div class="text-sm font-medium mb-1">Subbie</div>
-          <div class="flex items-center gap-3 flex-wrap">
-            <select class="select select-bordered select-sm w-full max-w-xs" bind:value={subbie} disabled={noSubbie} onchange={() => save({ subbie })}>
-              <option value="" disabled>Select subbie</option>
-              <option value="Leon Lever">Leon Lever</option>
-              <option value="John Smith">John Smith</option>
-            </select>
-            <label class="flex items-center gap-2 text-sm">
-              <input type="checkbox" class="checkbox checkbox-sm" bind:checked={noSubbie} onchange={() => save({ no_subbie: noSubbie })} />
-              No subbie
-            </label>
-          </div>
-          {#if subbie && !noSubbie}
-            <div class="text-xs opacity-60 mt-1">Fee: {formatGBP(feeFor(subbie))}</div>
-          {/if}
-        </div>
-        <div>
-          <div class="text-sm font-medium mb-1">Contract Link</div>
-          <input type="url" class="input input-bordered input-sm w-full" placeholder="https://..." bind:value={contractLink} onchange={() => save({ contract_link: contractLink })} />
+          <div class="text-sm font-medium mb-1">Notes</div>
+          <textarea class="textarea textarea-bordered textarea-sm w-full" placeholder="Notes..." onchange={(e) => save({ notes: e.target.value })}></textarea>
         </div>
       </div>
     {/if}
