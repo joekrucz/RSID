@@ -209,7 +209,7 @@
               {#each documents as d}
                 <li class="flex items-center justify-between text-sm bg-base-200 rounded px-2 py-1">
                   <a class="link" href={d.file_path} target="_blank" rel="noopener noreferrer">{d.name}</a>
-                  <button class="btn btn-ghost btn-xs" onclick={() => deleteDocument(d.id)}>Delete</button>
+                  <button class="btn btn-ghost btn-xs" onclick={() => { if (confirm('Delete this document? This action cannot be undone.')) deleteDocument(d.id); }}>Delete</button>
                 </li>
               {/each}
             {/if}
