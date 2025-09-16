@@ -9,6 +9,135 @@
   let dragOverStage = $state(null);
   let hasDragged = $state(false);
   
+  // Top/bottom horizontal scroll sync
+  let topScrollEl;
+  let bottomScrollEl;
+  let topSpacerEl;
+  let customTrackEl;
+  let isDraggingThumb = false;
+  let dragStartX = 0;
+  let dragStartScrollLeft = 0;
+  let customTrackWidth = 0;
+  let customThumbWidth = $state(0);
+  let customThumbLeft = $state(0);
+  let customScrollPercent = $state(0);
+  
+  function syncTopToBottom() {
+    if (topScrollEl && bottomScrollEl) {
+      topScrollEl.scrollLeft = bottomScrollEl.scrollLeft;
+    }
+    updateCustomScrollbar();
+  }
+  
+  function syncBottomToTop() {
+    if (topScrollEl && bottomScrollEl) {
+      bottomScrollEl.scrollLeft = topScrollEl.scrollLeft;
+    }
+    updateCustomScrollbar();
+  }
+  
+  // Ensure the top spacer matches the scrollable width
+  $effect(() => {
+    if (bottomScrollEl && topSpacerEl) {
+      topSpacerEl.style.width = `${bottomScrollEl.scrollWidth}px`;
+      updateCustomScrollbar();
+    }
+  });
+
+  function updateCustomScrollbar() {
+    if (!bottomScrollEl || !customTrackEl) return;
+    const contentWidth = bottomScrollEl.scrollWidth;
+    const viewportWidth = bottomScrollEl.clientWidth;
+    customTrackWidth = customTrackEl.clientWidth;
+    if (contentWidth <= 0 || viewportWidth <= 0) {
+      customThumbWidth = 0;
+      customThumbLeft = 0;
+      customScrollPercent = 0;
+      return;
+    }
+    const ratio = viewportWidth / contentWidth;
+    customThumbWidth = Math.max(30, customTrackWidth * ratio);
+    const maxThumbLeft = Math.max(0, customTrackWidth - customThumbWidth);
+    const scrollRatio = bottomScrollEl.scrollLeft / (contentWidth - viewportWidth || 1);
+    customThumbLeft = Math.min(maxThumbLeft, Math.max(0, scrollRatio * maxThumbLeft));
+    customScrollPercent = Math.round(scrollRatio * 100);
+  }
+
+  function onThumbMouseDown(event) {
+    isDraggingThumb = true;
+    dragStartX = event.clientX;
+    dragStartScrollLeft = bottomScrollEl.scrollLeft;
+    document.addEventListener('mousemove', onThumbMouseMove);
+    document.addEventListener('mouseup', onThumbMouseUp);
+    event.preventDefault();
+  }
+
+  function onThumbMouseMove(event) {
+    if (!isDraggingThumb || !bottomScrollEl || !customTrackEl) return;
+    const contentWidth = bottomScrollEl.scrollWidth;
+    const viewportWidth = bottomScrollEl.clientWidth;
+    const deltaX = event.clientX - dragStartX;
+    const maxThumbLeft = Math.max(0, customTrackEl.clientWidth - customThumbWidth);
+    const contentScrollable = Math.max(1, contentWidth - viewportWidth);
+    const scrollPerPx = contentScrollable / Math.max(1, maxThumbLeft);
+    bottomScrollEl.scrollLeft = Math.min(contentScrollable, Math.max(0, dragStartScrollLeft + deltaX * scrollPerPx));
+    syncTopToBottom();
+  }
+
+  function onThumbMouseUp() {
+    isDraggingThumb = false;
+    document.removeEventListener('mousemove', onThumbMouseMove);
+    document.removeEventListener('mouseup', onThumbMouseUp);
+  }
+
+  function onTrackClick(event) {
+    if (!customTrackEl || !bottomScrollEl) return;
+    const rect = customTrackEl.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const targetLeft = clickX - customThumbWidth / 2;
+    const maxThumbLeft = Math.max(0, customTrackEl.clientWidth - customThumbWidth);
+    const clampedLeft = Math.min(maxThumbLeft, Math.max(0, targetLeft));
+    const contentWidth = bottomScrollEl.scrollWidth;
+    const viewportWidth = bottomScrollEl.clientWidth;
+    const contentScrollable = Math.max(1, contentWidth - viewportWidth);
+    const scrollRatio = clampedLeft / Math.max(1, maxThumbLeft);
+    bottomScrollEl.scrollLeft = scrollRatio * contentScrollable;
+    syncTopToBottom();
+  }
+
+  function onTrackKeyDown(event) {
+    if (!bottomScrollEl) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      onTrackClick(event);
+      event.preventDefault();
+    } else if (event.key === 'ArrowLeft') {
+      bottomScrollEl.scrollLeft = Math.max(0, bottomScrollEl.scrollLeft - bottomScrollEl.clientWidth * 0.9);
+      syncTopToBottom();
+      event.preventDefault();
+    } else if (event.key === 'ArrowRight') {
+      const maxScroll = Math.max(0, bottomScrollEl.scrollWidth - bottomScrollEl.clientWidth);
+      bottomScrollEl.scrollLeft = Math.min(maxScroll, bottomScrollEl.scrollLeft + bottomScrollEl.clientWidth * 0.9);
+      syncTopToBottom();
+      event.preventDefault();
+    }
+  }
+
+  function onThumbKeyDown(event) {
+    if (!bottomScrollEl || !customTrackEl) return;
+    const maxThumbLeft = Math.max(0, customTrackEl.clientWidth - customThumbWidth);
+    const contentScrollable = Math.max(1, bottomScrollEl.scrollWidth - bottomScrollEl.clientWidth);
+    const scrollPerPx = contentScrollable / Math.max(1, maxThumbLeft);
+    if (event.key === 'ArrowLeft') {
+      bottomScrollEl.scrollLeft = Math.max(0, bottomScrollEl.scrollLeft - 40 * scrollPerPx);
+      syncTopToBottom();
+      event.preventDefault();
+    } else if (event.key === 'ArrowRight') {
+      bottomScrollEl.scrollLeft = Math.min(contentScrollable, bottomScrollEl.scrollLeft + 40 * scrollPerPx);
+      syncTopToBottom();
+      event.preventDefault();
+    }
+  }
+  
   const stageOrder = [
     'client_acquisition_project_qualification',
     'client_invoiced',
@@ -155,10 +284,82 @@
   }
 </script>
 
+<style>
+  /* Always show scrollbars for pipeline areas */
+  .pipeline-scroll {
+    scrollbar-width: auto; /* Firefox */
+  }
+  .pipeline-scroll::-webkit-scrollbar {
+    height: 12px; /* Horizontal scrollbar height */
+  }
+  .pipeline-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 116, 139, 0.6); /* slate-500/60 */
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  .pipeline-scroll::-webkit-scrollbar-track {
+    background: rgba(241, 245, 249, 0.8); /* slate-100/80 */
+    border-radius: 9999px;
+  }
+  /* Ensure scrollbars are always visible on macOS overlay scrollbars */
+  .pipeline-scroll {
+    overflow: scroll;
+  }
+
+  /* Custom always-visible scrollbar track at top */
+  .custom-scrollbar-track {
+    position: relative;
+    height: 12px;
+    background: rgba(241, 245, 249, 0.8);
+    border-radius: 9999px;
+    cursor: pointer;
+  }
+  .custom-scrollbar-thumb {
+    position: absolute;
+    top: 0;
+    height: 12px;
+    background-color: rgba(100, 116, 139, 0.7);
+    border-radius: 9999px;
+    cursor: grab;
+  }
+  .custom-scrollbar-thumb:active {
+    cursor: grabbing;
+  }
+</style>
+
 <div class="bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden">
   <div class="p-6">
     <div>
-      <div class="flex space-x-6 overflow-x-auto overflow-y-hidden pb-4 pt-2 pl-3 pr-1">
+      <!-- Top horizontal scrollbar -->
+      <div class="mb-2 pl-3 pr-1">
+        <div 
+          class="custom-scrollbar-track" 
+          bind:this={customTrackEl} 
+          onclick={onTrackClick}
+          role="scrollbar"
+          aria-label="Pipeline horizontal scroll"
+          aria-orientation="horizontal"
+          aria-controls="pipeline-scroll-content"
+          aria-valuenow={customScrollPercent}
+          tabindex="0"
+          onkeydown={onTrackKeyDown}
+        >
+          <div 
+            class="custom-scrollbar-thumb" 
+            style={`left:${customThumbLeft}px;width:${customThumbWidth}px`} 
+            onmousedown={onThumbMouseDown}
+            role="slider"
+            aria-label="Scroll position"
+            aria-orientation="horizontal"
+            aria-valuenow={customScrollPercent}
+            tabindex="0"
+            onkeydown={onThumbKeyDown}
+          ></div>
+        </div>
+      </div>
+      <!-- Main scrollable pipeline content (bottom scrollbar) -->
+      <div id="pipeline-scroll-content" bind:this={bottomScrollEl} class="pipeline-scroll flex space-x-6 overflow-x-auto overflow-y-hidden pb-4 pt-2 pl-3 pr-1" onscroll={syncTopToBottom} role="region" aria-label="Pipeline content" onmouseenter={updateCustomScrollbar} onload={updateCustomScrollbar}>
         <!-- Group 1: Pre-Delivery (first 3 columns) -->
         <div class="flex-shrink-0 rounded-2xl border border-sky-500/80 bg-sky-400/15 px-3 py-4">
           <div class="text-sm font-semibold text-base-content/70 mb-2 pl-1">Pre-Delivery</div>

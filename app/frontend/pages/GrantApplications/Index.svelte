@@ -224,19 +224,21 @@
         
         <!-- View Toggle and Per Page Selector -->
         <div class="flex items-center space-x-4">
-          <!-- Per Page Selector -->
-          <div class="flex items-center space-x-2">
-            <span class="text-sm font-medium text-base-content">Show:</span>
-            <select 
-              class="select select-bordered select-sm"
-              bind:value={perPage}
-              onchange={() => handlePerPageChange(perPage)}
-            >
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-          </div>
+          <!-- Per Page Selector (hidden in pipeline view) -->
+          {#if currentView === 'list'}
+            <div class="flex items-center space-x-2">
+              <span class="text-sm font-medium text-base-content">Show:</span>
+              <select 
+                class="select select-bordered select-sm"
+                bind:value={perPage}
+                onchange={() => handlePerPageChange(perPage)}
+              >
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          {/if}
           
           <!-- View Toggle -->
           <div class="flex items-center space-x-2">
