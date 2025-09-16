@@ -49,6 +49,7 @@ Rails.application.routes.draw do
       post :upsert
     end
   end
+  resources :grant_documents, only: [:index, :create, :destroy]
    collection do
      post :link_companies
      post :add_demo_data

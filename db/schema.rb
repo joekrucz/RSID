@@ -96,7 +96,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_08_223652) do
     t.integer "grant_application_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "grant_checklist_item_id"
     t.index ["grant_application_id"], name: "index_grant_documents_on_grant_application_id"
+    t.index ["grant_checklist_item_id"], name: "index_grant_documents_on_grant_checklist_item_id"
   end
 
   create_table "messages", force: :cascade do |t|
@@ -214,6 +216,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_08_223652) do
   add_foreign_key "grant_applications", "users"
   add_foreign_key "grant_checklist_items", "grant_applications"
   add_foreign_key "grant_documents", "grant_applications"
+  add_foreign_key "grant_documents", "grant_checklist_items"
   add_foreign_key "messages", "clients"
   add_foreign_key "messages", "users", column: "recipient_id"
   add_foreign_key "messages", "users", column: "sender_id"
