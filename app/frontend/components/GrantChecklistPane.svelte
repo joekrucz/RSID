@@ -26,11 +26,13 @@
         aria-current={isActive ? 'page' : undefined}
         style={`border-top-left-radius:${gi === 0 ? '0.5rem' : '0'}; border-bottom-left-radius:${gi === 0 ? '0.5rem' : '0'};`}
       >
-        {#if isGroupComplete(g)}
-          <svg class="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-        {/if}
+        <span class="inline-flex items-center justify-center w-4 h-4">
+          {#if isGroupComplete(g)}
+            <svg class="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          {/if}
+        </span>
         <span>{g.label}</span>
       </button>
     {/each}
