@@ -502,7 +502,8 @@ class GrantApplicationsController < ApplicationController
       checked: item.checked,
       subbie: item.subbie,
       no_subbie: item.no_subbie,
-      contract_link: item.contract_link
+      contract_link: item.contract_link,
+      review_delivered_on: item.review_delivered_on&.strftime('%Y-%m-%d')
     }
   end
   

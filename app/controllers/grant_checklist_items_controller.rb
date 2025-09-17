@@ -12,7 +12,8 @@ class GrantChecklistItemsController < ApplicationController
       subbie: params[:subbie],
       no_subbie: params[:no_subbie],
       contract_link: params[:contract_link],
-      notes: params[:notes]
+      notes: params[:notes],
+      review_delivered_on: params[:review_delivered_on]
     }.compact
 
     item = @grant_application.grant_checklist_items.find_or_initialize_by(section: section, title: title)

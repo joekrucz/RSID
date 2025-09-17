@@ -15,6 +15,7 @@
   let docsLoading = $state(false);
   let uploadInProgress = $state(false);
   let dealOutcome = $state(''); // 'won' | 'lost'
+  let reviewDeliveredOn = $state('');
 
   const subbieFees = {
     'Leon Lever': 1000,
@@ -50,6 +51,7 @@
       checked = !!found.checked;
       dueDate = found.due_date || '';
       notes = found.notes || '';
+      reviewDeliveredOn = found.review_delivered_on || '';
       if (notes === 'won' || notes === 'lost') {
         dealOutcome = notes;
       } else {
@@ -412,6 +414,12 @@
           <label class="flex items-center gap-2 text-sm">
             <span>Due</span>
             <input type="date" class="input input-sm input-bordered" bind:value={dueDate} onchange={() => save({ due_date: dueDate })} />
+          </label>
+        </div>
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-2 text-sm">
+            <span>Review delivered on:</span>
+            <input type="date" class="input input-sm input-bordered" bind:value={reviewDeliveredOn} onchange={() => save({ review_delivered_on: reviewDeliveredOn })} />
           </label>
         </div>
         <div>
