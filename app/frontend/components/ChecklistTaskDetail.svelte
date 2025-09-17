@@ -14,6 +14,7 @@
   let documents = $state([]);
   let docsLoading = $state(false);
   let uploadInProgress = $state(false);
+  let dealOutcome = $state(''); // 'won' | 'lost'
 
   const subbieFees = {
     'Leon Lever': 1000,
@@ -49,6 +50,11 @@
       checked = !!found.checked;
       dueDate = found.due_date || '';
       notes = found.notes || '';
+      if (notes === 'won' || notes === 'lost') {
+        dealOutcome = notes;
+      } else {
+        dealOutcome = '';
+      }
     }
     // Fetch documents for this task
     if (grantApplicationId && sectionTitle && itemTitle) {
@@ -164,6 +170,10 @@
   function isNewProjectHandover() {
     return sectionTitle === 'Client Acquisition' && itemTitle === 'New Project Handover Sent To Delivery';
   }
+
+  function isDealOutcome() {
+    return sectionTitle === 'Client Acquisition' && itemTitle === 'Deal marked as "won" / "lost"';
+  }
 </script>
 
 <div class="bg-base-100 rounded-lg border border-base-300 shadow p-4 min-h-[12rem]">
@@ -268,6 +278,17 @@
           target="_blank"
           rel="noopener noreferrer"
         >Open Google Form</a>
+      </div>
+    {:else if isDealOutcome()}
+      <div class="space-y-4">
+        <div>
+          <div class="text-sm font-medium mb-1">Deal Outcome</div>
+          <select class="select select-bordered select-sm w-full max-w-xs" bind:value={dealOutcome} onchange={() => save({ notes: dealOutcome })}>
+            <option value="" disabled selected>Select outcome</option>
+            <option value="won">won</option>
+            <option value="lost">lost</option>
+          </select>
+        </div>
       </div>
     {:else if isInvoiceSent()}
       <div class="space-y-4">
