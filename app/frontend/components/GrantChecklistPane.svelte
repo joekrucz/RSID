@@ -16,33 +16,22 @@
 </script>
 
 <div class="bg-white rounded-lg border border-base-300 shadow-sm p-3 mb-3 relative overflow-hidden">
-  <div class="inline-flex items-stretch select-none">
+  <div class="flex w-full select-none">
     {#each stageGroups as g, gi}
       {@const isActive = currentGroup === g.label}
       {@const bgClass = isActive ? 'bg-gray-200 text-gray-900 font-semibold' : 'bg-gray-100 text-gray-700'}
       <button
-        class={`relative flex items-center gap-2 px-5 py-2 text-sm transition-colors whitespace-nowrap ${bgClass} ${gi > 0 ? 'pl-12 -ml-6' : ''} outline-none focus:outline-none focus:ring-0`}
+        class={`relative flex-1 min-w-0 justify-center items-center gap-2 px-5 py-2 text-sm transition-colors ${bgClass} ${gi > 0 ? 'border-l border-base-300' : ''} outline-none focus:outline-none focus:ring-0`}
         onclick={() => setCurrentGroup(g.label)}
         aria-current={isActive ? 'page' : undefined}
-        style={`border-top-left-radius:${gi === 0 ? '0.5rem' : '0'}; border-bottom-left-radius:${gi === 0 ? '0.5rem' : '0'}; z-index:${100 - gi};`}
+        style={`border-top-left-radius:${gi === 0 ? '0.5rem' : '0'}; border-bottom-left-radius:${gi === 0 ? '0.5rem' : '0'};`}
       >
-        {#if gi > 0}
-          <span class="absolute left-0 top-0 h-full w-px bg-base-300"></span>
-        {/if}
         {#if isGroupComplete(g)}
           <svg class="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
         {/if}
         <span>{g.label}</span>
-        {#if gi < stageGroups.length - 1}
-          <span class="pointer-events-none absolute -right-6 top-0 h-full w-6" aria-hidden="true" style={`z-index:${101 - gi}` }>
-            <span class={`absolute inset-0 ${isActive ? 'bg-gray-200' : 'bg-gray-100'}`}
-                  style="clip-path: polygon(0% 0%, 100% 50%, 0% 100%);"></span>
-            <span class="absolute inset-y-0 right-5 w-px bg-base-300"
-                  style="transform: skewX(-25deg);"></span>
-          </span>
-        {/if}
       </button>
     {/each}
   </div>
