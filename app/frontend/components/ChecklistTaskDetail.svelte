@@ -293,12 +293,36 @@
     {:else if isInvoiceSent()}
       <div class="space-y-4">
         <div>
-          <div class="text-sm font-medium mb-1">Invoice Number</div>
-          <input type="text" class="input input-bordered input-sm w-full" placeholder="INV-..." onchange={(e) => save({ invoice_number: e.target.value })} />
+          <div class="text-sm font-medium mb-1">Upload Documents</div>
+          <div class="flex items-center gap-2">
+            <input type="file" class="file-input file-input-sm file-input-bordered" onchange={(e) => { const f = e.currentTarget.files?.[0]; if (f) uploadDocument(f); e.currentTarget.value = ''; }} disabled={uploadInProgress} />
+            {#if uploadInProgress}
+              <span class="loading loading-spinner loading-sm"></span>
+            {/if}
+          </div>
+          <div class="mt-2 text-xs text-base-content/60">Files are stored under this grant and linked to this task.</div>
+          <ul class="mt-2 space-y-1">
+            {#if docsLoading}
+              <li class="text-sm">Loading documents...</li>
+            {:else if documents.length === 0}
+              <li class="text-sm text-base-content/60">No documents uploaded yet.</li>
+            {:else}
+              {#each documents as d}
+                <li class="flex items-center justify-between text-sm bg-base-200 rounded px-2 py-1">
+                  <a class="link" href={d.file_path} target="_blank" rel="noopener noreferrer">{d.name}</a>
+                  <button class="btn btn-ghost btn-xs" onclick={() => { if (confirm('Delete this document? This action cannot be undone.')) deleteDocument(d.id); }}>Delete</button>
+                </li>
+              {/each}
+            {/if}
+          </ul>
         </div>
         <div>
-          <div class="text-sm font-medium mb-1">Invoice Date</div>
-          <input type="date" class="input input-sm input-bordered" onchange={(e) => save({ invoice_date: e.target.value })} />
+          <div class="text-sm font-medium mb-1">Link to client invoice</div>
+          <input type="url" class="input input-bordered input-sm w-full" placeholder="https://..." bind:value={contractLink} onchange={() => save({ contract_link: contractLink })} />
+        </div>
+        <div>
+          <div class="text-sm font-medium mb-1">Notes</div>
+          <textarea class="textarea textarea-bordered textarea-sm w-full" placeholder="Notes..." bind:value={notes} onchange={() => save({ notes })}></textarea>
         </div>
       </div>
     {:else if isPaymentReceived()}
