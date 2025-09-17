@@ -174,6 +174,10 @@
   function isDealOutcome() {
     return sectionTitle === 'Client Acquisition' && itemTitle === 'Deal marked as "won" / "lost"';
   }
+
+  function isAmlChecksCompleted() {
+    return sectionTitle === 'KO Prep' && itemTitle === 'AML Checks Completed';
+  }
 </script>
 
 <div class="bg-base-100 rounded-lg border border-base-300 shadow p-4 min-h-[12rem]">
@@ -324,6 +328,10 @@
           <div class="text-sm font-medium mb-1">Notes</div>
           <textarea class="textarea textarea-bordered textarea-sm w-full" placeholder="Notes..." bind:value={notes} onchange={() => save({ notes })}></textarea>
         </div>
+      </div>
+    {:else if isAmlChecksCompleted()}
+      <div class="space-y-2">
+        <div class="text-sm font-medium">BAMBOO AML STUFF WILL GO HERE</div>
       </div>
     {:else if isPaymentReceived()}
       <div class="space-y-4">
