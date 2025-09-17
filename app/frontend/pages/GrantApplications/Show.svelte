@@ -6,6 +6,7 @@
   import Checklist from '../../components/Checklist.svelte';
   import ChecklistTaskDetail from '../../components/ChecklistTaskDetail.svelte';
   import GrantChecklistPane from '../../components/GrantChecklistPane.svelte';
+  import { onMount } from 'svelte';
   let checklistRef;
   
   let { user, grant_application, checklist_items = [] } = $props();
@@ -42,7 +43,8 @@
     return found?.label || 'Pre-delivery';
   }
   let currentGroup = $state('Pre-delivery');
-  $effect(() => { currentGroup = groupForStage(currentStage); });
+  let userSetGroup = $state(false);
+  $effect(() => { if (!userSetGroup) currentGroup = groupForStage(currentStage); });
 
   function isGroupComplete(group) {
     return (group?.keys || []).every((s) => !!sectionComplete[stages.indexOf(s)]);
@@ -51,6 +53,49 @@
   let selectedSectionTitle = $state('');
   let selectedItemTitle = $state('');
   const grantApplicationId = $derived(grant_application?.id);
+
+  function isValidGroup(label) {
+    return stageGroups.some((g) => g.label === label);
+  }
+
+  function setGroup(label) {
+    if (!isValidGroup(label)) return;
+    currentGroup = label;
+    userSetGroup = true;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      params.set('tab', label);
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.replaceState(null, '', newUrl);
+    } catch (_) {}
+    try {
+      if (grantApplicationId) {
+        localStorage.setItem(`grant:lastTab:${grantApplicationId}`, label);
+      }
+    } catch (_) {}
+  }
+
+  onMount(() => {
+    // Preference order: URL param → localStorage → stage-derived default
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlTab = params.get('tab');
+      if (urlTab && isValidGroup(urlTab)) {
+        setGroup(urlTab);
+        return;
+      }
+    } catch (_) {}
+    try {
+      if (grantApplicationId) {
+        const saved = localStorage.getItem(`grant:lastTab:${grantApplicationId}`);
+        if (saved && isValidGroup(saved)) {
+          setGroup(saved);
+          return;
+        }
+      }
+    } catch (_) {}
+    // Fallback: leave stage-derived default
+  });
 
   function visibleSectionIndicesForGroup(label) {
     switch (label) {
@@ -277,7 +322,7 @@
             bind:checklistRef
             {stageGroups}
             {currentGroup}
-            setCurrentGroup={(g) => currentGroup = g}
+            setCurrentGroup={setGroup}
             {isGroupComplete}
             {selectedSectionTitle}
             {selectedItemTitle}
