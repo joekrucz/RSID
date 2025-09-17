@@ -186,6 +186,10 @@
   function isProjectSetup() {
     return sectionTitle === 'KO Prep' && itemTitle === 'Project Set Up - Slack Channel, Delivery Folders, Etc.';
   }
+
+  function isTimelineConfirmed() {
+    return sectionTitle === 'Kicked Off' && itemTitle === 'Timeline Confirmed and Accepted by Client';
+  }
 </script>
 
 <div class="bg-base-100 rounded-lg border border-base-300 shadow p-4 min-h-[12rem]">
@@ -393,6 +397,10 @@
           <div class="text-sm font-medium mb-1">Notes</div>
           <textarea class="textarea textarea-bordered textarea-sm w-full" placeholder="Notes..." onchange={(e) => save({ notes: e.target.value })}></textarea>
         </div>
+      </div>
+    {:else if isTimelineConfirmed()}
+      <div class="space-y-2">
+        <div class="text-sm font-medium">NICKY TO PROIVIDE TIMELINE TEMPLATES AND WE WILL WORK OUT HOW BEST TO INCORPORATE</div>
       </div>
     {:else}
       <div class="space-y-4">
