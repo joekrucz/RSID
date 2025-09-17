@@ -50,6 +50,7 @@
       checked = !!found.checked;
       dueDate = found.due_date || '';
       notes = found.notes || '';
+      completedAt = found.completed_at || '';
       if (notes === 'won' || notes === 'lost') {
         dealOutcome = notes;
       } else {
@@ -183,6 +184,13 @@
     <div class="mb-4">
       <div class="text-sm text-base-content/60">{sectionTitle}</div>
       <h3 class="text-lg font-semibold text-base-content">{itemTitle}</h3>
+      <div class="text-xs mt-1 text-base-content/70">
+        {#if completedAt}
+          Completed on {new Date(completedAt).toLocaleString()}
+        {:else}
+          Not completed
+        {/if}
+      </div>
     </div>
     {#if isProjectQualification()}
       <div class="space-y-4">
