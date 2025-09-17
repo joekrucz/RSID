@@ -160,6 +160,10 @@
   function isAgreementSent() {
     return sectionTitle === 'Client Acquisition' && itemTitle === 'Agreement Sent';
   }
+
+  function isNewProjectHandover() {
+    return sectionTitle === 'Client Acquisition' && itemTitle === 'New Project Handover Sent To Delivery';
+  }
 </script>
 
 <div class="bg-base-100 rounded-lg border border-base-300 shadow p-4 min-h-[12rem]">
@@ -254,6 +258,16 @@
             {/if}
           </ul>
         </div>
+      </div>
+    {:else if isNewProjectHandover()}
+      <div class="space-y-3">
+        <div class="text-sm">Fill out this form:</div>
+        <a
+          href="https://docs.google.com/forms/d/e/1FAIpQLSexXko3DG_8d8soPF9GljdfDe3gPmIsUW5mrjzr880xIqu07Q/viewform"
+          class="link link-primary"
+          target="_blank"
+          rel="noopener noreferrer"
+        >Open Google Form</a>
       </div>
     {:else if isInvoiceSent()}
       <div class="space-y-4">
