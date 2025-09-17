@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_17_001000) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_17_012000) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -78,6 +78,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_17_001000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.date "review_delivered_on"
+    t.string "deal_outcome"
+    t.index ["deal_outcome"], name: "index_grant_checklist_items_on_deal_outcome"
     t.index ["grant_application_id"], name: "index_grant_checklist_items_on_grant_application_id"
     t.index ["review_delivered_on"], name: "index_grant_checklist_items_on_review_delivered_on"
   end

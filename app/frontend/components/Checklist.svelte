@@ -252,8 +252,8 @@
 <div class="space-y-4">
   {#each sections as section, sIdx}
     {#if visibleIndices.length === 0 || visibleIndices.includes(sIdx)}
-    <div class="bg-white rounded-lg shadow-sm border">
-      <div class="px-4 py-3 border-b">
+    <div class="bg-white rounded-lg shadow-sm">
+      <div class="px-4 py-3">
         <div class="flex items-center justify-between">
           <h3 class="font-semibold text-gray-900">{section.title}</h3>
           <button 
@@ -273,11 +273,12 @@
         </div>
       </div>
       {#if !sectionsCollapsed[sIdx]}
-        <ul class="divide-y">
+        <ul>
         {#each localSections[sIdx].items as item, iIdx}
           {@const isSelected = sections[sIdx]?.title === selectedSectionTitle && localSections[sIdx]?.items?.[iIdx]?.title === selectedItemTitle}
+          {@const isLast = iIdx === (localSections[sIdx]?.items?.length || 0) - 1}
           {@const k = keyFor(sIdx, iIdx)}
-          <button class={`w-full text-left px-4 py-3 cursor-pointer rounded ${isSelected ? 'bg-primary/10 text-base-content rounded-lg border border-primary/30' : 'hover:bg-base-200'}`} onclick={() => selectItem(sIdx, iIdx)}>
+          <button class={`w-full text-left px-4 py-3 cursor-pointer ${isSelected ? `bg-primary/10 text-base-content ${isLast ? 'rounded-b-lg' : ''}` : 'hover:bg-base-200 rounded'}`} onclick={() => selectItem(sIdx, iIdx)}>
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-start gap-2">
                 <input type="checkbox" class="checkbox checkbox-sm checkbox-success mt-0.5"

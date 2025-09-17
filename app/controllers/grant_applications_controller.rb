@@ -503,7 +503,9 @@ class GrantApplicationsController < ApplicationController
       subbie: item.subbie,
       no_subbie: item.no_subbie,
       contract_link: item.contract_link,
-      review_delivered_on: item.review_delivered_on&.strftime('%Y-%m-%d')
+      review_delivered_on: item.review_delivered_on&.strftime('%Y-%m-%d'),
+      deal_outcome: item.deal_outcome,
+      notes: item.notes
     }
   end
   

@@ -13,6 +13,7 @@ class GrantChecklistItemsController < ApplicationController
       no_subbie: params[:no_subbie],
       contract_link: params[:contract_link],
       notes: params[:notes],
+      deal_outcome: params[:deal_outcome],
       review_delivered_on: params[:review_delivered_on]
     }.compact
 

@@ -339,8 +339,16 @@
           <h2 class="text-xl font-semibold text-gray-900 mb-3">Task Details</h2>
           <ChecklistTaskDetail {grantApplicationId} sectionTitle={selectedSectionTitle} itemTitle={selectedItemTitle} persistedItems={checklist_items} on:change={(e) => {
             const { field, value, sectionTitle, itemTitle } = e.detail || {};
+            const sec = sectionTitle || selectedSectionTitle;
+            const tit = itemTitle || selectedItemTitle;
+            if (!sec || !tit) return;
+            // Optimistically update checklist_items array so detail rehydrates without refresh
+            const idx = checklist_items.findIndex(ci => ci.section === (sec === 'Client Acquisition' ? 'Client Acquisition/Project Qualification' : sec) && ci.title === tit);
+            if (idx >= 0) {
+              checklist_items[idx] = { ...checklist_items[idx], [field]: value };
+            }
             if (field === 'checked') {
-              checklistRef?.setCheckedByTitle(sectionTitle || selectedSectionTitle, itemTitle || selectedItemTitle, value);
+              checklistRef?.setCheckedByTitle(sec, tit, value);
             }
           }} />
         </div>
