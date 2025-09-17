@@ -277,10 +277,7 @@
         {#each localSections[sIdx].items as item, iIdx}
           {@const isSelected = sections[sIdx]?.title === selectedSectionTitle && localSections[sIdx]?.items?.[iIdx]?.title === selectedItemTitle}
           {@const k = keyFor(sIdx, iIdx)}
-          <button class={`relative w-full text-left px-4 py-3 cursor-pointer rounded ${isSelected ? 'bg-base-100 rounded-lg' : ''}`} onclick={() => selectItem(sIdx, iIdx)}>
-            {#if isSelected}
-              <span class="absolute left-0 top-0 h-full w-1.5 bg-primary rounded-l"></span>
-            {/if}
+          <button class={`w-full text-left px-4 py-3 cursor-pointer rounded ${isSelected ? 'bg-primary text-primary-content rounded-lg' : 'hover:bg-base-200'}`} onclick={() => selectItem(sIdx, iIdx)}>
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-start gap-2">
                 <input type="checkbox" class="checkbox checkbox-sm checkbox-success mt-0.5"
@@ -290,7 +287,7 @@
                     toggleChecked(sIdx, iIdx, e.currentTarget.checked);
                   }}
                   aria-label={`Mark ${item.title} as ${checkedByKey[k] ? 'incomplete' : 'complete'}`} />
-                <div class="font-medium text-gray-900 text-sm">{item.title}</div>
+                <div class={`font-medium text-sm ${isSelected ? 'text-primary-content' : 'text-gray-900'}`}>{item.title}</div>
               </div>
               
             </div>
