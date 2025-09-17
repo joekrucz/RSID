@@ -328,12 +328,8 @@
     {:else if isPaymentReceived()}
       <div class="space-y-4">
         <div>
-          <div class="text-sm font-medium mb-1">Amount Received</div>
-          <input type="number" min="0" step="0.01" class="input input-bordered input-sm w-full" placeholder="0.00" onchange={(e) => save({ amount_received: e.target.value })} />
-        </div>
-        <div>
-          <div class="text-sm font-medium mb-1">Payment Date</div>
-          <input type="date" class="input input-sm input-bordered" onchange={(e) => save({ payment_date: e.target.value })} />
+          <div class="text-sm font-medium mb-1">Notes</div>
+          <textarea class="textarea textarea-bordered textarea-sm w-full" placeholder="Notes..." bind:value={notes} onchange={() => save({ notes })}></textarea>
         </div>
       </div>
     {:else if isKickOffConfirmed()}
