@@ -182,6 +182,10 @@
   function isProjectResourced() {
     return sectionTitle === 'KO Prep' && itemTitle === 'Project Resourced';
   }
+
+  function isProjectSetup() {
+    return sectionTitle === 'KO Prep' && itemTitle === 'Project Set Up - Slack Channel, Delivery Folders, Etc.';
+  }
 </script>
 
 <div class="bg-base-100 rounded-lg border border-base-300 shadow p-4 min-h-[12rem]">
@@ -367,6 +371,10 @@
           <div class="text-sm font-medium mb-1">Link to subbie invoice</div>
           <input type="url" class="input input-bordered input-sm w-full" placeholder="https://..." bind:value={contractLink} onchange={() => save({ contract_link: contractLink })} />
         </div>
+      </div>
+    {:else if isProjectSetup()}
+      <div class="space-y-2">
+        <div class="text-sm font-medium">ASK NICKY WHAT NEEDS TO GO HERE</div>
       </div>
     {:else if isPaymentReceived()}
       <div class="space-y-4">
