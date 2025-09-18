@@ -50,13 +50,6 @@ Rails.application.routes.draw do
     end
   end
   resources :grant_documents, only: [:index, :create, :destroy]
-   collection do
-     post :link_companies
-     post :add_demo_data
-     post :add_massive_demo_data
-     get :debug_data
-     post :fix_company_links
-   end
  end
          
          # CNF Communications (protected)
@@ -111,4 +104,17 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   root "pages#home"
+  
+  # Development-only debug routes
+  if Rails.env.development?
+    resources :grant_applications, only: [] do
+      collection do
+        post :link_companies
+        post :add_demo_data
+        post :add_massive_demo_data
+        get :debug_data
+        post :fix_company_links
+      end
+    end
+  end
 end

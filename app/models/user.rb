@@ -45,7 +45,10 @@ class User < ApplicationRecord
   
   # Search scope
   scope :search_by_name_or_email, ->(query) {
-    where("name LIKE ? OR email LIKE ?", "%#{query}%", "%#{query}%")
+    return none if query.blank?
+    sanitized_query = SanitizationService.sanitize_search_term(query)
+    return none if sanitized_query.blank?
+    where("name LIKE ? OR email LIKE ?", "%#{sanitized_query}%", "%#{sanitized_query}%")
   }
   
   # Sort scope

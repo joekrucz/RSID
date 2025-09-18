@@ -1,15 +1,5 @@
 # Security headers configuration
-# Rails.application.config.middleware.use(Rack::Deflater)  # Temporarily disabled for debugging
-
-# Add security headers
-# Rails.application.config.middleware.insert_before 0, Rack::Cors do
-#   allow do
-#     origins '*'  # Configure this properly for production
-#     resource '*',
-#       headers: :any,
-#       methods: [:get, :post, :put, :patch, :delete, :options, :head]
-#   end
-# end
+Rails.application.config.middleware.use(Rack::Deflater)
 
 # Custom security headers middleware
 class SecurityHeaders
@@ -26,6 +16,7 @@ class SecurityHeaders
     headers['X-XSS-Protection'] = '1; mode=block'
     headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     headers['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+    headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'"
     
     # HSTS header (only in production)
     if Rails.env.production?
@@ -36,4 +27,4 @@ class SecurityHeaders
   end
 end
 
-# Rails.application.config.middleware.use SecurityHeaders  # Temporarily disabled for debugging
+Rails.application.config.middleware.use SecurityHeaders

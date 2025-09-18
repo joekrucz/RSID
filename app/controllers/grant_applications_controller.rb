@@ -1,7 +1,6 @@
 class GrantApplicationsController < ApplicationController
   before_action :require_login
   before_action :set_grant_application, only: [:show, :edit, :update, :destroy, :change_stage]
-  skip_before_action :verify_authenticity_token, only: [:fix_company_links, :add_massive_demo_data]
   
   def index
     @grant_applications = @current_user.grant_applications.includes(:grant_documents, :company)
@@ -9,17 +8,20 @@ class GrantApplicationsController < ApplicationController
     
     # Search functionality
     if params[:search].present?
-      search_term = "%#{params[:search]}%"
-      if ActiveRecord::Base.connection.adapter_name.downcase == 'postgresql'
-      @grant_applications = @grant_applications.where(
-        "title ILIKE ? OR description ILIKE ?", search_term, search_term
-      )
-      else
-        # SQLite3 and other databases
-        search_term_upcase = "%#{params[:search].upcase}%"
-        @grant_applications = @grant_applications.where(
-          "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term_upcase, search_term_upcase
-        )
+      sanitized_search = SanitizationService.sanitize_search_term(params[:search])
+      if sanitized_search.present?
+        search_term = "%#{sanitized_search}%"
+        if ActiveRecord::Base.connection.adapter_name.downcase == 'postgresql'
+          @grant_applications = @grant_applications.where(
+            "title ILIKE ? OR description ILIKE ?", search_term, search_term
+          )
+        else
+          # SQLite3 and other databases
+          search_term_upcase = "%#{sanitized_search.upcase}%"
+          @grant_applications = @grant_applications.where(
+            "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term_upcase, search_term_upcase
+          )
+        end
       end
     end
     
@@ -35,17 +37,20 @@ class GrantApplicationsController < ApplicationController
     # Get total count for pagination info
     total_count = @current_user.grant_applications.count
     if params[:search].present?
-      search_term = "%#{params[:search]}%"
-      if ActiveRecord::Base.connection.adapter_name.downcase == 'postgresql'
-        total_count = @current_user.grant_applications.where(
-          "title ILIKE ? OR description ILIKE ?", search_term, search_term
-        ).count
-      else
-        # SQLite3 and other databases
-        search_term_upcase = "%#{params[:search].upcase}%"
-        total_count = @current_user.grant_applications.where(
-          "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term_upcase, search_term_upcase
-        ).count
+      sanitized_search = SanitizationService.sanitize_search_term(params[:search])
+      if sanitized_search.present?
+        search_term = "%#{sanitized_search}%"
+        if ActiveRecord::Base.connection.adapter_name.downcase == 'postgresql'
+          total_count = @current_user.grant_applications.where(
+            "title ILIKE ? OR description ILIKE ?", search_term, search_term
+          ).count
+        else
+          # SQLite3 and other databases
+          search_term_upcase = "%#{sanitized_search.upcase}%"
+          total_count = @current_user.grant_applications.where(
+            "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term_upcase, search_term_upcase
+          ).count
+        end
       end
     end
     
@@ -55,17 +60,20 @@ class GrantApplicationsController < ApplicationController
     
     # Apply search to pipeline data too
     if params[:search].present?
-      search_term = "%#{params[:search]}%"
-      if ActiveRecord::Base.connection.adapter_name.downcase == 'postgresql'
-        all_applications = all_applications.where(
-          "title ILIKE ? OR description ILIKE ?", search_term, search_term
-        )
-      else
-        # SQLite3 and other databases
-        search_term_upcase = "%#{params[:search].upcase}%"
-        all_applications = all_applications.where(
-          "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term_upcase, search_term_upcase
-        )
+      sanitized_search = SanitizationService.sanitize_search_term(params[:search])
+      if sanitized_search.present?
+        search_term = "%#{sanitized_search}%"
+        if ActiveRecord::Base.connection.adapter_name.downcase == 'postgresql'
+          all_applications = all_applications.where(
+            "title ILIKE ? OR description ILIKE ?", search_term, search_term
+          )
+        else
+          # SQLite3 and other databases
+          search_term_upcase = "%#{sanitized_search.upcase}%"
+          all_applications = all_applications.where(
+            "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term_upcase, search_term_upcase
+          )
+        end
       end
     end
     
