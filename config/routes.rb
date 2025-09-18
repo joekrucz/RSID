@@ -1,5 +1,13 @@
+# Routes Configuration
+# 
+# This file defines all the routes for the RSID application.
+# Routes are organized by feature area for better maintainability.
+#
+# NOTE: This is a UI/UX mockup codebase, so some routes may be simplified
+# compared to what would be needed in a production application.
 Rails.application.routes.draw do
   # Authentication routes
+  # Handles user login/logout and registration
   get 'login', to: 'sessions#new'
   post 'login', to: 'sessions#create'
   delete 'logout', to: 'sessions#destroy'

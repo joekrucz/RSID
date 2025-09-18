@@ -2,6 +2,11 @@
 
 A modern web application for managing UK R&D Tax Credits applications, built with Ruby on Rails 8 and Svelte 5.
 
+> **⚠️ IMPORTANT: This is a UI/UX mockup codebase**  
+> This application is designed for prototyping and user experience validation.  
+> The codebase prioritizes rapid development and visual demonstration over production-ready architecture.  
+> When building the real application, consider refactoring the large controllers and models into smaller, more focused components.
+
 ## 🚀 Features
 
 ### Core Functionality

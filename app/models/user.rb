@@ -1,13 +1,29 @@
+# User Model
+# 
+# This is the central user model that handles both employees and clients.
+# It uses a polymorphic approach where users can have different roles and access levels.
+# 
+# NOTE: This dual-purpose model works for prototyping but should be split into
+# separate Employee and Client models in the production version for better clarity.
+#
+# Key features:
+# - Role-based access control (admin, employee, client)
+# - Feature flag system for gradual feature rollouts
+# - Message system for internal communication
+# - Grant application and R&D claim management
 class User < ApplicationRecord
   has_secure_password
   
   # Role-based associations
+  # Users can manage multiple clients (for employees/admins)
   has_many :clients, dependent: :destroy
   
   # Employee-specific associations
+  # When a user is an employee, they can be assigned to specific clients
   has_many :assigned_clients, class_name: 'Client', foreign_key: 'employee_id', dependent: :destroy
   
   # Client-specific associations (when user is a client)
+  # When a user is a client, they have a single client profile
   has_one :client_profile, class_name: 'Client', foreign_key: 'user_id', dependent: :destroy
   
            # Message associations

@@ -1,3 +1,11 @@
+# Application Configuration
+# 
+# This file contains the main configuration for the Rails application.
+# It sets up the application name, security settings, and various Rails features.
+#
+# NOTE: This is a UI/UX mockup application. Some configurations are simplified
+# for prototyping purposes and should be reviewed for production use.
+
 require_relative "boot"
 
 require "rails/all"

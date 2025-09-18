@@ -1,3 +1,5 @@
+# Database Schema
+# 
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -9,6 +11,13 @@
 # migrations use external dependencies or application code.
 #
 # It's strongly recommended that you check this file into your version control system.
+#
+# NOTE: This is a UI/UX mockup database schema. The relationships and fields
+# are designed to support the prototype interface. In production, consider:
+# - Normalizing some denormalized fields
+# - Adding more comprehensive indexing
+# - Implementing proper audit trails
+# - Adding soft deletes where appropriate
 
 ActiveRecord::Schema[8.0].define(version: 2025_09_18_112500) do
   create_table "clients", force: :cascade do |t|

@@ -1,3 +1,14 @@
+# ApplicationController
+# 
+# Base controller for the entire application.
+# Handles common functionality like authentication, authorization, and feature flags.
+# 
+# Key responsibilities:
+# - User session management
+# - Feature flag access control
+# - Authorization checks
+# - User action logging
+# - CSRF protection
 class ApplicationController < ActionController::Base
   require_relative '../services/feature_flag_service'
   include ApplicationHelper
@@ -5,9 +16,10 @@ class ApplicationController < ActionController::Base
   include LoggingConcern
   # include PerformanceMonitoringConcern  # Temporarily disabled for debugging
   
-  # Enable CSRF protection
+  # Enable CSRF protection for all controllers
   protect_from_forgery with: :exception
   
+  # Set up user context and feature access for every request
   before_action :set_current_user
   before_action :check_feature_access
   

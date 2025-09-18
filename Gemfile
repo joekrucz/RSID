@@ -1,3 +1,17 @@
+# Gemfile
+# 
+# This file defines the Ruby gems required for the RSID application.
+# 
+# NOTE: This is a UI/UX mockup codebase, so some gems are included for
+# rapid prototyping that might not be needed in production.
+# 
+# Key gem categories:
+# - Rails framework and core functionality
+# - Database adapters (SQLite for dev, PostgreSQL for production)
+# - Frontend integration (Inertia.js for Svelte)
+# - Security and authentication
+# - Development and testing tools
+
 source "https://rubygems.org"
 
 # Bundle edge Rails instead: gem "rails", github: "rails/rails", branch: "main"

@@ -1,22 +1,42 @@
+# GrantApplicationsController
+# 
+# This controller handles all grant application CRUD operations and related functionality.
+# It's a large controller (500+ lines) that serves as the main interface for grant management.
+# 
+# NOTE: This is a UI/UX mockup codebase - the large size is acceptable for prototyping
+# but should be refactored into smaller, focused controllers in the production version.
+#
+# Key responsibilities:
+# - CRUD operations for grant applications
+# - Search and pagination
+# - Stage management (workflow states)
+# - Data seeding for demo purposes
+# - Pipeline view for grant application tracking
 class GrantApplicationsController < ApplicationController
   before_action :require_login
   before_action :set_grant_application, only: [:show, :edit, :update, :destroy, :change_stage]
   
+  # Main listing page for grant applications
+  # Displays paginated list with search functionality
   def index
+    # Eager load associations to prevent N+1 queries
+    # This loads all grant applications for the current user with their related data
     @grant_applications = @current_user.grant_applications.includes(:grant_documents, :company)
                                      .order(created_at: :desc)
     
-    # Search functionality
+    # Search functionality with input sanitization
+    # Searches both title and description fields using database-appropriate syntax
     if params[:search].present?
       sanitized_search = SanitizationService.sanitize_search_term(params[:search])
       if sanitized_search.present?
         search_term = "%#{sanitized_search}%"
         if ActiveRecord::Base.connection.adapter_name.downcase == 'postgresql'
+          # PostgreSQL supports case-insensitive ILIKE
           @grant_applications = @grant_applications.where(
             "title ILIKE ? OR description ILIKE ?", search_term, search_term
           )
         else
-          # SQLite3 and other databases
+          # SQLite3 and other databases use UPPER() for case-insensitive search
           search_term_upcase = "%#{sanitized_search.upcase}%"
           @grant_applications = @grant_applications.where(
             "UPPER(title) LIKE ? OR UPPER(description) LIKE ?", search_term_upcase, search_term_upcase
@@ -25,12 +45,14 @@ class GrantApplicationsController < ApplicationController
       end
     end
     
-    # Pagination
+    # Pagination with validation
+    # Allow users to choose page size but restrict to reasonable values
     per_page = params[:per_page].present? ? params[:per_page].to_i : 25
     per_page = [25, 50, 100].include?(per_page) ? per_page : 25 # Validate per_page
     page = params[:page].present? ? params[:page].to_i : 1
     
-    # Use limit and offset for pagination (fallback if Kaminari isn't working)
+    # Manual pagination using limit/offset
+    # This is a fallback approach - in production, consider using Kaminari gem
     offset = (page - 1) * per_page
     @grant_applications = @grant_applications.limit(per_page).offset(offset)
     

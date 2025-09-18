@@ -1,3 +1,16 @@
+# GrantApplication Model
+# 
+# This model represents a grant application in the system.
+# It tracks the entire lifecycle from initial qualification to final payment.
+# 
+# The stage enum represents the business workflow:
+# 0-2: Client acquisition and payment phases
+# 3-4: Project preparation and execution
+# 5-6: Submission and decision phases  
+# 7-10: Final outcome and success fee collection
+#
+# NOTE: The stage names are verbose for clarity in the UI mockup.
+# In production, consider shorter, more technical stage names.
 class GrantApplication < ApplicationRecord
   belongs_to :user
   belongs_to :company, optional: true
@@ -7,19 +20,20 @@ class GrantApplication < ApplicationRecord
   
   
   # Stage enum for high-level pipeline state
+  # This represents the business workflow from client acquisition to success fee payment
   attribute :stage, :integer, default: 0
   enum :stage, {
-    client_acquisition_project_qualification: 0,
-    client_invoiced: 1,
-    invoice_paid: 2,
-    preparing_for_kick_off_aml_resourcing: 3,
-    kicked_off_in_progress: 4,
-    submitted: 5,
-    awaiting_funding_decision: 6,
-    application_successful_or_not_successful: 7,
-    resub_due: 8,
-    success_fee_invoiced: 9,
-    success_fee_paid: 10
+    client_acquisition_project_qualification: 0,  # Initial client qualification
+    client_invoiced: 1,                           # Client has been invoiced
+    invoice_paid: 2,                              # Payment received
+    preparing_for_kick_off_aml_resourcing: 3,    # Project preparation phase
+    kicked_off_in_progress: 4,                    # Active project work
+    submitted: 5,                                 # Application submitted to funder
+    awaiting_funding_decision: 6,                 # Waiting for funding decision
+    application_successful_or_not_successful: 7,  # Decision received
+    resub_due: 8,                                 # Resubmission required
+    success_fee_invoiced: 9,                      # Success fee invoiced
+    success_fee_paid: 10                          # Success fee collected
   }, prefix: true
   
   validates :title, presence: true, length: { minimum: 3, maximum: 255 }

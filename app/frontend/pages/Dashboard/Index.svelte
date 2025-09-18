@@ -1,10 +1,28 @@
+<!--
+  Dashboard Index Page
+  
+  This is the main dashboard page that users see after logging in.
+  It displays key statistics, recent activity, and quick access to main features.
+  
+  NOTE: This is a UI/UX mockup component. The layout and styling are designed
+  to demonstrate the user experience for the real application.
+  
+  Key features:
+  - User statistics and metrics
+  - Recent activity feed
+  - Quick navigation to main features
+  - Feature-gated content based on user permissions
+-->
 <script>
   import Layout from '../../components/Layout.svelte';
   import FeatureGate from '../../components/FeatureGate.svelte';
   import { router } from '@inertiajs/svelte';
   
+  // Props passed from the Rails controller
   let { user, stats, recent_activity } = $props();
   
+  // Utility functions for styling based on data values
+  // These help maintain consistent visual hierarchy across the dashboard
   
   function getPriorityColor(priority) {
     switch (priority) {
@@ -24,6 +42,7 @@
     }
   }
   
+  // Navigation helper using Inertia.js router
   function navigateTo(path) {
     router.visit(path);
   }
