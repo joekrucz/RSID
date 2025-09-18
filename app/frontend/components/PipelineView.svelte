@@ -360,11 +360,11 @@
       </div>
       <!-- Main scrollable pipeline content (bottom scrollbar) -->
       <div id="pipeline-scroll-content" bind:this={bottomScrollEl} class="pipeline-scroll flex space-x-6 overflow-x-auto overflow-y-hidden pb-4 pt-2 pl-3 pr-1" onscroll={syncTopToBottom} role="region" aria-label="Pipeline content" onmouseenter={updateCustomScrollbar} onload={updateCustomScrollbar}>
-        <!-- Group 1: Pre-Delivery (first 3 columns) -->
+        <!-- Group 1: Pre-Delivery (first 4 columns) -->
         <div class="flex-shrink-0 rounded-2xl border border-sky-500/80 bg-sky-400/15 px-3 py-4">
           <div class="text-sm font-semibold text-base-content/70 mb-2 pl-1">Pre-Delivery</div>
           <div class="flex space-x-6">
-            {#each stageOrder.slice(0, 3).filter((s) => pipeline_data && pipeline_data[s]).map((s) => [s, pipeline_data[s]]) as [stage, data]}
+            {#each stageOrder.slice(0, 4).filter((s) => pipeline_data && pipeline_data[s]).map((s) => [s, pipeline_data[s]]) as [stage, data]}
               <div class="flex-shrink-0 w-80">
                 <div class="relative z-10 bg-sky-50 rounded-lg p-4 min-h-96 border border-sky-200 {getDropZoneClass(stage)}"
                      role="region"
@@ -439,11 +439,11 @@
           </div>
         </div>
 
-        <!-- Group 2: In Delivery (next 2 columns) -->
+        <!-- Group 2: In Delivery (next 2 columns: Kicked Off, Submitted) -->
         <div class="flex-shrink-0 rounded-2xl border border-indigo-500/80 bg-indigo-400/15 px-3 py-4">
           <div class="text-sm font-semibold text-base-content/70 mb-2 pl-1">In Delivery</div>
           <div class="flex space-x-6">
-            {#each stageOrder.slice(3, 5).filter((s) => pipeline_data && pipeline_data[s]).map((s) => [s, pipeline_data[s]]) as [stage, data]}
+            {#each stageOrder.slice(4, 6).filter((s) => pipeline_data && pipeline_data[s]).map((s) => [s, pipeline_data[s]]) as [stage, data]}
               <div class="flex-shrink-0 w-80">
                 <div class="relative z-10 bg-indigo-50 rounded-lg p-4 min-h-96 border border-indigo-200 {getDropZoneClass(stage)}"
                      role="region"
@@ -522,7 +522,7 @@
         <div class="flex-shrink-0 rounded-2xl border border-emerald-500/80 bg-emerald-400/15 px-3 py-4">
           <div class="text-sm font-semibold text-base-content/70 mb-2 pl-1">Post Delivery</div>
           <div class="flex space-x-6">
-            {#each stageOrder.slice(5).filter((s) => pipeline_data && pipeline_data[s]).map((s) => [s, pipeline_data[s]]) as [stage, data]}
+            {#each stageOrder.slice(6).filter((s) => pipeline_data && pipeline_data[s]).map((s) => [s, pipeline_data[s]]) as [stage, data]}
               <div class="flex-shrink-0 w-80">
                 <div class="relative z-10 bg-emerald-50 rounded-lg p-4 min-h-96 border border-emerald-200 {getDropZoneClass(stage)}"
                      role="region"
