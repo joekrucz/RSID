@@ -15,7 +15,7 @@ class CompaniesController < ApplicationController
 
   def show
     company = Company.find(params[:id])
-    grant_applications = company.grant_applications.includes(:user).order(created_at: :desc)
+    grant_applications = company.grant_applications.includes(:user, :company).order(created_at: :desc)
     rnd_claims = company.rnd_claims.order(created_at: :desc)
     
     render inertia: 'Companies/Show', props: {
@@ -62,7 +62,11 @@ class CompaniesController < ApplicationController
       days_until_deadline: application.days_until_deadline,
       overdue: application.overdue?,
       created_at: application.created_at.strftime("%B %d, %Y"),
-      documents_count: application.grant_documents.count
+      documents_count: application.grant_documents.count,
+      company: application.company ? {
+        id: application.company.id,
+        name: application.company.name
+      } : nil
     }
   end
 end
