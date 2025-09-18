@@ -2,11 +2,16 @@
 Rails.application.configure do
   if Rails.env.production?
     # Required environment variables for production
-    required_vars = %w[SECRET_KEY_BASE DATABASE_URL]
+    required_vars = %w[SECRET_KEY_BASE]
     missing_vars = required_vars.select { |var| ENV[var].blank? }
     
     if missing_vars.any?
       raise "Missing required environment variables: #{missing_vars.join(', ')}"
+    end
+    
+    # DATABASE_URL is provided by Railway automatically, so we just warn if it's missing
+    if ENV['DATABASE_URL'].blank?
+      Rails.logger.warn "DATABASE_URL not set - Railway should provide this automatically"
     end
     
     # Validate SECRET_KEY_BASE strength
