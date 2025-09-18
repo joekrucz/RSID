@@ -39,7 +39,7 @@ class ApplicationController < ActionController::Base
   def require_login
     unless @current_user
       log_user_action("login_required_failed")
-      redirect_to login_path, alert: "Please log in to access this page."
+      redirect_to login_sessions_path, alert: "Please log in to access this page."
       return
     end
     
