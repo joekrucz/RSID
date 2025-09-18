@@ -95,10 +95,10 @@
 </script>
 
 <div>
-  <div class="text-sm font-medium mb-1">Upload Documents</div>
+  <div class="text-sm font-medium mb-1">Documents</div>
   <div class="flex items-center gap-2">
     <label class="btn btn-sm">
-      Choose file
+      Upload
       <input type="file" class="hidden" bind:this={uploadInputRef} onchange={(e) => { const f = e.currentTarget.files?.[0]; if (f) uploadDocument(f); }} disabled={uploadInProgress} />
     </label>
     {#if uploadInProgress}

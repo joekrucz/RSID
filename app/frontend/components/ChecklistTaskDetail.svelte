@@ -17,6 +17,7 @@
   let uploadInProgress = $state(false);
   let dealOutcome = $state(''); // 'won' | 'lost'
   let reviewDeliveredOn = $state('');
+  let invoiceSentOn = $state('');
   let _saveNotesTimer;
   let uploadInputRef;
 
@@ -87,6 +88,7 @@
       dueDate = found.due_date || '';
       notes = found.notes || '';
       reviewDeliveredOn = found.review_delivered_on || '';
+      invoiceSentOn = found.invoice_sent_on || '';
       const outcome = (found.deal_outcome || '').toString().trim().toLowerCase();
       dealOutcome = (outcome === 'won' || outcome === 'lost') ? outcome : '';
       // completed_at for status display
@@ -435,6 +437,12 @@
         <div>
           <div class="text-sm font-medium mb-1">Link to client invoice</div>
           <input type="url" class="input input-bordered input-sm w-full" placeholder="https://..." bind:value={contractLink} onchange={() => save({ contract_link: contractLink })} />
+        </div>
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-2 text-sm">
+            <span>Invoice sent on</span>
+            <input type="date" class="input input-sm input-bordered" value={invoiceSentOn} onchange={(e) => { invoiceSentOn = e.currentTarget.value; save({ invoice_sent_on: invoiceSentOn }); }} />
+          </label>
         </div>
         <div>
           <div class="text-sm font-medium mb-1">Notes</div>
