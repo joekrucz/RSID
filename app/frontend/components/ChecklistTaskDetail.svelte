@@ -132,6 +132,21 @@
     return d.toLocaleString('en-GB', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
   }
 
+  // All tasks show a due date control in the header
+
+  function isOverdue() {
+    if (!dueDate) return false;
+    try {
+      const d = new Date(`${dueDate}T00:00:00`);
+      if (isNaN(d.getTime())) return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return d < today;
+    } catch (_) {
+      return false;
+    }
+  }
+
   async function fetchDocuments() {
     if (!grantApplicationId || !sectionTitle || !itemTitle) return;
     try {
@@ -250,29 +265,29 @@
   {#if !sectionTitle || !itemTitle}
     <div class="text-base-content/70">Select a checklist item to view details.</div>
   {:else}
-    <div class="mb-4">
-      <div class="text-sm text-base-content/60">{sectionTitle}</div>
+    <div class="mb-4 flex items-center justify-between gap-3">
       <h3 class="text-lg font-semibold text-base-content">{itemTitle}</h3>
-    </div>
-    <div class="mb-3 text-sm text-base-content/70">
-      {#if checked}
-        {#if completedAt}
-          Completed on {formatDateTime(completedAt)}
+      <div class="flex items-center gap-4">
+        <label class="flex items-center gap-2 text-sm">
+          <span>Due</span>
+          <input type="date" class="input input-xs input-bordered {isOverdue() ? 'input-error text-error' : ''}" bind:value={dueDate} onchange={() => save({ due_date: dueDate })} />
+        </label>
+        <div class="text-sm whitespace-nowrap {checked ? 'text-success' : 'text-base-content/70'}">
+        {#if checked}
+          {#if completedAt}
+            Completed on {formatDateTime(completedAt)}
+          {:else}
+            Completed
+          {/if}
         {:else}
-          Completed
+          Not completed
         {/if}
-      {:else}
-        Not completed
-      {/if}
+        </div>
+      </div>
     </div>
     {#if isProjectQualification()}
       <div class="space-y-4">
-        <div class="flex items-center gap-4">
-          <label class="flex items-center gap-2 text-sm">
-            <span>Due</span>
-            <input type="date" class="input input-sm input-bordered" bind:value={dueDate} onchange={() => save({ due_date: dueDate })} />
-          </label>
-        </div>
+        
         <div>
           <div class="text-sm font-medium mb-1">Subbie</div>
           <div class="flex items-center gap-3 flex-wrap">
@@ -306,12 +321,7 @@
       </div>
     {:else if isAgreementSent()}
       <div class="space-y-4">
-        <div class="flex items-center gap-4">
-          <label class="flex items-center gap-2 text-sm">
-            <span>Due</span>
-            <input type="date" class="input input-sm input-bordered" bind:value={dueDate} onchange={() => save({ due_date: dueDate })} />
-          </label>
-        </div>
+        
         <div>
           <div class="text-sm font-medium mb-1">Client Contract Link</div>
           <input type="url" class="input input-bordered input-sm w-full" placeholder="https://..." bind:value={contractLink} onchange={() => save({ contract_link: contractLink })} />
@@ -330,12 +340,7 @@
       </div>
     {:else if isNewProjectHandover()}
       <div class="space-y-3">
-        <div class="flex items-center gap-4">
-          <label class="flex items-center gap-2 text-sm">
-            <span>Due</span>
-            <input type="date" class="input input-sm input-bordered" bind:value={dueDate} onchange={() => save({ due_date: dueDate })} />
-          </label>
-        </div>
+        
         <div class="text-sm">Fill out this form:</div>
         <a
           href="https://docs.google.com/forms/d/e/1FAIpQLSexXko3DG_8d8soPF9GljdfDe3gPmIsUW5mrjzr880xIqu07Q/viewform"
@@ -356,12 +361,7 @@
       </div>
     {:else if isDealOutcome()}
       <div class="space-y-4">
-        <div class="flex items-center gap-4">
-          <label class="flex items-center gap-2 text-sm">
-            <span>Due</span>
-            <input type="date" class="input input-sm input-bordered" bind:value={dueDate} onchange={() => save({ due_date: dueDate })} />
-          </label>
-        </div>
+        
         <div>
           <div class="text-sm font-medium mb-1">Deal Outcome</div>
           <select class="select select-bordered select-sm w-full max-w-xs" bind:value={dealOutcome} onchange={() => save({ deal_outcome: dealOutcome })}>
@@ -383,12 +383,7 @@
       </div>
     {:else if isInvoiceSent()}
       <div class="space-y-4">
-        <div class="flex items-center gap-4">
-          <label class="flex items-center gap-2 text-sm">
-            <span>Due</span>
-            <input type="date" class="input input-sm input-bordered" bind:value={dueDate} onchange={() => save({ due_date: dueDate })} />
-          </label>
-        </div>
+        
         <DocumentUpload {grantApplicationId} {sectionTitle} itemTitle={itemTitle} />
         <div>
           <div class="text-sm font-medium mb-1">Link to client invoice</div>
@@ -497,12 +492,7 @@
       </div>
     {:else if isReviewsConfirmed()}
       <div class="space-y-4">
-        <div class="flex items-center gap-4">
-          <label class="flex items-center gap-2 text-sm">
-            <span>Due</span>
-            <input type="date" class="input input-sm input-bordered" bind:value={dueDate} onchange={() => save({ due_date: dueDate })} />
-          </label>
-        </div>
+        
         <div class="flex items-center gap-4">
           <label class="flex items-center gap-2 text-sm">
             <span>Review delivered on:</span>
@@ -528,12 +518,6 @@
       </div>
     {:else if isSuccessFeeInvoiced()}
       <div class="space-y-4">
-        <div class="flex items-center gap-4">
-          <label class="flex items-center gap-2 text-sm">
-            <span>Due</span>
-            <input type="date" class="input input-sm input-bordered" bind:value={dueDate} onchange={() => save({ due_date: dueDate })} />
-          </label>
-        </div>
         <div>
           <div class="text-sm font-medium mb-1">Upload Documents</div>
           <div class="flex items-center gap-2">
@@ -578,12 +562,6 @@
       </div>
     {:else}
       <div class="space-y-4">
-        <div class="flex items-center gap-4">
-          <label class="flex items-center gap-2 text-sm">
-            <span>Due</span>
-            <input type="date" class="input input-sm input-bordered" bind:value={dueDate} onchange={() => save({ due_date: dueDate })} />
-          </label>
-        </div>
         <div>
           <div class="text-sm font-medium mb-1">Notes</div>
           <textarea

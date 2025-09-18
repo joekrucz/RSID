@@ -362,7 +362,6 @@
         </div>
         <!-- Right column -->
         <div class="bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:sticky lg:top-40 relative z-10 grant-right">
-          <h2 class="text-xl font-semibold text-gray-900 mb-3">Task Details</h2>
           <ChecklistTaskDetail {grantApplicationId} sectionTitle={selectedSectionTitle} itemTitle={selectedItemTitle} persistedItems={checklist_items} on:change={(e) => {
             const { field, value, sectionTitle, itemTitle } = e.detail || {};
             const sec = sectionTitle || selectedSectionTitle;
