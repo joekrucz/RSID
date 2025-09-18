@@ -120,8 +120,8 @@
             checkedByKey[k] = !!found.checked;
           }
           // Optional fields
-          subbieByKey[k] = found.subbie || subbieByKey[k];
-          noSubbieByKey[k] = !!found.no_subbie;
+          subbieByKey[k] = found.technical_qualifier || subbieByKey[k];
+          noSubbieByKey[k] = !!found.no_technical_qualifier;
           contractLinkByKey[k] = found.contract_link || contractLinkByKey[k];
         }
       });

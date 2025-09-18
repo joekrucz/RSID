@@ -455,7 +455,7 @@ class GrantApplicationsController < ApplicationController
   end
   
   def grant_application_params
-    params.require(:grant_application).permit(:title, :description, :stage, :company_id, :grant_competition_id)
+    params.require(:grant_application).permit(:title, :description, :stage, :company_id, :grant_competition_id, :qualification_cost_pence)
   end
   
   def grant_application_props(application)
@@ -478,7 +478,8 @@ class GrantApplicationsController < ApplicationController
       stage_conflict: application.stage_conflict?,
       stage_conflict_message: application.stage_conflict_message,
       stage_conflict_details: application.stage_conflict_details,
-      automatic_stage: application.automatic_stage
+      automatic_stage: application.automatic_stage,
+      qualification_cost_pence: application.qualification_cost_pence
     }
   end
   
@@ -500,8 +501,8 @@ class GrantApplicationsController < ApplicationController
       title: item.title,
       due_date: item.due_date&.strftime('%Y-%m-%d'),
       checked: item.checked,
-      subbie: item.subbie,
-      no_subbie: item.no_subbie,
+      technical_qualifier: item.technical_qualifier,
+      no_technical_qualifier: item.no_technical_qualifier,
       contract_link: item.contract_link,
       review_delivered_on: item.review_delivered_on&.strftime('%Y-%m-%d'),
       deal_outcome: item.deal_outcome,

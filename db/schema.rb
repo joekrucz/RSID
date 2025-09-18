@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_18_091500) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_18_095500) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -58,6 +58,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_18_091500) do
     t.integer "company_id"
     t.integer "grant_competition_id"
     t.boolean "manual_stage_override", default: false, null: false
+    t.integer "qualification_cost_pence", default: 0, null: false
     t.index ["company_id"], name: "index_grant_applications_on_company_id"
     t.index ["created_at"], name: "index_grant_applications_on_created_at"
     t.index ["grant_competition_id"], name: "index_grant_applications_on_grant_competition_id"
@@ -72,8 +73,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_18_091500) do
     t.date "due_date"
     t.boolean "checked", default: false, null: false
     t.text "notes"
-    t.string "subbie"
-    t.boolean "no_subbie", default: false, null: false
+    t.string "technical_qualifier"
+    t.boolean "no_technical_qualifier", default: false, null: false
     t.string "contract_link"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false

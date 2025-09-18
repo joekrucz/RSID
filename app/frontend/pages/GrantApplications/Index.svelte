@@ -12,6 +12,8 @@
   let currentView = $state(view_mode || 'pipeline');
   let currentPage = $state(pagination?.current_page || 1);
   let perPage = $state(Number(filters.per_page) || 25);
+
+  
   
   // Use server-side pagination and search
   let filteredApplications = $state(grant_applications);

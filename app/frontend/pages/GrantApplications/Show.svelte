@@ -362,7 +362,7 @@
         </div>
         <!-- Right column -->
         <div class="bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:sticky lg:top-40 relative z-10 grant-right">
-          <ChecklistTaskDetail {grantApplicationId} sectionTitle={selectedSectionTitle} itemTitle={selectedItemTitle} persistedItems={checklist_items} on:change={(e) => {
+          <ChecklistTaskDetail {grantApplicationId} qualificationCostPence={grant_application?.qualification_cost_pence} sectionTitle={selectedSectionTitle} itemTitle={selectedItemTitle} persistedItems={checklist_items} on:change={(e) => {
             const { field, value, sectionTitle, itemTitle } = e.detail || {};
             const sec = sectionTitle || selectedSectionTitle;
             const tit = itemTitle || selectedItemTitle;

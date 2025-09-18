@@ -2,12 +2,12 @@
   import { createEventDispatcher } from 'svelte';
   import DocumentUpload from './DocumentUpload.svelte';
   // Master-detail pane for task-specific content
-  // Props: grantApplicationId, sectionTitle, itemTitle, persistedItems
-  let { grantApplicationId, sectionTitle, itemTitle, persistedItems = [] } = $props();
+  // Props: grantApplicationId, sectionTitle, itemTitle, persistedItems, qualificationCostPence
+  let { grantApplicationId, sectionTitle, itemTitle, persistedItems = [], qualificationCostPence = 0 } = $props();
 
   // Local fields
-  let subbie = $state('');
-  let noSubbie = $state(false);
+  let technicalQualifier = $state('');
+  let noTechnicalQualifier = $state(false);
   let contractLink = $state('');
   let checked = $state(false);
   let dueDate = $state('');
@@ -29,8 +29,19 @@
     return `£${Number(pence).toLocaleString('en-GB')}`;
   }
 
+  function formatPoundsFromPence(pence) {
+    const pounds = Math.round(Number(pence || 0)) / 100;
+    return Number.isFinite(pounds) ? pounds : 0;
+  }
+
+  function toPenceFromPounds(pounds) {
+    const n = Number(pounds);
+    if (!Number.isFinite(n)) return 0;
+    return Math.round(n * 100);
+  }
+
   function feeFor(name) {
-    if (noSubbie) return 0;
+    if (noTechnicalQualifier) return 0;
     if (!name) return null;
     return subbieFees[name] ?? 0;
   }
@@ -58,8 +69,8 @@
   // Hydrate local state from persistedItems when selection changes
   $effect(() => {
     // Immediately clear fields on task change for a clean slate
-    subbie = '';
-    noSubbie = false;
+    technicalQualifier = '';
+    noTechnicalQualifier = false;
     contractLink = '';
     checked = false;
     dueDate = '';
@@ -69,8 +80,8 @@
     const backendSectionTitle = sectionMapping[sectionTitle] || sectionTitle;
     const found = (persistedItems || []).find(pi => pi.section === backendSectionTitle && pi.title === itemTitle);
     if (found) {
-      subbie = found.subbie || '';
-      noSubbie = !!found.no_subbie;
+      technicalQualifier = found.technical_qualifier || '';
+      noTechnicalQualifier = !!found.no_technical_qualifier;
       contractLink = found.contract_link || '';
       checked = !!found.checked;
       dueDate = found.due_date || '';
@@ -283,27 +294,63 @@
           Not completed
         {/if}
         </div>
+        
       </div>
     </div>
     {#if isProjectQualification()}
       <div class="space-y-4">
         
         <div>
-          <div class="text-sm font-medium mb-1">Subbie</div>
+          <div class="text-sm font-medium mb-1">Technical Qualifier</div>
           <div class="flex items-center gap-3 flex-wrap">
-            <select class="select select-bordered select-sm w-full max-w-xs" bind:value={subbie} disabled={noSubbie} onchange={() => save({ subbie })}>
-              <option value="" disabled>Select subbie</option>
+            <select class="select select-bordered select-sm w-full max-w-xs" bind:value={technicalQualifier} disabled={noTechnicalQualifier} onchange={() => {
+              save({ technical_qualifier: technicalQualifier });
+              if (technicalQualifier && !noTechnicalQualifier) {
+                const feePounds = feeFor(technicalQualifier) || 0;
+                const feePence = toPenceFromPounds(feePounds);
+                qualificationCostPence = feePence;
+                // Persist to grant application
+                fetch(`/grant_applications/${grantApplicationId}`, {
+                  method: 'PATCH',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                  },
+                  credentials: 'same-origin',
+                  body: JSON.stringify({ grant_application: { qualification_cost_pence: feePence } })
+                }).catch(err => console.error('Failed to save qualification cost', err));
+              }
+            }}>
+              <option value="" disabled>Select technical qualifier</option>
               <option value="Leon Lever">Leon Lever</option>
               <option value="John Smith">John Smith</option>
             </select>
             <label class="flex items-center gap-2 text-sm">
-              <input type="checkbox" class="checkbox checkbox-sm" bind:checked={noSubbie} onchange={() => save({ no_subbie: noSubbie })} />
-              No subbie
+              <input type="checkbox" class="checkbox checkbox-sm" bind:checked={noTechnicalQualifier} onchange={() => save({ no_technical_qualifier: noTechnicalQualifier })} />
+              No technical qualifier
             </label>
           </div>
-          {#if subbie && !noSubbie}
-            <div class="text-xs opacity-60 mt-1">Fee: {formatGBP(feeFor(subbie))}</div>
-          {/if}
+          
+        </div>
+        <div>
+          <div class="text-sm font-medium mb-1">Qualification cost</div>
+          <div class="flex items-center gap-2">
+            <span class="opacity-70">£</span>
+            <input type="number" min="0" step="0.01" class="input input-sm input-bordered w-40" value={formatPoundsFromPence(qualificationCostPence)} oninput={(e) => {
+              const p = toPenceFromPounds(e.currentTarget.value);
+              qualificationCostPence = p;
+              // Persist to grant application
+              fetch(`/grant_applications/${grantApplicationId}`, {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-Token': document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content')
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ grant_application: { qualification_cost_pence: p } })
+              }).catch(err => console.error('Failed to save qualification cost', err));
+            }} />
+          </div>
         </div>
         <DocumentUpload {grantApplicationId} {sectionTitle} itemTitle={itemTitle} />
         

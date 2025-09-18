@@ -9,8 +9,8 @@ class GrantChecklistItemsController < ApplicationController
     attrs = {
       due_date: params[:due_date],
       checked: params[:checked],
-      subbie: params[:subbie],
-      no_subbie: params[:no_subbie],
+      technical_qualifier: params[:technical_qualifier],
+      no_technical_qualifier: params[:no_technical_qualifier],
       contract_link: params[:contract_link],
       notes: params[:notes],
       deal_outcome: params[:deal_outcome],
