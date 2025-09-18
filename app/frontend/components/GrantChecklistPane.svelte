@@ -52,6 +52,7 @@
     {selectedSectionTitle}
     {selectedItemTitle}
     on:select
+    on:change
     on:conflict-warning
     on:progress
     on:stage

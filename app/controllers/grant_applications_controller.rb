@@ -505,6 +505,7 @@ class GrantApplicationsController < ApplicationController
       contract_link: item.contract_link,
       review_delivered_on: item.review_delivered_on&.strftime('%Y-%m-%d'),
       deal_outcome: item.deal_outcome,
+      completed_at: item.completed_at&.iso8601,
       notes: item.notes
     }
   end

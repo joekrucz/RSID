@@ -11,6 +11,21 @@
   
   let { user, grant_application, checklist_items = [] } = $props();
   
+  // Map frontend group labels to backend section names used by checklist_items
+  const sectionMapping = {
+    'Client Acquisition': 'Client Acquisition/Project Qualification',
+    'Client Invoiced': 'Client Invoiced',
+    'Invoice Paid': 'Invoice Paid',
+    'KO Prep': 'Preparing for Kick Off/AML/Resourcing',
+    'Kicked Off': 'Kicked Off/In Progress',
+    'Submitted': 'Submitted',
+    'Awaiting Funding Decision': 'Awaiting Funding Decision',
+    'Funding Decision': 'Application Successful/Not Successful',
+    'Resub Due': 'Resub Due',
+    'Success Fee Invoiced': 'Success Fee Invoiced',
+    'Success Fee Paid': 'Success Fee Paid'
+  };
+  
   // Stage conflict warning state
   let stageConflictWarning = $state(grant_application.stage_conflict_message || null);
   let stageConflictDetails = $state(grant_application.stage_conflict_details || []);
@@ -329,6 +344,17 @@
             {checklist_items}
             {visibleSectionIndicesForGroup}
             on:select={(e) => { selectedSectionTitle = e.detail.sectionTitle; selectedItemTitle = e.detail.itemTitle; }}
+            on:change={(e) => {
+              const { field, value, sectionTitle, itemTitle } = e.detail || {};
+              const backendSection = sectionMapping[sectionTitle] || sectionTitle;
+              const idx = checklist_items.findIndex(ci => ci.section === backendSection && ci.title === itemTitle);
+              if (idx >= 0) {
+                const updated = { ...checklist_items[idx], [field]: value };
+                if (field === 'checked') updated.completed_at = value ? new Date().toISOString() : null;
+                checklist_items[idx] = updated;
+                checklist_items = [...checklist_items];
+              }
+            }}
             on:conflict-warning={(e) => { stageConflictWarning = e.detail.message; stageConflictDetails = e.detail.details; }}
             on:progress={(e) => { sectionComplete = e.detail.sectionComplete; }}
             on:stage={(e) => { currentStage = e.detail.stage; }}
@@ -343,9 +369,16 @@
             const tit = itemTitle || selectedItemTitle;
             if (!sec || !tit) return;
             // Optimistically update checklist_items array so detail rehydrates without refresh
-            const idx = checklist_items.findIndex(ci => ci.section === (sec === 'Client Acquisition' ? 'Client Acquisition/Project Qualification' : sec) && ci.title === tit);
+            const backendSection = sectionMapping[sec] || sec;
+            const idx = checklist_items.findIndex(ci => ci.section === backendSection && ci.title === tit);
             if (idx >= 0) {
-              checklist_items[idx] = { ...checklist_items[idx], [field]: value };
+              const updated = { ...checklist_items[idx], [field]: value };
+              if (field === 'checked') {
+                updated.completed_at = value ? new Date().toISOString() : null;
+              }
+              checklist_items[idx] = updated;
+              // Force reactivity so child $effect sees new props
+              checklist_items = [...checklist_items];
             }
             if (field === 'checked') {
               checklistRef?.setCheckedByTitle(sec, tit, value);

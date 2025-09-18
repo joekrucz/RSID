@@ -77,6 +77,8 @@
       reviewDeliveredOn = found.review_delivered_on || '';
       const outcome = (found.deal_outcome || '').toString().trim().toLowerCase();
       dealOutcome = (outcome === 'won' || outcome === 'lost') ? outcome : '';
+      // completed_at for status display
+      completedAt = found.completed_at || '';
     }
     // Fetch documents for this task
     if (grantApplicationId && sectionTitle && itemTitle) {
@@ -92,6 +94,12 @@
       if (Object.prototype.hasOwnProperty.call(attrs, 'checked')) {
         // Optimistic UI update
         dispatch('change', { field: 'checked', value: attrs.checked, sectionTitle, itemTitle });
+        // Update local status instantly
+        if (attrs.checked === true) {
+          completedAt = new Date().toISOString();
+        } else if (attrs.checked === false) {
+          completedAt = '';
+        }
       }
       const backendSectionTitle = sectionMapping[sectionTitle] || sectionTitle;
       await fetch(`/grant_applications/${grantApplicationId}/grant_checklist_items/upsert`, {
@@ -114,6 +122,13 @@
     } catch (e) {
       console.error('Failed to save task detail', e);
     }
+  }
+  let completedAt = $state('');
+  function formatDateTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleString('en-GB', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' });
   }
 
   async function fetchDocuments() {
@@ -237,6 +252,17 @@
     <div class="mb-4">
       <div class="text-sm text-base-content/60">{sectionTitle}</div>
       <h3 class="text-lg font-semibold text-base-content">{itemTitle}</h3>
+    </div>
+    <div class="mb-3 text-sm text-base-content/70">
+      {#if checked}
+        {#if completedAt}
+          Completed on {formatDateTime(completedAt)}
+        {:else}
+          Completed
+        {/if}
+      {:else}
+        Not completed
+      {/if}
     </div>
     {#if isProjectQualification()}
       <div class="space-y-4">

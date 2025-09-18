@@ -18,7 +18,15 @@ class GrantChecklistItemsController < ApplicationController
     }.compact
 
     item = @grant_application.grant_checklist_items.find_or_initialize_by(section: section, title: title)
+    prev_checked = item.checked
     item.assign_attributes(attrs)
+    if attrs.key?(:checked)
+      if ActiveModel::Type::Boolean.new.cast(item.checked) && !prev_checked
+        item.completed_at = Time.current
+      elsif !ActiveModel::Type::Boolean.new.cast(item.checked) && prev_checked
+        item.completed_at = nil
+      end
+    end
 
     if item.save
       # Recompute stage based on completed sections
