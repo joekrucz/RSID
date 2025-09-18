@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_18_101500) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_18_105500) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -82,9 +82,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_18_101500) do
     t.string "deal_outcome"
     t.datetime "completed_at"
     t.date "invoice_sent_on"
+    t.date "invoice_paid_on"
+    t.string "resourced_subcontractor"
+    t.string "delivery_folder_link"
+    t.string "slack_channel_name"
     t.index ["completed_at"], name: "index_grant_checklist_items_on_completed_at"
     t.index ["deal_outcome"], name: "index_grant_checklist_items_on_deal_outcome"
     t.index ["grant_application_id"], name: "index_grant_checklist_items_on_grant_application_id"
+    t.index ["invoice_paid_on"], name: "index_grant_checklist_items_on_invoice_paid_on"
     t.index ["invoice_sent_on"], name: "index_grant_checklist_items_on_invoice_sent_on"
     t.index ["review_delivered_on"], name: "index_grant_checklist_items_on_review_delivered_on"
   end

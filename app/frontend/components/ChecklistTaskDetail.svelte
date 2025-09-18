@@ -18,6 +18,11 @@
   let dealOutcome = $state(''); // 'won' | 'lost'
   let reviewDeliveredOn = $state('');
   let invoiceSentOn = $state('');
+  let invoicePaidOn = $state('');
+  // Project Resourced subcontractor fields (UI only for now)
+  let resourcedSubcontractor = $state('');
+  let resourcedSetupFee = $state(''); // pounds string
+  let resourcedSuccessFee = $state(''); // pounds string
   let _saveNotesTimer;
   let uploadInputRef;
 
@@ -89,6 +94,7 @@
       notes = found.notes || '';
       reviewDeliveredOn = found.review_delivered_on || '';
       invoiceSentOn = found.invoice_sent_on || '';
+      invoicePaidOn = found.invoice_paid_on || '';
       const outcome = (found.deal_outcome || '').toString().trim().toLowerCase();
       dealOutcome = (outcome === 'won' || outcome === 'lost') ? outcome : '';
       // completed_at for status display
@@ -98,6 +104,16 @@
     if (grantApplicationId && sectionTitle && itemTitle) {
       fetchDocuments();
     }
+    // Also hydrate resourced subcontractor if present
+    try {
+      if (sectionTitle === 'KO Prep' && itemTitle === 'Project Resourced') {
+        resourcedSubcontractor = found?.resourced_subcontractor || '';
+      } else if (sectionTitle === 'KO Prep' && itemTitle === 'Project Set Up - Slack Channel, Delivery Folders, Etc.') {
+        // Read value from the Project Resourced item
+        const resItem = (persistedItems || []).find(pi => pi.section === 'Preparing for Kick Off/AML/Resourcing' && pi.title === 'Project Resourced');
+        resourcedSubcontractor = resItem?.resourced_subcontractor || '';
+      }
+    } catch (_) {}
   });
 
   const dispatch = createEventDispatcher();
@@ -471,6 +487,36 @@
       </div>
     {:else if isProjectResourced()}
       <div class="space-y-4">
+        <div>
+          <div class="text-sm font-medium mb-1">Subcontractor</div>
+          <div class="flex items-center gap-3 flex-wrap">
+            {#if isProjectResourced()}
+              <select class="select select-bordered select-sm w-full max-w-xs" bind:value={resourcedSubcontractor} onchange={() => save({ resourced_subcontractor: resourcedSubcontractor })}>
+                <option value="" disabled>Select subcontractor</option>
+                <option value="Leon Lever">Leon Lever</option>
+                <option value="John Smith">John Smith</option>
+              </select>
+            {:else}
+              <div class="text-sm opacity-80">{resourcedSubcontractor || '—'}</div>
+            {/if}
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <div class="text-sm font-medium mb-1">Subcontractor setup fee</div>
+            <label class="input input-bordered input-sm flex items-center gap-2 w-full max-w-xs">
+              <span class="opacity-70">£</span>
+              <input class="grow min-w-0" type="number" min="0" step="0.01" placeholder="0.00" bind:value={resourcedSetupFee} />
+            </label>
+          </div>
+          <div>
+            <div class="text-sm font-medium mb-1">Subcontractor success fee</div>
+            <label class="input input-bordered input-sm flex items-center gap-2 w-full max-w-xs">
+              <span class="opacity-70">£</span>
+              <input class="grow min-w-0" type="number" min="0" step="0.01" placeholder="0.00" bind:value={resourcedSuccessFee} />
+            </label>
+          </div>
+        </div>
         <DocumentUpload {grantApplicationId} {sectionTitle} itemTitle={itemTitle} />
         <div>
           <div class="text-sm font-medium mb-1">Link to subbie invoice</div>
@@ -489,7 +535,20 @@
       </div>
     {:else if isProjectSetup()}
       <div class="space-y-4">
-        <div class="text-sm font-medium">ASK NICKY WHAT NEEDS TO GO HERE</div>
+        <div>
+          <div class="text-sm font-medium mb-1">Subcontractor</div>
+          <div class="text-sm opacity-80">{resourcedSubcontractor || '—'}</div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <div class="text-sm font-medium mb-1">Delivery folder link</div>
+            <input type="url" class="input input-bordered input-sm w-full" placeholder="https://..." value={contractLink} oninput={(e) => { contractLink = e.currentTarget.value; save({ delivery_folder_link: contractLink }); }} />
+          </div>
+          <div>
+            <div class="text-sm font-medium mb-1">Slack channel name</div>
+            <input type="text" class="input input-bordered input-sm w-full" placeholder="#channel-name" value={notes} oninput={(e) => { notes = e.currentTarget.value; save({ slack_channel_name: notes }); }} />
+          </div>
+        </div>
         <div>
           <div class="text-sm font-medium mb-1">Notes</div>
           <textarea
@@ -503,6 +562,12 @@
       </div>
     {:else if isPaymentReceived()}
       <div class="space-y-4">
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-2 text-sm">
+            <span>Invoice paid on</span>
+            <input type="date" class="input input-sm input-bordered" value={invoicePaidOn} onchange={(e) => { invoicePaidOn = e.currentTarget.value; save({ invoice_paid_on: invoicePaidOn }); }} />
+          </label>
+        </div>
         <div>
           <div class="text-sm font-medium mb-1">Notes</div>
           <textarea

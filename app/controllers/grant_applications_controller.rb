@@ -506,6 +506,10 @@ class GrantApplicationsController < ApplicationController
       contract_link: item.contract_link,
       review_delivered_on: item.review_delivered_on&.strftime('%Y-%m-%d'),
       invoice_sent_on: item.invoice_sent_on&.strftime('%Y-%m-%d'),
+      invoice_paid_on: item.invoice_paid_on&.strftime('%Y-%m-%d'),
+      resourced_subcontractor: item.resourced_subcontractor,
+      delivery_folder_link: item.delivery_folder_link,
+      slack_channel_name: item.slack_channel_name,
       deal_outcome: item.deal_outcome,
       completed_at: item.completed_at&.iso8601,
       notes: item.notes
