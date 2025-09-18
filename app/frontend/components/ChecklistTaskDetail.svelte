@@ -266,7 +266,7 @@
     <div class="text-base-content/70">Select a checklist item to view details.</div>
   {:else}
     <div class="mb-4 flex items-center justify-between gap-3">
-      <h3 class="text-lg font-semibold text-base-content">{itemTitle}</h3>
+      <h3 class="text-2xl font-semibold text-base-content">{itemTitle}</h3>
       <div class="flex items-center gap-4">
         <label class="flex items-center gap-2 text-sm">
           <span>Due</span>
