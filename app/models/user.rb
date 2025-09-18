@@ -1,16 +1,12 @@
 # User Model
 # 
-# This is the central user model that handles both employees and clients.
-# It uses a polymorphic approach where users can have different roles and access levels.
-# 
-# NOTE: This dual-purpose model works for prototyping but should be split into
-# separate Employee and Client models in the production version for better clarity.
+# Handles user authentication and basic user data.
+# Authorization, feature flags, and business logic have been extracted to services.
 #
-# Key features:
-# - Role-based access control (admin, employee, client)
-# - Feature flag system for gradual feature rollouts
-# - Message system for internal communication
-# - Grant application and R&D claim management
+# Key responsibilities:
+# - User authentication (has_secure_password)
+# - Basic user data (name, email, role)
+# - Core associations
 class User < ApplicationRecord
   has_secure_password
   
@@ -26,9 +22,6 @@ class User < ApplicationRecord
   # When a user is a client, they have a single client profile
   has_one :client_profile, class_name: 'Client', foreign_key: 'user_id', dependent: :destroy
   
-           # Message associations
-         has_many :sent_messages, class_name: 'Message', foreign_key: 'sender_id', dependent: :destroy
-         has_many :received_messages, class_name: 'Message', foreign_key: 'recipient_id', dependent: :destroy
          
          # Grant Application associations
          has_many :grant_applications, dependent: :destroy
@@ -36,9 +29,6 @@ class User < ApplicationRecord
         # R&D Claim associations
         has_many :rnd_claims, dependent: :destroy
          
-         # Feature flag associations
-         has_many :user_feature_accesses, dependent: :destroy
-         has_many :feature_flags, through: :user_feature_accesses
          
          # Notification associations
          has_many :notifications, dependent: :destroy
@@ -83,91 +73,47 @@ class User < ApplicationRecord
     end
   }
   
-  # Role-based helper methods
+  # Service delegations for extracted functionality
+  def authorization
+    @authorization ||= AuthorizationService.new(self)
+  end
+  
+  # Convenience methods that delegate to services
   def employee?
-    role == 'employee' || role == 'admin'
+    authorization.employee?
   end
   
   def admin?
-    role == 'admin'
+    authorization.admin?
   end
   
   def client?
-    role == 'client'
+    authorization.client?
   end
   
   def can_manage_clients?
-    employee?
+    authorization.can_manage_clients?
   end
   
   def can_access_grant_pipeline?
-    employee?
+    authorization.can_access_grant_pipeline?
   end
   
-  
-  # Feature flag methods
-  def feature_enabled?(feature_name)
-    feature_flag = FeatureFlag.find_by(name: feature_name)
-    return false unless feature_flag
-    
-    feature_flag.enabled_for_user?(self)
-  end
-  
-  def available_features
-    FeatureFlag.enabled.select { |flag| feature_enabled?(flag.name) }
-  end
-  
-  # Get accessible clients based on role
   def accessible_clients
-    if admin?
-      Client.all
-    elsif employee?
-      assigned_clients
-    elsif client?
-      [client_profile].compact
-    else
-      Client.none
-    end
+    authorization.accessible_clients
   end
   
-  # Get accessible messages based on role
-  def accessible_messages
-    if admin?
-      Message.all
-    elsif employee?
-      Message.where(sender: self).or(Message.where(recipient: self))
-    elsif client?
-      client_profile ? Message.for_client(client_profile) : Message.none
-    else
-      Message.none
-    end
-  end
-  
-  # Class method for complex filtering and sorting
+  # Class methods that delegate to services
   def self.filtered_and_sorted(current_user, search: nil, role_filter: nil, sort_by: 'name', sort_order: 'ASC')
-    people = if current_user.admin?
-               all
-             elsif current_user.employee?
-               all
-             else
-               where(id: current_user.id) # Clients can only see themselves
-             end
-    
-    people = people.search_by_name_or_email(search) if search.present?
-    people = people.by_role(role_filter) if role_filter.present?
-    people.sorted_by(sort_by, sort_order)
+    UserSearchService.new(current_user).filtered_and_sorted(
+      search: search, 
+      role_filter: role_filter, 
+      sort_by: sort_by, 
+      sort_order: sort_order
+    )
   end
   
-  # Global search method
   def self.search_global(query, current_user)
-    base_query = if current_user.admin?
-                   all
-                 elsif current_user.employee?
-                   all
-                 else
-                   where(id: current_user.id)
-                 end
-    
-    base_query.search_by_name_or_email(query)
+    UserSearchService.new(current_user).search_global(query)
   end
 end

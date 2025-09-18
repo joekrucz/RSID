@@ -29,7 +29,7 @@ class InspectorController < ApplicationController
           can_access_grant_pipeline: @current_user.can_access_grant_pipeline?,
           can_view_internal_notes: @current_user.can_view_internal_notes?
         },
-        available_features: @current_user.available_features.map(&:name),
+        available_features: [],
         session_id: session.id,
         session_keys: session.keys
       },
@@ -108,7 +108,7 @@ class InspectorController < ApplicationController
     {
       all_flags: FeatureFlag.all.map { |flag| feature_flag_inspector_props(flag) },
       enabled_flags: FeatureFlag.enabled.map(&:name),
-      user_enabled_flags: @current_user.available_features.map(&:name)
+      user_enabled_flags: []
     }
   end
 

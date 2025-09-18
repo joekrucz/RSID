@@ -12,7 +12,7 @@ class PropsBuilderService
       isClient: user.client?,
       canManageClients: user.can_manage_clients?,
       canAccessGrantPipeline: user.can_access_grant_pipeline?,
-      availableFeatures: user.available_features.map(&:name)
+      availableFeatures: []
     }
   end
 
@@ -46,26 +46,17 @@ class PropsBuilderService
   end
 
 
-  def self.message_props(message)
-    {
-      id: message.id,
-      subject: message.subject,
-      content: message.content,
-      sender_name: message.sender.name,
-      recipient_name: message.recipient.name,
-      client_name: message.client&.name,
-      message_type: message.message_type,
-      is_internal: message.is_internal?,
-      created_at: format_date(message.created_at)
-    }
-  end
 
 
   def self.grant_application_props(application)
     {
       id: application.id,
       title: application.title,
-      submission_date: application.submission_date&.strftime("%Y-%m-%d"),
+      description: application.description,
+      stage: application.stage,
+      deadline: format_date(application.grant_competition&.deadline),
+      days_until_deadline: application.days_until_deadline,
+      overdue: application.overdue?,
       created_at: format_date(application.created_at)
     }
   end

@@ -72,7 +72,7 @@ class ApplicationController < ActionController::Base
     return unless @current_user
     
     # Store available features in session for quick access
-    session[:available_features] = @current_user.available_features.map(&:name)
+    session[:available_features] = []
   end
   
   def require_feature(feature_name)
