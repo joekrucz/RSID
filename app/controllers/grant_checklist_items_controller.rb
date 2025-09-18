@@ -19,7 +19,9 @@ class GrantChecklistItemsController < ApplicationController
       invoice_paid_on: params[:invoice_paid_on],
       resourced_subcontractor: params[:resourced_subcontractor],
       delivery_folder_link: params[:delivery_folder_link],
-      slack_channel_name: params[:slack_channel_name]
+      slack_channel_name: params[:slack_channel_name],
+      resub_due: params[:resub_due],
+      eligibility_check_cost_pence: params[:eligibility_check_cost_pence]
     }.compact
 
     item = @grant_application.grant_checklist_items.find_or_initialize_by(section: section, title: title)

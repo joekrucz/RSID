@@ -19,10 +19,12 @@
   let reviewDeliveredOn = $state('');
   let invoiceSentOn = $state('');
   let invoicePaidOn = $state('');
+  let resubDue = $state(''); // 'yes' | 'no'
   // Project Resourced subcontractor fields (UI only for now)
   let resourcedSubcontractor = $state('');
   let resourcedSetupFee = $state(''); // pounds string
   let resourcedSuccessFee = $state(''); // pounds string
+  let eligibilityCheckCostPence = $state(0);
   let _saveNotesTimer;
   let uploadInputRef;
 
@@ -95,6 +97,8 @@
       reviewDeliveredOn = found.review_delivered_on || '';
       invoiceSentOn = found.invoice_sent_on || '';
       invoicePaidOn = found.invoice_paid_on || '';
+      resubDue = (found.resub_due || '').toString().trim().toLowerCase();
+      eligibilityCheckCostPence = Number(found.eligibility_check_cost_pence || 0);
       const outcome = (found.deal_outcome || '').toString().trim().toLowerCase();
       dealOutcome = (outcome === 'won' || outcome === 'lost') ? outcome : '';
       // completed_at for status display
@@ -284,9 +288,15 @@
   function isReviewsConfirmed() {
     return sectionTitle === 'Kicked Off' && itemTitle === 'Reviews Confirmed';
   }
+  function isEligibilityChecksCompleted() {
+    return sectionTitle === 'Kicked Off' && itemTitle === 'Eligibility Checks Completed';
+  }
 
   function isSuccessFeeInvoiced() {
     return sectionTitle === 'Success Fee Invoiced' && itemTitle === 'Completed';
+  }
+  function isResubDue() {
+    return sectionTitle === 'Resub Due' && itemTitle === 'Completed';
   }
 </script>
 
@@ -296,11 +306,11 @@
   {:else}
     <div class="mb-4 flex items-center justify-between gap-3">
       <h3 class="text-2xl font-semibold text-base-content">{itemTitle}</h3>
-      <div class="flex items-center gap-4">
-        <label class="flex items-center gap-2 text-sm">
-          <span>Due</span>
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-2 text-sm">
+            <span>Due</span>
           <input type="date" class="input input-xs input-bordered {isOverdue() ? 'input-error text-error' : ''}" bind:value={dueDate} onchange={() => save({ due_date: dueDate })} />
-        </label>
+          </label>
         <div class="text-sm whitespace-nowrap {checked ? 'text-success' : 'text-base-content/70'}">
         {#if checked}
           {#if completedAt}
@@ -493,9 +503,9 @@
             {#if isProjectResourced()}
               <select class="select select-bordered select-sm w-full max-w-xs" bind:value={resourcedSubcontractor} onchange={() => save({ resourced_subcontractor: resourcedSubcontractor })}>
                 <option value="" disabled>Select subcontractor</option>
-                <option value="Leon Lever">Leon Lever</option>
-                <option value="John Smith">John Smith</option>
-              </select>
+              <option value="Leon Lever">Leon Lever</option>
+              <option value="John Smith">John Smith</option>
+            </select>
             {:else}
               <div class="text-sm opacity-80">{resourcedSubcontractor || '—'}</div>
             {/if}
@@ -636,6 +646,20 @@
         </div>
         
       </div>
+    {:else if isEligibilityChecksCompleted()}
+      <div class="space-y-4">
+        <div>
+          <div class="text-sm font-medium mb-1">Eligibility Check Cost</div>
+          <label class="input input-bordered input-sm flex items-center gap-2 w-full max-w-xs">
+            <span class="opacity-70">£</span>
+            <input class="grow min-w-0" type="number" min="0" step="0.01" placeholder="0.00" value={formatPoundsFromPence(eligibilityCheckCostPence)} oninput={(e) => {
+              const p = toPenceFromPounds(e.currentTarget.value);
+              eligibilityCheckCostPence = p;
+              save({ eligibility_check_cost_pence: p });
+            }} />
+          </label>
+        </div>
+      </div>
     {:else if isSuccessFeeInvoiced()}
       <div class="space-y-4">
         <div>
@@ -678,6 +702,17 @@
             oninput={scheduleSaveNotes}
             onblur={() => save({ notes })}
           ></textarea>
+        </div>
+      </div>
+    {:else if isResubDue()}
+      <div class="space-y-4">
+        <div>
+          <div class="text-sm font-medium mb-1">Resub due</div>
+          <select class="select select-bordered select-sm w-full max-w-xs" bind:value={resubDue} onchange={() => save({ resub_due: resubDue })}>
+            <option value="" disabled>Select</option>
+            <option value="yes">yes</option>
+            <option value="no">no</option>
+          </select>
         </div>
       </div>
     {:else}

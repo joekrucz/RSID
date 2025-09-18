@@ -510,6 +510,8 @@ class GrantApplicationsController < ApplicationController
       resourced_subcontractor: item.resourced_subcontractor,
       delivery_folder_link: item.delivery_folder_link,
       slack_channel_name: item.slack_channel_name,
+      resub_due: item.resub_due,
+      eligibility_check_cost_pence: item.eligibility_check_cost_pence,
       deal_outcome: item.deal_outcome,
       completed_at: item.completed_at&.iso8601,
       notes: item.notes
