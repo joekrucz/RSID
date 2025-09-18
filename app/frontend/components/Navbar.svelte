@@ -70,10 +70,10 @@
       <div class="flex items-center gap-2">
         {#if user}
           <div class="dropdown dropdown-end">
-            <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+            <div tabindex="0" role="button" class="btn btn-ghost btn-circle p-0 overflow-visible avatar">
               <div class="avatar placeholder">
-                <div class="bg-neutral text-neutral-content rounded-full w-10">
-                  <span class="text-xs">{user.name.split(' ').map(n => n[0]).join('')}</span>
+                <div class="bg-neutral text-neutral-content rounded-full w-9 h-9 flex items-center justify-center">
+                  <span class="text-xs leading-none h-9 flex items-center justify-center">{user.name.split(' ').map(n => n[0]).join('')}</span>
                 </div>
               </div>
             </div>
