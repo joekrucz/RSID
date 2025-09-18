@@ -128,17 +128,9 @@ Rails.application.routes.draw do
         patch :update_user_access
       end
     end
-  end
-  
-  # App Inspector (Admin only)
-  get 'inspector', to: 'inspector#index'
-
-  # ========================================
-  # DEVELOPMENT ROUTES (Development only)
-  # ========================================
-  
-  if Rails.env.development?
-    resources :grant_applications, only: [] do
+    
+    # Demo data management (development only)
+    resources :demo_data, only: [] do
       collection do
         post :link_companies
         post :add_demo_data
@@ -148,4 +140,13 @@ Rails.application.routes.draw do
       end
     end
   end
+  
+  # App Inspector (Admin only)
+  get 'inspector', to: 'inspector#index'
+
+  # ========================================
+  # DEVELOPMENT ROUTES (Development only)
+  # ========================================
+  
+  # Development routes moved to Admin::DemoDataController
 end
