@@ -15,6 +15,34 @@
   let selectedClaimId = $state(null);
   let selectedClaim = $derived(filteredClaims.find(c => c.id === selectedClaimId));
   let selectedEmailSlot = $state(null); // { claimId, slot: '1'|'2'|'3'|'4'|'5'|'6'|'FS' }
+  let emailTemplate = $state('urgent'); // 'initial' | 'monthly' | 'urgent'
+
+  // Choose a default template based on the clicked slot
+  $effect(() => {
+    if (!selectedEmailSlot) return;
+    const slot = String(selectedEmailSlot.slot);
+    if (slot === '1') {
+      emailTemplate = 'initial';
+    } else if (['2','3','4','5'].includes(slot)) {
+      emailTemplate = 'monthly';
+    } else if (['6','FS'].includes(slot)) {
+      emailTemplate = 'urgent';
+    } else {
+      emailTemplate = 'urgent';
+    }
+  });
+
+  function getFyFromEndDate(endDateStr) {
+    if (!endDateStr) return '';
+    const [y] = endDateStr.split('-').map(Number);
+    const yy = String(y).slice(-2);
+    return `FY${yy}`;
+  }
+
+  function getDeadlineFromEndDate(endDateStr) {
+    const sixMonths = computeSixMonthsAfter(endDateStr);
+    return sixMonths ? formatDateSixDigits(sixMonths) : '';
+  }
 
   function handleRowKeydown(event, claimId) {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -222,7 +250,7 @@
         {#if filteredClaims.length > 0}
           <div class="overflow-x-auto overflow-y-auto max-h-[70vh] flex-1">
             <table class="table table-zebra w-full table-compact table-fixed">
-              <thead>
+              <thead class="sticky top-0 z-10 bg-base-100">
                 <tr>
                   <th rowspan="2" class="px-1 w-[5.5rem]">CNF Status</th>
                   <th rowspan="2" class="px-1 w-[10rem]">Name</th>
@@ -348,21 +376,152 @@
 
       <!-- Detail: Selected Claim -->
       <div class="lg:col-span-7">
-        <div class="bg-base-100 rounded-lg shadow border border-base-300 p-4 h-full">
+        <div class="bg-base-100 rounded-lg shadow border border-base-300 h-full overflow-hidden">
           {#if selectedEmailSlot}
             {#key `${selectedEmailSlot.claimId}-${selectedEmailSlot.slot}`}
-              <div class="space-y-3">
-                <div class="flex items-start justify-between">
-                  <h2 class="text-xl font-semibold text-base-content">CNF Email Placeholder</h2>
-                  <button class="btn btn-ghost btn-sm" onclick={() => selectedEmailSlot = null} aria-label="Close placeholder">✕</button>
+              {@const selectedClaimForEmail = filteredClaims.find(c => c.id === selectedEmailSlot.claimId)}
+              <div class="h-full flex flex-col">
+                <!-- Email Header -->
+                <div class="bg-info text-info-content p-3 rounded-t-lg">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <h2 class="text-lg font-semibold">
+                        {selectedClaimForEmail?.company?.name || 'Company'} - {selectedClaimForEmail?.title || 'Claim'}
+                      </h2>
+                      <div class="text-sm opacity-90">TO BE SENT</div>
+                    </div>
+                    <button class="btn btn-ghost btn-sm text-info-content hover:bg-info-content/20" 
+                            onclick={() => selectedEmailSlot = null} 
+                            aria-label="Close email">
+                      ✕
+                    </button>
+                  </div>
                 </div>
-                <div class="text-base-content/70">Claim ID: {selectedEmailSlot.claimId}</div>
-                <div class="text-base-content/70">Slot: {selectedEmailSlot.slot}</div>
-                <div class="mt-2 text-sm">This is a placeholder for CNF email content. Replace with real view later.</div>
+
+                <!-- Email Content -->
+                <div class="flex-1 bg-base-100 p-4 space-y-4">
+                  <!-- Email Metadata -->
+                  <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span class="font-medium text-base-content/70">Sent:</span>
+                      <span class="ml-2">15/08/25</span>
+                    </div>
+                    <div>
+                      <span class="font-medium text-base-content/70">From:</span>
+                      <span class="ml-2">customersuccess@granttree.co.uk</span>
+                    </div>
+                    <div>
+                      <span class="font-medium text-base-content/70">To:</span>
+                      <span class="ml-2">{selectedClaimForEmail?.company?.name ? `${selectedClaimForEmail.company.name.toLowerCase().replace(/\s+/g, '')}@company.com` : 'client@company.com'}</span>
+                    </div>
+                    <div>
+                      <span class="font-medium text-base-content/70">CC:</span>
+                      <span class="ml-2 text-base-content/50">—</span>
+                    </div>
+                    <div class="col-span-2">
+                      <span class="font-medium text-base-content/70">SUBJECT:</span>
+                      <span class="ml-2 font-semibold">
+                        {emailTemplate === 'initial' ? `You are now in your CNF period for ${getFyFromEndDate(selectedClaimForEmail?.end_date)}` :
+                         emailTemplate === 'monthly' ? `Reminder: You are in your CNF period for ${getFyFromEndDate(selectedClaimForEmail?.end_date)}` :
+                         `CNF DEADLINE REMINDER - due ${getDeadlineFromEndDate(selectedClaimForEmail?.end_date)}`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Template Selector -->
+                  <div class="flex items-center justify-end">
+                    <label for="template-select" class="text-sm font-medium text-base-content/70 mr-2">Template:</label>
+                    <select id="template-select" class="select select-bordered select-sm w-40" bind:value={emailTemplate}>
+                      <option value="initial">Initial</option>
+                      <option value="monthly">Monthly reminder</option>
+                      <option value="urgent">Urgent deadline</option>
+                    </select>
+                  </div>
+
+                  <!-- Email Body -->
+                  <div class="bg-base-200 p-4 rounded-lg space-y-3 text-sm">
+                    {#if emailTemplate === 'initial'}
+                      <div>Hi,</div>
+                      <div>
+                        This is an automated, but important message to let you know that you are now within the six-month window to notify HMRC of your intention to make an R&D Tax Credit claim for {getFyFromEndDate(selectedClaimForEmail?.end_date)}.
+                        The deadline to submit your CNF is 6 months after the end of the claim’s accounting period - if you have extended or shortened your company’s year-end, please be advised that will also impact the deadline for the CNF.
+                      </div>
+                      <div>
+                        As part of recent changes to R&D legislation, HMRC now requires companies to submit a ‘Claim Notification’ to inform them that they intend to claim. This applies to all accounting periods starting on or after 1 April 2023.
+                      </div>
+                      <div>
+                        <strong>Action required</strong><br>
+                        To make this process easy, GrantTree can of course submit the notification on your behalf, but we need a few key details from you first. Please complete the attached form to help us to do so. If the form is not submitted in time, HMRC will reject your claim, even if all other criteria are met.
+                      </div>
+                      <div>
+                        <strong>Ignore if…</strong><br>
+                        If you’re already in touch with us about this, feel free to ignore this message. Otherwise, if you have any questions or need help completing the form, please get in touch with a member of the GrantTree team and we will be happy to assist.
+                      </div>
+                      <div class="pt-2">
+                        Best regards,<br>
+                        <strong>The GrantTree Team</strong>
+                      </div>
+                    {:else if emailTemplate === 'monthly'}
+                      <div>Hi,</div>
+                      <div>
+                        This is a reminder that you are currently within your Claim Notification Form (CNF) period for your {getFyFromEndDate(selectedClaimForEmail?.end_date)} R&D Tax Credit claim.
+                      </div>
+                      <div>
+                        HMRC requires companies to notify them of their intention to claim R&D Tax Relief no later than 6 months after the end of the claim’s accounting period. If your year-end has been extended or shortened, please note this will also affect your CNF deadline.
+                      </div>
+                      <div>
+                        <strong>Action required</strong><br>
+                        To make this process simple, GrantTree can submit the CNF on your behalf. However, we first need a few key details from you. Please complete the attached form as soon as possible so we can take care of the submission for you. If the CNF is not filed in time, HMRC will reject your claim—even if all other criteria are met.
+                      </div>
+                      <div>
+                        <strong>Ignore if…</strong> If you’re already in touch with us about this, feel free to disregard this message. Otherwise, please get in touch with a member of the GrantTree team if you have any questions or need support completing the form.
+                      </div>
+                      <div class="pt-2">
+                        Best regards,<br>
+                        <strong>The GrantTree Team</strong>
+                      </div>
+                    {:else}
+                      <div>Hi,</div>
+                      <div>
+                        This is an <strong>urgent reminder</strong> that the deadline for submitting your R&D Claim Notification Form is <strong>{getDeadlineFromEndDate(selectedClaimForEmail?.end_date)}</strong>.
+                      </div>
+                      <div>
+                        Failure to submit this form by the deadline will prevent you from claiming R&D Tax Relief for your previous accounting period.
+                      </div>
+                      <div>
+                        <strong>Next Steps:</strong>
+                        <ul class="list-disc list-inside mt-2 space-y-1 ml-4">
+                          <li>If you intend to claim R&D tax relief, please submit the Claim Notification Form immediately.</li>
+                          <li>If you believe you do not need to submit this form, please contact us immediately to confirm.</li>
+                          <li>If you think another party, including GrantTree, has already handled this for you, or if you have any questions, please contact us immediately.</li>
+                          <li>Currently, based on the information we hold, we cannot submit this form on your behalf; you will need to complete this action yourself.</li>
+                        </ul>
+                      </div>
+                      <div>
+                        If you have already submitted the notification form or instructed us to do so, thank you - no further action is needed.
+                      </div>
+                      <div>
+                        Please reach out if you need any assistance.
+                      </div>
+                      <div class="pt-2">
+                        Best regards,<br>
+                        <strong>The GrantTree Team</strong>
+                      </div>
+                    {/if}
+                  </div>
+
+                  <!-- Action Button -->
+                  <div class="flex justify-end pt-4">
+                    <button class="btn btn-neutral">
+                      Override: Send Now
+                    </button>
+                  </div>
+                </div>
               </div>
             {/key}
           {:else if selectedClaim}
-            <div class="flex items-start justify-between">
+            <div class="p-4">
+              <div class="flex items-start justify-between">
               <div>
                 <h2 class="text-xl font-semibold text-base-content">{selectedClaim.title}</h2>
                 {#if selectedClaim.company}
@@ -429,8 +588,9 @@
                 Edit
               </button>
             </div>
+            </div>
           {:else}
-            <div class="h-full flex items-center justify-center text-base-content/60 py-12">
+            <div class="h-full flex items-center justify-center text-base-content/60 py-12 p-4">
               <div class="text-center">
                 <div class="mb-2 font-medium">Select a claim to view details</div>
                 <div class="text-sm">Choose a row from the list on the left.</div>

@@ -130,9 +130,9 @@ class RndClaimsController < ApplicationController
     
     if @rnd_claim.update(rnd_claim_params)
       # Create notification for claim updates
-      if @current_user.employee? && @rnd_claim.company
+      if @current_user.employee? && @rnd_claim.user
         Notification.create_for_user(
-          @rnd_claim.company,
+          @rnd_claim.user,
           :claim_updated,
           "R&D Claim Updated",
           "Your R&D claim '#{@rnd_claim.title}' has been updated.",
