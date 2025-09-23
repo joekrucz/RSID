@@ -14,6 +14,7 @@
   let filteredClaims = $state(rnd_claims);
   let selectedClaimId = $state(null);
   let selectedClaim = $derived(filteredClaims.find(c => c.id === selectedClaimId));
+  let selectedEmailSlot = $state(null); // { claimId, slot: '1'|'2'|'3'|'4'|'5'|'6'|'FS' }
 
   function handleRowKeydown(event, claimId) {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -131,8 +132,8 @@
   <title>CNF Comms - RSID App</title>
 </svelte:head>
 
-<Layout {user} currentPage="cnf_comms">
-  <div class="max-w-7xl mx-auto">
+<Layout {user} currentPage="cnf_comms" fullWidth={true}>
+  <div class="w-full px-4">
     <!-- Header -->
     <div class="mb-6">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -170,53 +171,52 @@
     <!-- R&D Claims Content -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
       <!-- Master: Claims List -->
-      <div class="lg:col-span-7 bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden">
+      <div class="lg:col-span-5 bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden">
         {#if filteredClaims.length > 0}
           <div class="overflow-x-auto">
-            <table class="table table-zebra w-full">
+            <table class="table table-zebra w-full table-compact table-fixed">
               <thead>
                 <tr>
-                  <th rowspan="2">CNF Status</th>
-                  <th rowspan="2">Name</th>
-                  <th rowspan="2">Deadline</th>
+                  <th rowspan="2" class="px-1 w-[5.5rem]">CNF Status</th>
+                  <th rowspan="2" class="px-1 w-[10rem]">Name</th>
+                  <th rowspan="2" class="px-1 w-[6rem] text-center">Deadline</th>
                   <th colspan="7" class="text-center">CNF email</th>
                 </tr>
                 <tr>
-                  <th class="w-8 text-center">1</th>
-                  <th class="w-8 text-center">2</th>
-                  <th class="w-8 text-center">3</th>
-                  <th class="w-8 text-center">4</th>
-                  <th class="w-8 text-center">5</th>
-                  <th class="w-8 text-center">6</th>
-                  <th class="w-8 text-center">FS</th>
+                  <th class="w-7 text-center px-1">1</th>
+                  <th class="w-7 text-center px-1">2</th>
+                  <th class="w-7 text-center px-1">3</th>
+                  <th class="w-7 text-center px-1">4</th>
+                  <th class="w-7 text-center px-1">5</th>
+                  <th class="w-7 text-center px-1">6</th>
+                  <th class="w-7 text-center px-1">FS</th>
                 </tr>
               </thead>
               <tbody>
                 {#each filteredClaims as claim}
-                  <tr class="cursor-pointer {selectedClaimId === claim.id ? 'active' : ''}"
-                      onclick={() => { selectedClaimId = claim.id; }}
-                      onkeydown={(e) => handleRowKeydown(e, claim.id)}
-                      tabindex="0"
+                  <tr class="{selectedClaimId === claim.id ? 'active' : ''}"
                       aria-selected={selectedClaimId === claim.id}>
-                    <td>
-                      <div class="badge {claim.cnf_status_badge_class}">
+                    <td
+                      class="cursor-pointer px-1 w-[5.5rem]"
+                      onclick={() => { selectedEmailSlot = null; selectedClaimId = claim.id; }}
+                      onkeydown={(e) => handleRowKeydown(e, claim.id)}
+                      role="button"
+                      tabindex="0"
+                    >
+                      <div class="badge {claim.cnf_status_badge_class} badge-sm">
                         {claim.cnf_status_display}
                       </div>
                     </td>
-                    <td>
-                      <div class="font-bold">
-                        {claim.title}
+                    <td class="px-1 whitespace-nowrap w-[10rem]">
+                      <div class="font-bold text-sm truncate max-w-[10rem]" title={(claim.company ? `${claim.company.name} ${claim.title}` : claim.title)}>
                         {#if claim.company}
-                          <span class="text-base-content/60 font-normal"> — </span>
-                          <a 
-                            href={`/companies/${claim.company.id}`}
-                            class="link link-primary hover:link-primary-focus"
-                            onclick={(e) => e.stopPropagation()}
-                          >{claim.company.name}</a>
+                          {claim.company.name} {claim.title}
+                        {:else}
+                          {claim.title}
                         {/if}
                       </div>
                     </td>
-                    <td>
+                    <td class="px-1 whitespace-nowrap text-center w-[6rem]">
                       {#if claim.end_date}
                         {#key claim.end_date}
                           {#await Promise.resolve(computeSixMonthsAfter(claim.end_date)) then calcDeadline}
@@ -231,13 +231,48 @@
                         <div class="text-sm opacity-50">—</div>
                       {/if}
                     </td>
-                    <td class="text-center w-8"></td>
-                    <td class="text-center w-8"></td>
-                    <td class="text-center w-8"></td>
-                    <td class="text-center w-8"></td>
-                    <td class="text-center w-8"></td>
-                    <td class="text-center w-8"></td>
-                    <td class="text-center w-8"></td>
+                    <td class="text-center w-7 px-1">
+                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 1"
+                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '1' }; }}>
+                        📁
+                      </button>
+                    </td>
+                    <td class="text-center w-7 px-1">
+                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 2"
+                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '2' }; }}>
+                        📁
+                      </button>
+                    </td>
+                    <td class="text-center w-7 px-1">
+                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 3"
+                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '3' }; }}>
+                        📁
+                      </button>
+                    </td>
+                    <td class="text-center w-7 px-1">
+                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 4"
+                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '4' }; }}>
+                        📁
+                      </button>
+                    </td>
+                    <td class="text-center w-7 px-1">
+                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 5"
+                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '5' }; }}>
+                        📁
+                      </button>
+                    </td>
+                    <td class="text-center w-7 px-1">
+                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 6"
+                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '6' }; }}>
+                        📁
+                      </button>
+                    </td>
+                    <td class="text-center w-7 px-1">
+                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email FS"
+                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: 'FS' }; }}>
+                        📁
+                      </button>
+                    </td>
                     
                   </tr>
                 {/each}
@@ -265,9 +300,21 @@
       </div>
 
       <!-- Detail: Selected Claim -->
-      <div class="lg:col-span-5">
+      <div class="lg:col-span-7">
         <div class="bg-base-100 rounded-lg shadow border border-base-300 p-4 h-full">
-          {#if selectedClaim}
+          {#if selectedEmailSlot}
+            {#key `${selectedEmailSlot.claimId}-${selectedEmailSlot.slot}`}
+              <div class="space-y-3">
+                <div class="flex items-start justify-between">
+                  <h2 class="text-xl font-semibold text-base-content">CNF Email Placeholder</h2>
+                  <button class="btn btn-ghost btn-sm" onclick={() => selectedEmailSlot = null} aria-label="Close placeholder">✕</button>
+                </div>
+                <div class="text-base-content/70">Claim ID: {selectedEmailSlot.claimId}</div>
+                <div class="text-base-content/70">Slot: {selectedEmailSlot.slot}</div>
+                <div class="mt-2 text-sm">This is a placeholder for CNF email content. Replace with real view later.</div>
+              </div>
+            {/key}
+          {:else if selectedClaim}
             <div class="flex items-start justify-between">
               <div>
                 <h2 class="text-xl font-semibold text-base-content">{selectedClaim.title}</h2>
