@@ -250,7 +250,7 @@
                       role="button"
                       tabindex="0"
                     >
-                      <div class="badge {claim.cnf_status_badge_class} badge-sm truncate" title={claim.cnf_status_display}>
+                      <div class="text-sm truncate max-w-full overflow-hidden" title={claim.cnf_status_display}>
                         {claim.cnf_status_display}
                       </div>
                     </td>
@@ -377,7 +377,7 @@
                   </div>
                 {/if}
               </div>
-              <div class="badge {selectedClaim.cnf_status_badge_class}">{selectedClaim.cnf_status_display}</div>
+              <div class="badge badge-neutral">{selectedClaim.cnf_status_display}</div>
             </div>
 
             <div class="divider"></div>

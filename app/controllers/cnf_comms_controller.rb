@@ -15,7 +15,7 @@ class CnfCommsController < ApplicationController
     
     # Apply search if needed
     if search.present?
-      all_claims = all_claims.where(
+      all_claims = all_claims.left_joins(:company).where(
         "rnd_claims.title LIKE ? OR rnd_claims.qualifying_activities LIKE ? OR rnd_claims.technical_challenges LIKE ? OR companies.name LIKE ?",
         "%#{search}%", "%#{search}%", "%#{search}%", "%#{search}%"
       )
