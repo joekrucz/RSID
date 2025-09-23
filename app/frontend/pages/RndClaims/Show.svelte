@@ -49,6 +49,10 @@
   let userSetGroup = $state(false);
   const currentGroupIdx = $derived(groupIndexForStage(currentStage));
   $effect(() => { if (!userSetGroup) currentGroup = groupForStage(currentStage); });
+
+  // Master-detail selection
+  let selectedSectionTitle = $state('');
+  let selectedItemTitle = $state('');
   
   function isGroupCompleteLabel(label) {
     const idx = stageGroups.findIndex(g => g.label === label);
@@ -230,13 +234,6 @@
                 aria-current={isActive ? 'page' : undefined}
                 style={`clip-path:${clipPath}; border-top-left-radius:${isFirst ? '0.5rem' : '0'}; border-bottom-left-radius:${isFirst ? '0.5rem' : '0'}; border-top-right-radius:${isLast ? '0.5rem' : '0'}; border-bottom-right-radius:${isLast ? '0.5rem' : '0'};`}
               >
-                <span class="inline-flex items-center justify-center w-4 h-4">
-                  {#if isGroupCompleteLabel(g.label)}
-                    <svg class="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-            {/if}
-                </span>
                 <span>{g.label}</span>
               </button>
             </div>
@@ -295,9 +292,6 @@
     <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
       <!-- Master Pane -->
       <section class="bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:sticky lg:top-40" role="region" aria-label="R&D Master List">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-base font-semibold text-base-content">Master</h2>
-        </div>
         <div class="text-base-content/90 text-sm">
           <Checklist
             sections={[
@@ -329,24 +323,22 @@
                 { title: 'Submission pack sent to client for signoff' },
                 { title: 'Claim filed' }
               ]}
-                    ]}
-                  />
+            ]}
+            {selectedSectionTitle}
+            {selectedItemTitle}
+            on:select={(e) => { 
+              selectedSectionTitle = e.detail?.sectionTitle || '';
+              selectedItemTitle = e.detail?.itemTitle || ''; 
+            }}
+          />
                 </div>
       </section>
 
       <!-- Detail Pane -->
       <section class="bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:col-span-2" role="region" aria-label="R&D Detail View">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-base font-semibold text-base-content">Detail</h2>
-        </div>
-        <div class="text-base-content/50 text-sm">
-          <!-- Empty detail component placeholder -->
-        <div class="text-center py-12">
-            <svg class="w-10 h-10 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p>Select an item to view details</p>
-          </div>
+        <div class="text-base-content/80 text-sm">
+          <h3 class="text-lg font-semibold mb-2">Task Specific Content</h3>
+          <p class="text-base-content/70">{selectedItemTitle ? selectedItemTitle : 'Select a task from the list to view details.'}</p>
         </div>
       </section>
         </div>

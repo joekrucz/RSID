@@ -280,7 +280,7 @@
           {@const isSelected = sections[sIdx]?.title === selectedSectionTitle && localSections[sIdx]?.items?.[iIdx]?.title === selectedItemTitle}
           {@const isLast = iIdx === (localSections[sIdx]?.items?.length || 0) - 1}
           {@const k = keyFor(sIdx, iIdx)}
-          <button class={`w-full text-left px-4 py-3 cursor-pointer ${isSelected ? `bg-gray-200 text-gray-900 ${isLast ? 'rounded-b-lg' : ''}` : 'hover:bg-base-200 rounded'}`} onclick={() => selectItem(sIdx, iIdx)}>
+          <button class={`w-full text-left px-4 py-3 cursor-pointer ${isSelected ? `bg-success/20 ring-1 ring-success/30 text-base-content ${isLast ? 'rounded-b-lg' : ''}` : 'hover:bg-base-200 rounded'}`} onclick={() => selectItem(sIdx, iIdx)}>
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-start gap-2">
                 <input type="checkbox" class="checkbox checkbox-sm checkbox-success mt-0.5"
