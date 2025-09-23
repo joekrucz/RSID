@@ -126,6 +126,53 @@
     const yy = String(y).slice(-2);
     return `${dd}/${mm}/${yy}`; // DD/MM/YY
   }
+
+  function updateCnfStatus(claimId, newStatus) {
+    router.patch(`/rnd_claims/${claimId}`, {
+      rnd_claim: {
+        cnf_status: newStatus
+      }
+    }, {
+      preserveState: true,
+      preserveScroll: true,
+      onSuccess: () => {
+        // Update the local state to reflect the change
+        const claim = filteredClaims.find(c => c.id === claimId);
+        if (claim) {
+          claim.cnf_status = newStatus;
+          // Update display values
+          claim.cnf_status_display = getStatusDisplay(newStatus);
+          claim.cnf_status_badge_class = getStatusBadgeClass(newStatus);
+        }
+      }
+    });
+  }
+
+  function getStatusDisplay(status) {
+    switch(status) {
+      case 'not_claiming': return 'Not claiming';
+      case 'cnf_needed': return 'Needed';
+      case 'cnf_exemption_possible': return 'Exemption Possible';
+      case 'in_progress': return 'In Progress';
+      case 'cnf_submitted': return 'Submitted';
+      case 'cnf_exempt': return 'Exempt';
+      case 'cnf_missed': return 'Missed';
+      default: return status;
+    }
+  }
+
+  function getStatusBadgeClass(status) {
+    switch(status) {
+      case 'not_claiming': return 'badge-neutral';
+      case 'cnf_needed': return 'badge-error';
+      case 'cnf_exemption_possible': return 'badge-warning';
+      case 'in_progress': return 'badge-info';
+      case 'cnf_submitted': return 'badge-success';
+      case 'cnf_exempt': return 'badge-success';
+      case 'cnf_missed': return 'badge-error';
+      default: return 'badge-neutral';
+    }
+  }
 </script>
 
 <svelte:head>
@@ -171,9 +218,9 @@
     <!-- R&D Claims Content -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
       <!-- Master: Claims List -->
-      <div class="lg:col-span-5 bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden">
+      <div class="lg:col-span-5 bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden flex flex-col">
         {#if filteredClaims.length > 0}
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto overflow-y-auto max-h-[70vh] flex-1">
             <table class="table table-zebra w-full table-compact table-fixed">
               <thead>
                 <tr>
@@ -203,7 +250,7 @@
                       role="button"
                       tabindex="0"
                     >
-                      <div class="badge {claim.cnf_status_badge_class} badge-sm">
+                      <div class="badge {claim.cnf_status_badge_class} badge-sm truncate" title={claim.cnf_status_display}>
                         {claim.cnf_status_display}
                       </div>
                     </td>
@@ -337,6 +384,22 @@
 
             <div class="space-y-3">
               <div>
+                <span class="text-sm text-base-content/70">CNF Status</span>
+                <select 
+                  class="select select-bordered select-sm w-full mt-1"
+                  bind:value={selectedClaim.cnf_status}
+                  onchange={() => updateCnfStatus(selectedClaim.id, selectedClaim.cnf_status)}
+                >
+                  <option value="not_claiming">Not claiming</option>
+                  <option value="cnf_needed">Needed</option>
+                  <option value="cnf_exemption_possible">Exemption Possible</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="cnf_submitted">Submitted</option>
+                  <option value="cnf_exempt">Exempt</option>
+                  <option value="cnf_missed">Missed</option>
+                </select>
+              </div>
+              <div>
                 <span class="text-sm text-base-content/70">CNF Deadline</span>
                 {#if selectedClaim.end_date}
                   {#key selectedClaim.end_date}
@@ -377,60 +440,6 @@
         </div>
       </div>
     </div>
-    
-    <!-- Pagination Controls -->
-    {#if pagination && pagination.total_pages > 1}
-      <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 p-4 bg-base-100 rounded-lg border border-base-300">
-        <!-- Pagination Info -->
-        <div class="text-sm text-base-content/70">
-          Showing {((pagination.current_page - 1) * pagination.per_page) + 1} to {Math.min(pagination.current_page * pagination.per_page, pagination.total_count)} of {pagination.total_count} R&D claims
-        </div>
-        
-        <!-- Pagination Navigation -->
-        <div class="flex items-center space-x-2">
-          <!-- Previous Button -->
-          <button 
-            class="btn btn-sm btn-outline"
-            disabled={!pagination.has_prev_page}
-            onclick={() => goToPage(pagination.current_page - 1)}
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-            </svg>
-            Previous
-          </button>
-          
-          <!-- Page Numbers -->
-          <div class="flex items-center space-x-1">
-            {#each Array.from({length: Math.min(5, pagination.total_pages)}, (_, i) => {
-              const startPage = Math.max(1, pagination.current_page - 2);
-              const endPage = Math.min(pagination.total_pages, startPage + 4);
-              const adjustedStartPage = Math.max(1, endPage - 4);
-              return adjustedStartPage + i;
-            }).filter(page => page <= pagination.total_pages) as page}
-              <button 
-                class="btn btn-sm {page === pagination.current_page ? 'btn-primary' : 'btn-outline'}"
-                onclick={() => goToPage(page)}
-              >
-                {page}
-              </button>
-            {/each}
-          </div>
-          
-          <!-- Next Button -->
-          <button 
-            class="btn btn-sm btn-outline"
-            disabled={!pagination.has_next_page}
-            onclick={() => goToPage(pagination.current_page + 1)}
-          >
-            Next
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-    {/if}
   </div>
 </Layout>
 

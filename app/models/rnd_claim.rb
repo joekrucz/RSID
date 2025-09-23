@@ -64,13 +64,13 @@ class RndClaim < ApplicationRecord
 
   def cnf_status_display
     case cnf_status
-    when 'not_claiming' then 'Not Claiming'
-    when 'cnf_needed' then 'CNF Needed'
-    when 'cnf_exemption_possible' then 'CNF Exemption Possible'
+    when 'not_claiming' then 'Not claiming'
+    when 'cnf_needed' then 'Needed'
+    when 'cnf_exemption_possible' then 'Exemption Possible'
     when 'in_progress' then 'In Progress'
-    when 'cnf_submitted' then 'CNF Submitted'
-    when 'cnf_exempt' then 'CNF Exempt'
-    when 'cnf_missed' then 'CNF Missed'
+    when 'cnf_submitted' then 'Submitted'
+    when 'cnf_exempt' then 'Exempt'
+    when 'cnf_missed' then 'Missed'
     else cnf_status.humanize
     end
   end
