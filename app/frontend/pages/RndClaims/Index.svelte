@@ -131,29 +131,17 @@
 
 <Layout {user}>
   <div class="max-w-7xl mx-auto">
-    <!-- Header -->
-    <div class="mb-6">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 class="text-2xl font-bold text-base-content">R&D Claims</h1>
-          <p class="text-base-content/70 mt-1">Manage your research and development claims</p>
-        </div>
-        
-        <div class="flex items-center space-x-3">
-          <Button variant="primary" onclick={() => router.visit('/rnd_claims/new')}>
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            New R&D Claim
-          </Button>
-        </div>
-      </div>
-      
-      <!-- Search and Controls -->
-      <div class="mt-6 bg-base-100 rounded-lg shadow border border-base-300 p-4">
-        <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-          <!-- Search Bar -->
-          <div class="flex-1 max-w-md">
+    <!-- Toolbar (sticky, consolidated) -->
+    <div class="sticky top-16 z-10 bg-base-200/95 backdrop-blur-sm border-b border-base-300 mb-6">
+      <div class="py-3">
+        <div class="flex flex-wrap items-center gap-3 justify-between">
+          <!-- Left: Title -->
+          <div class="min-w-[200px]">
+            <h1 class="text-2xl font-bold text-base-content">R&D Claims</h1>
+          </div>
+          
+          <!-- Middle: Search + Per Page -->
+          <div class="flex items-center gap-3 flex-1 min-w-[280px] max-w-xl">
             <div class="join w-full">
               <input
                 type="text"
@@ -161,6 +149,7 @@
                 oninput={handleSearch}
                 placeholder="Search claims..."
                 class="input input-bordered join-item flex-1"
+                aria-label="Search R&D claims"
               />
               {#if search}
                 <button 
@@ -174,30 +163,31 @@
                 </button>
               {/if}
             </div>
+            {#if currentView === 'list'}
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-base-content">Per page:</span>
+                <select 
+                  bind:value={perPage} 
+                  onchange={() => handlePerPageChange(perPage)}
+                  class="select select-bordered select-sm"
+                  aria-label="Results per page"
+                >
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+            {/if}
           </div>
           
-          <!-- Per Page Selector -->
-          <div class="flex items-center space-x-2">
-            <span class="text-sm font-medium text-base-content">Per page:</span>
-            <select 
-              bind:value={perPage} 
-              onchange={() => handlePerPageChange(perPage)}
-              class="select select-bordered select-sm"
-            >
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-          </div>
-          
-          <!-- View Toggle -->
-          <div class="flex items-center space-x-2">
-            <span class="text-sm font-medium text-base-content">View:</span>
+          <!-- Right: View Toggle + New -->
+          <div class="flex items-center gap-2">
             <div class="btn-group">
               <button 
                 class="btn btn-sm {currentView === 'list' ? 'btn-primary' : 'btn-outline'}"
                 onclick={() => switchView('list')}
+                aria-label="List view"
               >
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
@@ -207,6 +197,7 @@
               <button 
                 class="btn btn-sm {currentView === 'pipeline' ? 'btn-primary' : 'btn-outline'}"
                 onclick={() => switchView('pipeline')}
+                aria-label="Pipeline view"
               >
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
@@ -214,19 +205,17 @@
                 Pipeline
               </button>
             </div>
+            <button 
+              class="btn btn-sm btn-primary p-2"
+              onclick={() => router.visit('/rnd_claims/new')}
+              aria-label="New R&D Claim"
+              title="New R&D Claim"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
           </div>
-        </div>
-      </div>
-      
-      <!-- Stats Cards -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 mt-8">
-        <div class="stat bg-base-100 shadow rounded-lg">
-          <div class="stat-title">Total Claims</div>
-          <div class="stat-value text-primary">{stats.total}</div>
-        </div>
-        <div class="stat bg-base-100 shadow rounded-lg">
-          <div class="stat-title">Total Expenditure</div>
-          <div class="stat-value text-accent">{stats.total_expenditure ? new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(stats.total_expenditure) : '£0'}</div>
         </div>
       </div>
     </div>

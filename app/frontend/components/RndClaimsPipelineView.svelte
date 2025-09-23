@@ -12,6 +12,25 @@
   function formatStageName(stage) {
     return stage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
+
+  function formatDate(value) {
+    if (!value) return '';
+    try {
+      const d = new Date(value);
+      return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch (_) {
+      return value;
+    }
+  }
+
+  function formatCurrencyGBP(amount) {
+    if (!amount) return '£0';
+    try {
+      return new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(amount);
+    } catch (_) {
+      return `£${amount}`;
+    }
+  }
   
   function handleDelete(claimId) {
     if (confirm('Are you sure you want to delete this R&D claim? This action cannot be undone.')) {
@@ -107,13 +126,17 @@
   
   function getStageBadgeClass(stage) {
     switch(stage) {
-      case 'upcoming': return 'badge-secondary';
-      case 'readying_for_delivery': return 'badge-warning';
+      // Pre-delivery (grey family)
+      case 'upcoming': return 'badge-ghost';
+      case 'readying_for_delivery': return 'badge-neutral';
+      // In delivery (blue family)
       case 'in_progress': return 'badge-info';
       case 'finalised': return 'badge-primary';
+      // Post delivery (purple family)
       case 'filed_awaiting_hmrc': return 'badge-accent';
-      case 'claim_processed': return 'badge-neutral';
-      case 'client_invoiced': return 'badge-base-content';
+      case 'claim_processed': return 'badge-accent';
+      case 'client_invoiced': return 'badge-accent';
+      // Paid (success)
       case 'paid': return 'badge-success';
       default: return 'badge-neutral';
     }
@@ -122,25 +145,28 @@
 
 <div class="bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden">
   <div class="p-6">
-    <div class="flex space-x-6 overflow-x-auto pb-4">
+    <div class="flex space-x-6 overflow-x-auto pb-4 snap-x snap-mandatory">
       {#each Object.entries(pipeline_data) as [stage, data]}
-        <div class="flex-shrink-0 w-80">
-          <div class="bg-base-200 rounded-lg p-4 min-h-96 {getDropZoneClass(stage)}"
+        <div class="flex-shrink-0 w-80 snap-start">
+          <div class="bg-base-200 rounded-lg p-4 min-h-96 border border-base-300 {getDropZoneClass(stage)}"
                role="region"
                aria-label="Drop zone for {formatStageName(stage)}"
                ondragover={(e) => handleDragOver(e, stage)}
                ondragleave={handleDragLeave}
                ondrop={(e) => handleDrop(e, stage)}>
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="font-semibold text-base-content">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-semibold text-base-content text-sm">
                 {formatStageName(stage)}
               </h3>
-              <div class="badge badge-neutral">{data.count}</div>
+              <div class="flex items-center gap-2">
+                <div class="badge badge-neutral">{data.count}</div>
+                <div class="text-xs text-base-content/60">{formatCurrencyGBP(data.total_value)}</div>
+              </div>
             </div>
             
             <div class="space-y-3">
               {#each data.claims as claim}
-                <div class="bg-base-100 rounded-lg p-4 shadow-sm border border-base-300 hover:shadow-md transition-shadow cursor-move"
+                <div class="bg-base-100 rounded-lg p-4 shadow-sm border border-base-300 hover:shadow-md transition-shadow cursor-move focus:outline-none focus:ring-2 focus:ring-primary/40"
                      role="button"
                      tabindex="0"
                      draggable="true"
@@ -166,7 +192,7 @@
                   
                   {#if claim.company}
                     <div class="text-xs text-base-content/70 mb-2">
-                      <a href={`/companies/${claim.company.id}`} class="link link-primary">
+                      <a href={`/companies/${claim.company.id}`} class="text-black hover:underline">
                         {claim.company.name}
                       </a>
                     </div>
@@ -177,13 +203,13 @@
                   </div>
                   
                   <div class="flex items-center justify-between text-xs text-base-content/60">
-                    <span>{claim.start_date} - {claim.end_date}</span>
-                    <span>{claim.total_expenditure ? new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(claim.total_expenditure) : '£0'}</span>
+                    <span>{formatDate(claim.start_date)} - {formatDate(claim.end_date)}</span>
+                    <span>{formatCurrencyGBP(claim.total_expenditure)}</span>
                   </div>
                   
                   <div class="flex items-center justify-between mt-3 pt-2 border-t border-base-300">
                     <div class="text-xs text-base-content/50">
-                      {claim.created_at}
+                      {formatDate(claim.created_at)}
                     </div>
                     <div class="flex space-x-1">
                       <button 
