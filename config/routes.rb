@@ -112,6 +112,13 @@ Rails.application.routes.draw do
   # CNF Communications
   resources :cnf_comms, only: [:index, :show, :new, :create, :edit, :update, :destroy]
   
+  # CNF Emails
+  resources :cnf_emails, only: [:update] do
+    member do
+      patch :mark_as_sent
+    end
+  end
+  
   # Notifications
   resources :notifications, only: [:index] do
     member do

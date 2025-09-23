@@ -11,7 +11,7 @@ class CnfCommsController < ApplicationController
     per_page = 25 if per_page == 0
     
     # Get R&D claims with CNF information
-    all_claims = get_accessible_rnd_claims.includes(:company)
+    all_claims = get_accessible_rnd_claims.includes(:company, :cnf_emails)
     
     # Apply search if needed
     if search.present?

@@ -40,8 +40,26 @@ class PropsBuilderService
       cnf_deadline: claim.cnf_deadline&.strftime("%Y-%m-%d"),
       cnf_deadline_overdue: claim.cnf_deadline_overdue?,
       cnf_deadline_due_soon: claim.cnf_deadline_due_soon?,
+      cnf_emails: claim.cnf_emails.map { |email| cnf_email_props(email) },
       created_at: claim.created_at.strftime("%B %d, %Y"),
       updated_at: claim.updated_at.strftime("%B %d, %Y")
+    }
+  end
+
+  def self.cnf_email_props(email)
+    {
+      id: email.id,
+      email_slot: email.email_slot,
+      template_type: email.template_type,
+      status: email.status,
+      status_display: email.status_display,
+      status_badge_class: email.status_badge_class,
+      icon_display: email.icon_display,
+      sent_at: email.sent_at&.strftime("%Y-%m-%d %H:%M"),
+      subject: email.subject,
+      body: email.body,
+      recipient_email: email.recipient_email,
+      sender_email: email.sender_email
     }
   end
 

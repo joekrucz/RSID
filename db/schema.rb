@@ -1,5 +1,3 @@
-# Database Schema
-# 
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -11,15 +9,8 @@
 # migrations use external dependencies or application code.
 #
 # It's strongly recommended that you check this file into your version control system.
-#
-# NOTE: This is a UI/UX mockup database schema. The relationships and fields
-# are designed to support the prototype interface. In production, consider:
-# - Normalizing some denormalized fields
-# - Adding more comprehensive indexing
-# - Implementing proper audit trails
-# - Adding soft deletes where appropriate
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_18_112500) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_23_210945) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -36,6 +27,23 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_18_112500) do
     t.index ["created_at"], name: "index_clients_on_created_at"
     t.index ["employee_id"], name: "index_clients_on_employee_id"
     t.index ["user_id"], name: "index_clients_on_user_id"
+  end
+
+  create_table "cnf_emails", force: :cascade do |t|
+    t.integer "rnd_claim_id", null: false
+    t.string "email_slot", null: false
+    t.string "template_type", null: false
+    t.string "status", default: "draft"
+    t.datetime "sent_at"
+    t.text "subject"
+    t.text "body"
+    t.string "recipient_email"
+    t.string "sender_email", default: "customersuccess@granttree.co.uk"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["rnd_claim_id", "email_slot"], name: "index_cnf_emails_on_rnd_claim_id_and_email_slot", unique: true
+    t.index ["rnd_claim_id"], name: "index_cnf_emails_on_rnd_claim_id"
+    t.index ["status"], name: "index_cnf_emails_on_status"
   end
 
   create_table "companies", force: :cascade do |t|
@@ -236,6 +244,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_18_112500) do
 
   add_foreign_key "clients", "users"
   add_foreign_key "clients", "users", column: "employee_id"
+  add_foreign_key "cnf_emails", "rnd_claims"
   add_foreign_key "grant_applications", "companies"
   add_foreign_key "grant_applications", "grant_competitions"
   add_foreign_key "grant_applications", "users"

@@ -16,11 +16,21 @@
   let selectedClaim = $derived(filteredClaims.find(c => c.id === selectedClaimId));
   let selectedEmailSlot = $state(null); // { claimId, slot: '1'|'2'|'3'|'4'|'5'|'6'|'FS' }
   let emailTemplate = $state('urgent'); // 'initial' | 'monthly' | 'urgent'
+  let selectedCnfEmail = $state(null); // The actual CnfEmail record
 
-  // Choose a default template based on the clicked slot
+  // Choose a default template based on the clicked slot and find the CNF email
   $effect(() => {
-    if (!selectedEmailSlot) return;
+    if (!selectedEmailSlot) {
+      selectedCnfEmail = null;
+      return;
+    }
+    
+    const claim = filteredClaims.find(c => c.id === selectedEmailSlot.claimId);
+    if (!claim) return;
+    
     const slot = String(selectedEmailSlot.slot);
+    selectedCnfEmail = claim.cnf_emails?.find(email => email.email_slot === slot) || null;
+    
     if (slot === '1') {
       emailTemplate = 'initial';
     } else if (['2','3','4','5'].includes(slot)) {
@@ -185,6 +195,10 @@
       case 'cnf_submitted': return 'Submitted';
       case 'cnf_exempt': return 'Exempt';
       case 'cnf_missed': return 'Missed';
+      case 'sent': return 'SENT';
+      case 'to_be_sent': return 'TO BE SENT';
+      case 'skipped': return 'SKIPPED';
+      case 'to_be_skipped': return 'TO BE SKIPPED';
       default: return status;
     }
   }
@@ -199,6 +213,64 @@
       case 'cnf_exempt': return 'badge-success';
       case 'cnf_missed': return 'badge-error';
       default: return 'badge-neutral';
+    }
+  }
+
+  function getCnfEmailForSlot(claim, slot) {
+    return claim.cnf_emails?.find(email => email.email_slot === slot) || null;
+  }
+
+  function markEmailAsSent() {
+    if (!selectedCnfEmail) return;
+    
+    let newStatus;
+    if (selectedCnfEmail.status === 'sent') {
+      newStatus = 'to_be_sent';
+    } else if (selectedCnfEmail.status === 'to_be_sent') {
+      newStatus = 'sent';
+    } else if (selectedCnfEmail.status === 'skipped') {
+      newStatus = 'to_be_skipped';
+    } else if (selectedCnfEmail.status === 'to_be_skipped') {
+      newStatus = 'skipped';
+    } else {
+      newStatus = 'sent';
+    }
+    
+    router.patch(`/cnf_emails/${selectedCnfEmail.id}`, {
+      cnf_email: {
+        status: newStatus,
+        sent_at: newStatus === 'sent' ? new Date().toISOString() : null
+      }
+    }, {
+      preserveState: true,
+      preserveScroll: true,
+      onSuccess: () => {
+        // Update the local state
+        selectedCnfEmail.status = newStatus;
+        selectedCnfEmail.status_display = getStatusDisplay(newStatus);
+        selectedCnfEmail.icon_display = getIconDisplay(newStatus);
+        selectedCnfEmail.sent_at = newStatus === 'sent' ? new Date().toISOString() : null;
+        
+        // Update the claim's email list
+        const claim = filteredClaims.find(c => c.id === selectedEmailSlot.claimId);
+        if (claim && claim.cnf_emails) {
+          const emailIndex = claim.cnf_emails.findIndex(email => email.id === selectedCnfEmail.id);
+          if (emailIndex !== -1) {
+            claim.cnf_emails[emailIndex] = { ...selectedCnfEmail };
+          }
+        }
+      }
+    });
+  }
+
+
+  function getIconDisplay(status) {
+    switch(status) {
+      case 'sent': return '✅';
+      case 'to_be_sent': return '📤';
+      case 'skipped': return '⏭️';
+      case 'to_be_skipped': return '⏸️';
+      default: return '📁';
     }
   }
 </script>
@@ -269,6 +341,13 @@
               </thead>
               <tbody>
                 {#each filteredClaims as claim}
+                  {@const email1 = getCnfEmailForSlot(claim, '1')}
+                  {@const email2 = getCnfEmailForSlot(claim, '2')}
+                  {@const email3 = getCnfEmailForSlot(claim, '3')}
+                  {@const email4 = getCnfEmailForSlot(claim, '4')}
+                  {@const email5 = getCnfEmailForSlot(claim, '5')}
+                  {@const email6 = getCnfEmailForSlot(claim, '6')}
+                  {@const emailFS = getCnfEmailForSlot(claim, 'FS')}
                   <tr class="{selectedClaimId === claim.id ? 'active' : ''}"
                       aria-selected={selectedClaimId === claim.id}>
                     <td
@@ -308,44 +387,51 @@
                     </td>
                     <td class="text-center w-7 px-1">
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 1"
-                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '1' }; }}>
-                        📁
+                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '1' }; }}
+                        title={email1 ? `${email1.status_display} - ${email1.template_type}` : 'TO BE SENT - Initial'}>
+                        {email1?.icon_display || '📤'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 2"
-                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '2' }; }}>
-                        📁
+                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '2' }; }}
+                        title={email2 ? `${email2.status_display} - ${email2.template_type}` : 'TO BE SENT - Monthly'}>
+                        {email2?.icon_display || '📤'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 3"
-                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '3' }; }}>
-                        📁
+                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '3' }; }}
+                        title={email3 ? `${email3.status_display} - ${email3.template_type}` : 'TO BE SENT - Monthly'}>
+                        {email3?.icon_display || '📤'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 4"
-                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '4' }; }}>
-                        📁
+                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '4' }; }}
+                        title={email4 ? `${email4.status_display} - ${email4.template_type}` : 'TO BE SENT - Monthly'}>
+                        {email4?.icon_display || '📤'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 5"
-                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '5' }; }}>
-                        📁
+                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '5' }; }}
+                        title={email5 ? `${email5.status_display} - ${email5.template_type}` : 'TO BE SENT - Monthly'}>
+                        {email5?.icon_display || '📤'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 6"
-                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '6' }; }}>
-                        📁
+                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '6' }; }}
+                        title={email6 ? `${email6.status_display} - ${email6.template_type}` : 'TO BE SENT - Urgent'}>
+                        {email6?.icon_display || '📤'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email FS"
-                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: 'FS' }; }}>
-                        📁
+                        onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: 'FS' }; }}
+                        title={emailFS ? `${emailFS.status_display} - ${emailFS.template_type}` : 'TO BE SENT - Urgent'}>
+                        {emailFS?.icon_display || '📤'}
                       </button>
                     </td>
                     
@@ -382,15 +468,23 @@
               {@const selectedClaimForEmail = filteredClaims.find(c => c.id === selectedEmailSlot.claimId)}
               <div class="h-full flex flex-col">
                 <!-- Email Header -->
-                <div class="bg-info text-info-content p-3 rounded-t-lg">
+                <div class="p-3 rounded-t-lg {selectedCnfEmail?.status === 'sent' ? 'bg-success text-success-content' : 
+                                               selectedCnfEmail?.status === 'to_be_sent' ? 'bg-info text-info-content' :
+                                               selectedCnfEmail?.status === 'skipped' ? 'bg-warning text-warning-content' :
+                                               selectedCnfEmail?.status === 'to_be_skipped' ? 'bg-neutral text-neutral-content' :
+                                               'bg-info text-info-content'}">
                   <div class="flex items-center justify-between">
                     <div>
                       <h2 class="text-lg font-semibold">
                         {selectedClaimForEmail?.company?.name || 'Company'} - {selectedClaimForEmail?.title || 'Claim'}
                       </h2>
-                      <div class="text-sm opacity-90">TO BE SENT</div>
+                      <div class="text-sm opacity-90">{selectedCnfEmail?.status_display || 'TO BE SENT'}</div>
                     </div>
-                    <button class="btn btn-ghost btn-sm text-info-content hover:bg-info-content/20" 
+                    <button class="btn btn-ghost btn-sm {selectedCnfEmail?.status === 'sent' ? 'text-success-content hover:bg-success-content/20' :
+                                                       selectedCnfEmail?.status === 'to_be_sent' ? 'text-info-content hover:bg-info-content/20' :
+                                                       selectedCnfEmail?.status === 'skipped' ? 'text-warning-content hover:bg-warning-content/20' :
+                                                       selectedCnfEmail?.status === 'to_be_skipped' ? 'text-neutral-content hover:bg-neutral-content/20' :
+                                                       'text-info-content hover:bg-info-content/20'}" 
                             onclick={() => selectedEmailSlot = null} 
                             aria-label="Close email">
                       ✕
@@ -404,15 +498,15 @@
                   <div class="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span class="font-medium text-base-content/70">Sent:</span>
-                      <span class="ml-2">15/08/25</span>
+                      <span class="ml-2">{selectedCnfEmail?.sent_at || 'Not sent'}</span>
                     </div>
                     <div>
                       <span class="font-medium text-base-content/70">From:</span>
-                      <span class="ml-2">customersuccess@granttree.co.uk</span>
+                      <span class="ml-2">{selectedCnfEmail?.sender_email || 'customersuccess@granttree.co.uk'}</span>
                     </div>
                     <div>
                       <span class="font-medium text-base-content/70">To:</span>
-                      <span class="ml-2">{selectedClaimForEmail?.company?.name ? `${selectedClaimForEmail.company.name.toLowerCase().replace(/\s+/g, '')}@company.com` : 'client@company.com'}</span>
+                      <span class="ml-2">{selectedCnfEmail?.recipient_email || (selectedClaimForEmail?.company?.name ? `${selectedClaimForEmail.company.name.toLowerCase().replace(/\s+/g, '')}@company.com` : 'client@company.com')}</span>
                     </div>
                     <div>
                       <span class="font-medium text-base-content/70">CC:</span>
@@ -421,9 +515,10 @@
                     <div class="col-span-2">
                       <span class="font-medium text-base-content/70">SUBJECT:</span>
                       <span class="ml-2 font-semibold">
-                        {emailTemplate === 'initial' ? `You are now in your CNF period for ${getFyFromEndDate(selectedClaimForEmail?.end_date)}` :
-                         emailTemplate === 'monthly' ? `Reminder: You are in your CNF period for ${getFyFromEndDate(selectedClaimForEmail?.end_date)}` :
-                         `CNF DEADLINE REMINDER - due ${getDeadlineFromEndDate(selectedClaimForEmail?.end_date)}`}
+                        {selectedCnfEmail?.subject || 
+                         (emailTemplate === 'initial' ? `You are now in your CNF period for ${getFyFromEndDate(selectedClaimForEmail?.end_date)}` :
+                          emailTemplate === 'monthly' ? `Reminder: You are in your CNF period for ${getFyFromEndDate(selectedClaimForEmail?.end_date)}` :
+                          `CNF DEADLINE REMINDER - due ${getDeadlineFromEndDate(selectedClaimForEmail?.end_date)}`)}
                       </span>
                     </div>
                   </div>
@@ -440,14 +535,16 @@
 
                   <!-- Email Body -->
                   <div class="bg-base-200 p-4 rounded-lg space-y-3 text-sm">
-                    {#if emailTemplate === 'initial'}
+                    {#if selectedCnfEmail?.body}
+                      <div class="whitespace-pre-line">{selectedCnfEmail.body}</div>
+                    {:else if emailTemplate === 'initial'}
                       <div>Hi,</div>
                       <div>
                         This is an automated, but important message to let you know that you are now within the six-month window to notify HMRC of your intention to make an R&D Tax Credit claim for {getFyFromEndDate(selectedClaimForEmail?.end_date)}.
-                        The deadline to submit your CNF is 6 months after the end of the claim’s accounting period - if you have extended or shortened your company’s year-end, please be advised that will also impact the deadline for the CNF.
+                        The deadline to submit your CNF is 6 months after the end of the claim's accounting period - if you have extended or shortened your company's year-end, please be advised that will also impact the deadline for the CNF.
                       </div>
                       <div>
-                        As part of recent changes to R&D legislation, HMRC now requires companies to submit a ‘Claim Notification’ to inform them that they intend to claim. This applies to all accounting periods starting on or after 1 April 2023.
+                        As part of recent changes to R&D legislation, HMRC now requires companies to submit a 'Claim Notification' to inform them that they intend to claim. This applies to all accounting periods starting on or after 1 April 2023.
                       </div>
                       <div>
                         <strong>Action required</strong><br>
@@ -455,7 +552,7 @@
                       </div>
                       <div>
                         <strong>Ignore if…</strong><br>
-                        If you’re already in touch with us about this, feel free to ignore this message. Otherwise, if you have any questions or need help completing the form, please get in touch with a member of the GrantTree team and we will be happy to assist.
+                        If you're already in touch with us about this, feel free to ignore this message. Otherwise, if you have any questions or need help completing the form, please get in touch with a member of the GrantTree team and we will be happy to assist.
                       </div>
                       <div class="pt-2">
                         Best regards,<br>
@@ -467,14 +564,14 @@
                         This is a reminder that you are currently within your Claim Notification Form (CNF) period for your {getFyFromEndDate(selectedClaimForEmail?.end_date)} R&D Tax Credit claim.
                       </div>
                       <div>
-                        HMRC requires companies to notify them of their intention to claim R&D Tax Relief no later than 6 months after the end of the claim’s accounting period. If your year-end has been extended or shortened, please note this will also affect your CNF deadline.
+                        HMRC requires companies to notify them of their intention to claim R&D Tax Relief no later than 6 months after the end of the claim's accounting period. If your year-end has been extended or shortened, please note this will also affect your CNF deadline.
                       </div>
                       <div>
                         <strong>Action required</strong><br>
                         To make this process simple, GrantTree can submit the CNF on your behalf. However, we first need a few key details from you. Please complete the attached form as soon as possible so we can take care of the submission for you. If the CNF is not filed in time, HMRC will reject your claim—even if all other criteria are met.
                       </div>
                       <div>
-                        <strong>Ignore if…</strong> If you’re already in touch with us about this, feel free to disregard this message. Otherwise, please get in touch with a member of the GrantTree team if you have any questions or need support completing the form.
+                        <strong>Ignore if…</strong> If you're already in touch with us about this, feel free to disregard this message. Otherwise, please get in touch with a member of the GrantTree team if you have any questions or need support completing the form.
                       </div>
                       <div class="pt-2">
                         Best regards,<br>
@@ -512,8 +609,11 @@
 
                   <!-- Action Button -->
                   <div class="flex justify-end pt-4">
-                    <button class="btn btn-neutral">
-                      Override: Send Now
+                    <button class="btn btn-neutral" onclick={markEmailAsSent}>
+                      {selectedCnfEmail?.status === 'sent' ? 'Mark as TO BE SENT' : 
+                       selectedCnfEmail?.status === 'to_be_sent' ? 'Mark as SENT' :
+                       selectedCnfEmail?.status === 'skipped' ? 'Mark as TO BE SKIPPED' :
+                       selectedCnfEmail?.status === 'to_be_skipped' ? 'Mark as SKIPPED' : 'Override: Send Now'}
                     </button>
                   </div>
                 </div>
