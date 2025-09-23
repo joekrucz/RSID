@@ -5,6 +5,7 @@
   import Button from '../../components/forms/Button.svelte';
   import Input from '../../components/forms/Input.svelte';
   import Select from '../../components/forms/Select.svelte';
+  import Checklist from '../../components/Checklist.svelte';
   
   let { user, rnd_claim, can_edit } = $props();
   
@@ -19,9 +20,36 @@
     'paid'
   ];
   
+  // Group stages to mirror Grant Applications: Pre-delivery, In delivery, Post delivery
+  const stageGroups = [
+    { label: 'Pre-delivery', keys: ['upcoming', 'readying_for_delivery'] },
+    { label: 'In delivery', keys: ['in_progress', 'finalised'] },
+    { label: 'Post delivery', keys: ['filed_awaiting_hmrc', 'claim_processed', 'client_invoiced', 'paid'] }
+  ];
+  function groupForStage(stage) {
+    const found = stageGroups.find(g => g.keys.includes(stage));
+    return found?.label || 'Pre-delivery';
+  }
+  function groupIndexForStage(stage) {
+    return stageGroups.findIndex(g => g.keys.includes(stage));
+  }
+  
   let currentStage = $state(rnd_claim.stage || 'upcoming');
   let stageLoading = $state(false);
   const idxCurrent = $derived(stages.indexOf(currentStage));
+  let currentGroup = $state(groupForStage(currentStage));
+  let userSetGroup = $state(false);
+  const currentGroupIdx = $derived(groupIndexForStage(currentStage));
+  $effect(() => { if (!userSetGroup) currentGroup = groupForStage(currentStage); });
+  
+  function isGroupCompleteLabel(label) {
+    const idx = stageGroups.findIndex(g => g.label === label);
+    return idx > -1 && idx < currentGroupIdx;
+  }
+  function setGroup(label) {
+    currentGroup = label;
+    userSetGroup = true;
+  }
 
   const stageStyles = {
     upcoming: { inactive: 'bg-secondary/20 text-secondary', active: 'bg-secondary text-secondary-content', complete: 'bg-secondary text-secondary-content', fillInactive: 'fill-secondary/20', fillActive: 'fill-secondary', fillComplete: 'fill-secondary' },
@@ -74,7 +102,28 @@
     router.visit(path);
   }
   
-  
+  function formatStageLabel(stage) {
+    switch (stage) {
+      case 'upcoming':
+        return 'Upcoming';
+      case 'readying_for_delivery':
+        return 'Readying for delivery';
+      case 'in_progress':
+        return 'In progress';
+      case 'finalised':
+        return 'Finalised';
+      case 'filed_awaiting_hmrc':
+        return 'Filed (awaiting HMRC)';
+      case 'claim_processed':
+        return 'Claim processed';
+      case 'client_invoiced':
+        return 'Client invoiced';
+      case 'paid':
+        return 'Paid';
+      default:
+        return stage.replaceAll('_', ' ');
+    }
+  }
   
 </script>
 
@@ -89,63 +138,192 @@
     <div class="mb-8">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <button onclick={goBack} class="btn btn-ghost btn-sm mb-2">
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="flex items-center flex-wrap gap-x-3 gap-y-1">
+            <button 
+              onclick={goBack} 
+              class="btn btn-ghost btn-sm p-2 hover:bg-base-300 text-gray-700"
+              title="Back to R&D Claims"
+              aria-label="Back to R&D Claims"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
             </svg>
-            Back to R&D Claims
           </button>
-          <div class="flex items-center space-x-4">
             <h1 class="text-3xl font-bold text-base-content">{rnd_claim.title}</h1>
+            {#if rnd_claim.company}
+              <span class="text-base-content/60">•</span>
+              <span class="text-base text-base-content/80">
+                <span class="opacity-70">Company:</span>
+                <a href={`/companies/${rnd_claim.company.id}`} class="text-black hover:underline ml-1">{rnd_claim.company.name}</a>
+              </span>
+            {/if}
           </div>
         </div>
         {#if can_edit}
           <div class="flex space-x-2">
-            <Button variant="secondary" onclick={() => navigateTo(`/rnd_claims/${rnd_claim.id}/edit`)}>
-              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button 
+              onclick={() => navigateTo(`/rnd_claims/${rnd_claim.id}/edit`)}
+              class="btn btn-ghost btn-sm p-2 text-gray-700 hover:text-gray-900 hover:bg-base-300"
+              title="Edit"
+              aria-label="Edit Project"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
-              Edit Project
-            </Button>
+            </button>
           </div>
         {/if}
       </div>
     </div>
     
-    <!-- Stages -->
+    <!-- Stages (Inline copy of Grant tabs UI) -->
     {#key currentStage}
     <div class="mt-2 w-full">
-      <ul class="flex items-stretch w-full gap-0">
-        {#each stages as s, i}
-          {@const isComplete = idxCurrent > i}
-          {@const isActive = idxCurrent === i}
-          {@const palette = stageStyles[s] || { inactive: 'bg-base-300 text-base-content', active: 'bg-base-content text-base-100', complete: 'bg-base-content text-base-100', fillInactive: 'fill-base-300', fillActive: 'fill-base-content', fillComplete: 'fill-base-content' }}
-          <li class="relative flex items-stretch flex-1 min-w-0">
+      <div class="bg-white rounded-lg border border-base-300 shadow-sm p-3 mb-3 relative">
+        <div class="flex w-full select-none">
+          {#each stageGroups as g, gi}
+            {@const isActive = currentGroup === g.label}
+            {@const isCompletedOrActiveGroup = gi <= currentGroupIdx}
+            {@const bgClass = isCompletedOrActiveGroup 
+              ? (gi === 0 
+                  ? 'bg-gray-700 text-white font-semibold' 
+                  : gi === 1 
+                    ? 'bg-blue-500 text-white font-semibold' 
+                    : 'bg-purple-600 text-white font-semibold')
+              : (gi === 1 
+                  ? 'bg-blue-100 text-blue-700' 
+                  : gi === 2
+                    ? 'bg-purple-100 text-purple-700'
+                    : 'bg-gray-100 text-gray-700')}
+            {@const isFirst = gi === 0}
+            {@const isLast = gi === stageGroups.length - 1}
+            {@const clipPath = isFirst
+              ? 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%)'
+              : (isLast
+                ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 12px 50%)'
+                : 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%)')}
+            <div class="flex-1 min-w-0 flex flex-col items-stretch" style={`flex:${g.keys.length} 1 0%`}>
+              <div class="text-xs text-base-content/60 text-center mb-1 h-4">{gi === 1 ? 'Planned: 2nd May - 10th May' : ''}</div>
+              <button
+                class={`relative justify-center items-center gap-2 px-5 py-2 text-sm transition-colors ${bgClass} ${gi > 0 ? 'border-l border-base-300' : ''} outline-none focus:outline-none focus:ring-0 ${!isLast ? 'z-10' : ''}`}
+                onclick={() => setGroup(g.label)}
+                aria-current={isActive ? 'page' : undefined}
+                style={`clip-path:${clipPath}; border-top-left-radius:${isFirst ? '0.5rem' : '0'}; border-bottom-left-radius:${isFirst ? '0.5rem' : '0'}; border-top-right-radius:${isLast ? '0.5rem' : '0'}; border-bottom-right-radius:${isLast ? '0.5rem' : '0'};`}
+              >
+                <span class="inline-flex items-center justify-center w-4 h-4">
+                  {#if isGroupCompleteLabel(g.label)}
+                    <svg class="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  {/if}
+                </span>
+                <span>{g.label}</span>
+              </button>
+            </div>
+          {/each}
+        </div>
+        
+        <!-- Secondary row: R&D Claim delivery stages for selected group -->
+        <div class="flex w-full gap-2 mt-3">
+          {#each stages as s, si}
+            {@const isFirst = si === 0}
+            {@const isLast = si === stages.length - 1}
+            {@const isActive = currentStage === s}
+            {@const isInDeliveryStage = s === 'in_progress' || s === 'finalised'}
+            {@const isPostDeliveryStage = s === 'filed_awaiting_hmrc' || s === 'claim_processed' || s === 'client_invoiced' || s === 'paid'}
+            {@const isPreDeliveryStage = s === 'upcoming' || s === 'readying_for_delivery'}
+            {@const isCompletedOrActive = si <= idxCurrent}
+            {@const bgClass = isInDeliveryStage
+              ? (isCompletedOrActive ? 'bg-blue-500 text-white font-semibold' : 'bg-blue-100 text-blue-700')
+              : (isPostDeliveryStage
+                  ? (isCompletedOrActive ? 'bg-purple-600 text-white font-semibold' : 'bg-purple-100 text-purple-700')
+                  : (isPreDeliveryStage
+                      ? (isCompletedOrActive ? 'bg-gray-700 text-white font-semibold' : 'bg-gray-100 text-gray-700')
+                      : (isCompletedOrActive ? 'bg-gray-200 text-gray-900 font-semibold' : 'bg-gray-100 text-gray-700')))}
+            {@const clipPath = isFirst
+              ? 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%)'
+              : (isLast
+                ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 12px 50%)'
+                : 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%)')}
             <button
-              class={`h-6 px-2 rounded-l-md w-full ${isComplete ? palette.complete : isActive ? palette.active : palette.inactive}`}
-              disabled={stageLoading}
+              class={`relative flex-1 min-w-0 justify-center items-center gap-2 px-3 py-1 text-xs transition-colors ${bgClass} ${si > 0 ? 'border-l border-base-300' : ''} outline-none focus:outline-none focus:ring-0 ${!isLast ? 'z-10' : ''}`}
               onclick={() => handleStageChange(s)}
-              title={s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-              aria-current={currentStage === s ? 'step' : undefined}
+              aria-current={isActive ? 'page' : undefined}
+              style={`clip-path:${clipPath}; border-top-left-radius:${isFirst ? '0.5rem' : '0'}; border-bottom-left-radius:${isFirst ? '0.5rem' : '0'}; border-top-right-radius:${isLast ? '0.5rem' : '0'}; border-bottom-right-radius:${isLast ? '0.5rem' : '0'};`}
+              title={formatStageLabel(s)}
             >
-              <span class="sr-only">{s.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+              <span class="sr-only">{formatStageLabel(s)}</span>
+              {formatStageLabel(s)}
             </button>
-            {#if i < stages.length - 1}
-              <svg class="h-6 w-2 -ml-px" viewBox="0 0 14 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <polygon points="0,0 14,16 0,32" class={isComplete ? palette.fillComplete : isActive ? palette.fillActive : palette.fillInactive} />
-              </svg>
-            {/if}
-          </li>
         {/each}
-      </ul>
+        </div>
+      </div>
       {#if stageLoading}
         <span class="loading loading-spinner loading-xs align-middle ml-2"></span>
       {/if}
     </div>
     {/key}
     
-    
-  </div>
+    <!-- Content removed as requested -->
 
-  <!-- Content removed as requested -->
+    <!-- Master-Detail (empty placeholders) -->
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <!-- Master Pane -->
+      <section class="bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:sticky lg:top-40" role="region" aria-label="R&D Master List">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-base font-semibold text-base-content">Master</h2>
+        </div>
+        <div class="text-base-content/90 text-sm">
+          <Checklist
+            sections={[
+              { title: 'General (CSM)', items: [
+                { title: 'Kick off completed' },
+                { title: 'AML check completed' },
+                { title: 'Letter of authority signed' }
+              ]},
+              { title: 'Financials (FC)', items: [
+                { title: 'Tax account access established' },
+                { title: 'Org structure compiled and confirmed by client' },
+                { title: 'Financial information received' },
+                { title: 'Pipedrive updated with latest claim details' }
+              ]},
+              { title: 'Technicals (TC)', items: [
+                { title: 'Project list completed' },
+                { title: 'Technical narrative completed' }
+              ]},
+              { title: 'Finalising and filing (FC)', items: [
+                { title: 'Apportionments completed' },
+                { title: 'Calculations done' },
+                { title: 'Claim report compiled' },
+                { title: 'Signoff statements compiled' },
+                { title: 'Amended tax docs created (Delete if N/A)' },
+                { title: 'Ready for verification?' },
+                { title: 'Claim verified' },
+                { title: 'Claim finalised' },
+                { title: 'AIF submitted' },
+                { title: 'Submission pack sent to client for signoff' },
+                { title: 'Claim filed' }
+              ]}
+                    ]}
+                  />
+                </div>
+      </section>
+
+      <!-- Detail Pane -->
+      <section class="bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:col-span-2" role="region" aria-label="R&D Detail View">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-base font-semibold text-base-content">Detail</h2>
+        </div>
+        <div class="text-base-content/50 text-sm">
+          <!-- Empty detail component placeholder -->
+        <div class="text-center py-12">
+            <svg class="w-10 h-10 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p>Select an item to view details</p>
+          </div>
+        </div>
+      </section>
+        </div>
+    </div>
 </Layout> 
