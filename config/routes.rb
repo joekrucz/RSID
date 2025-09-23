@@ -40,6 +40,11 @@ Rails.application.routes.draw do
     end
   end
   
+  # Friendly auth aliases used by the frontend
+  get   'login',  to: 'sessions#new'
+  post  'login',  to: 'sessions#create'
+  delete 'logout', to: 'sessions#destroy'
+  
   # User registration
   resources :registrations, only: [:new, :create] do
     collection do
