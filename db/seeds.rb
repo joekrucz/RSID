@@ -452,7 +452,6 @@ if User.exists?(1)
   
   Company.all.each_with_index do |company, index|
     fiscal_year = fiscal_years[index % fiscal_years.length]
-    claim_title = "#{fiscal_year} R&D Claim"
     
     # Create start and end dates based on fiscal year
     case fiscal_year
@@ -467,7 +466,11 @@ if User.exists?(1)
       end_date = Date.new(2025, 3, 31)   # March 31, 2025
     end
     
-    claim = RndClaim.find_or_create_by!(company: company, title: claim_title) do |c|
+    # Title based on period end date: abbreviated month + FY (e.g., "Mar FY23")
+    claim_title = "#{end_date.strftime('%b')} FY#{end_date.strftime('%y')}"
+
+    claim = RndClaim.find_or_create_by!(company: company) do |c|
+      c.title = claim_title
       c.start_date = start_date
       c.end_date = end_date
       # Use the same rich distribution in all environments so prod matches local demo look
@@ -498,7 +501,7 @@ if User.exists?(1)
     end
     
     created_claims << claim
-    puts "Created R&D Claim: #{claim_title} for #{company.name}"
+    puts "Created/Ensured R&D Claim: #{claim_title} for #{company.name}"
   end
   
   puts "Created #{created_claims.length} R&D claims"

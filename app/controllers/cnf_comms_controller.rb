@@ -41,12 +41,6 @@ class CnfCommsController < ApplicationController
         total_count: total_count,
         has_next_page: (page * per_page) < total_count,
         has_prev_page: page > 1
-      },
-      stats: {
-        total: total_count,
-        cnf_needed: all_claims.where(cnf_status: 'cnf_needed').count,
-        cnf_overdue: all_claims.where('cnf_deadline < ?', Date.current).count,
-        cnf_due_soon: all_claims.where('cnf_deadline BETWEEN ? AND ?', Date.current, Date.current + 7.days).count
       }
     }
   end

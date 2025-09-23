@@ -4,7 +4,7 @@
   import Layout from '../../components/Layout.svelte';
   import Button from '../../components/forms/Button.svelte';
   
-  let { user, rnd_claims, filters, pagination, stats } = $props();
+  let { user, rnd_claims, filters, pagination } = $props();
   
   let search = $state(filters.search || '');
   let currentPage = $state(pagination?.current_page || 1);
@@ -12,6 +12,15 @@
   
   // Use server-side pagination and search
   let filteredClaims = $state(rnd_claims);
+  let selectedClaimId = $state(null);
+  let selectedClaim = $derived(filteredClaims.find(c => c.id === selectedClaimId));
+
+  function handleRowKeydown(event, claimId) {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      selectedClaimId = claimId;
+    }
+  }
   
   // Update data when props change
   $effect(() => {
@@ -74,6 +83,48 @@
       default: return 'badge-neutral';
     }
   }
+
+  function computeSixMonthsAfter(dateStr) {
+    if (!dateStr) return null;
+    const [y, m, d] = dateStr.split('-').map(Number);
+    if (!y || !m || !d) return null;
+    const dt = new Date(y, m - 1, d);
+    dt.setMonth(dt.getMonth() + 6);
+    const yy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getDate()).padStart(2, '0');
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  function isOverdue(dateStr) {
+    if (!dateStr) return false;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt < today;
+  }
+
+  function isDueSoon(dateStr) {
+    if (!dateStr) return false;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const soon = new Date(today);
+    soon.setDate(soon.getDate() + 7);
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt >= today && dt <= soon;
+  }
+
+  function formatDateSixDigits(dateStr) {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-').map(Number);
+    if (!y || !m || !d) return '';
+    const dd = String(d).padStart(2, '0');
+    const mm = String(m).padStart(2, '0');
+    const yy = String(y).slice(-2);
+    return `${dd}/${mm}/${yy}`; // DD/MM/YY
+  }
 </script>
 
 <svelte:head>
@@ -87,190 +138,197 @@
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 class="text-2xl font-bold text-base-content">CNF Communications</h1>
-          <p class="text-base-content/70 mt-1">Track CNF status and deadlines for R&D claims</p>
         </div>
-        
-        <div class="flex items-center space-x-3">
-          <Button variant="primary" onclick={() => router.visit('/rnd_claims/new')}>
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            New R&D Claim
-          </Button>
-        </div>
-      </div>
-      
-      <!-- Search and Controls -->
-      <div class="mt-6 bg-base-100 rounded-lg shadow border border-base-300 p-4">
-        <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-          <!-- Search Bar -->
-          <div class="flex-1 max-w-md">
-            <div class="join w-full">
-              <input
-                type="text"
-                bind:value={search}
-                oninput={handleSearch}
-                placeholder="Search R&D claims..."
-                class="input input-bordered join-item flex-1"
-              />
-              {#if search}
-                <button 
-                  class="btn btn-outline join-item"
-                  onclick={() => { search = ''; handleSearch(); }}
-                  aria-label="Clear search"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
-              {/if}
-            </div>
-          </div>
-          
-          <!-- Per Page Selector -->
-          <div class="flex items-center space-x-2">
-            <span class="text-sm font-medium text-base-content">Per page:</span>
-            <select 
-              bind:value={perPage} 
-              onchange={() => handlePerPageChange(perPage)}
-              class="select select-bordered select-sm"
-            >
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 mt-8">
-        <div class="stat bg-base-100 shadow rounded-lg">
-          <div class="stat-title">Total Claims</div>
-          <div class="stat-value text-primary">{stats.total}</div>
-        </div>
-        <div class="stat bg-base-100 shadow rounded-lg">
-          <div class="stat-title">CNF Needed</div>
-          <div class="stat-value text-error">{stats.cnf_needed}</div>
-        </div>
-        <div class="stat bg-base-100 shadow rounded-lg">
-          <div class="stat-title">CNF Overdue</div>
-          <div class="stat-value text-error">{stats.cnf_overdue}</div>
-        </div>
-        <div class="stat bg-base-100 shadow rounded-lg">
-          <div class="stat-title">Due Soon</div>
-          <div class="stat-value text-warning">{stats.cnf_due_soon}</div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- R&D Claims Content -->
-    <div class="bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden">
-      {#if filteredClaims.length > 0}
-        <div class="overflow-x-auto">
-          <table class="table table-zebra w-full">
-            <thead>
-              <tr>
-                <th>Project</th>
-                <th>Company</th>
-                <th>CNF Status</th>
-                <th>CNF Deadline</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {#each filteredClaims as claim}
-                <tr>
-                  <td>
-                    <div class="font-bold">{claim.title}</div>
-                  </td>
-                  <td>
-                    {#if claim.company}
-                      <div class="font-medium">
-                        <a 
-                          href={`/companies/${claim.company.id}`} 
-                          class="link link-primary hover:link-primary-focus"
-                        >
-                          {claim.company.name}
-                        </a>
-                      </div>
-                    {:else}
-                      <div class="text-sm opacity-50">—</div>
-                    {/if}
-                  </td>
-                  <td>
-                    <div class="badge {claim.cnf_status_badge_class}">
-                      {claim.cnf_status_display}
-                    </div>
-                  </td>
-                  <td>
-                    {#if claim.cnf_deadline}
-                      <div class="text-sm {claim.cnf_deadline_overdue ? 'text-error font-bold' : claim.cnf_deadline_due_soon ? 'text-warning font-bold' : ''}">
-                        {claim.cnf_deadline}
-                        {#if claim.cnf_deadline_overdue}
-                          <div class="text-xs text-error">Overdue</div>
-                        {:else if claim.cnf_deadline_due_soon}
-                          <div class="text-xs text-warning">Due Soon</div>
-                        {/if}
-                      </div>
-                    {:else}
-                      <div class="text-sm opacity-50">—</div>
-                    {/if}
-                  </td>
-                  <td>
-                    <div class="flex gap-2">
-                      <button 
-                        class="btn btn-sm btn-ghost"
-                        onclick={() => router.visit(`/rnd_claims/${claim.id}`)}
-                        title="View R&D Claim"
-                        aria-label="View {claim.title}"
-                      >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                      </button>
-                      <button 
-                        class="btn btn-sm btn-ghost"
-                        onclick={() => router.visit(`/rnd_claims/${claim.id}/edit`)}
-                        title="Edit R&D Claim"
-                        aria-label="Edit {claim.title}"
-                      >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
-        </div>
-      {:else}
-        <div class="text-center py-12">
-          <div class="text-base-content/50 mb-4">
-            <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-            </svg>
-            <h3 class="text-lg font-medium text-base-content mb-2">
-              {search.trim() ? 'No R&D claims found' : 'No R&D claims yet'}
-            </h3>
-            <p class="text-base-content/70 mb-6">
-              {search.trim() 
-                ? `No R&D claims match "${search}". Try adjusting your search terms.`
-                : 'Get started by creating your first R&D claim'
-              }
-            </p>
-            {#if !search.trim()}
-              <Button variant="primary" onclick={() => router.visit('/rnd_claims/new')}>
-                Create Your First R&D Claim
-              </Button>
+        <div class="flex-1 sm:max-w-md">
+          <div class="join w-full">
+            <input
+              type="text"
+              bind:value={search}
+              oninput={handleSearch}
+              placeholder="Search R&D claims..."
+              class="input input-bordered join-item w-full"
+            />
+            {#if search}
+              <button 
+                class="btn btn-outline join-item"
+                onclick={() => { search = ''; handleSearch(); }}
+                aria-label="Clear search"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
             {/if}
           </div>
         </div>
-      {/if}
+      </div>
+      
+      
+      
+    </div>
+    
+    <!-- R&D Claims Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <!-- Master: Claims List -->
+      <div class="lg:col-span-7 bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden">
+        {#if filteredClaims.length > 0}
+          <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+              <thead>
+                <tr>
+                  <th rowspan="2">CNF Status</th>
+                  <th rowspan="2">Name</th>
+                  <th rowspan="2">Deadline</th>
+                  <th colspan="7" class="text-center">CNF email</th>
+                </tr>
+                <tr>
+                  <th class="w-8 text-center">1</th>
+                  <th class="w-8 text-center">2</th>
+                  <th class="w-8 text-center">3</th>
+                  <th class="w-8 text-center">4</th>
+                  <th class="w-8 text-center">5</th>
+                  <th class="w-8 text-center">6</th>
+                  <th class="w-8 text-center">FS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each filteredClaims as claim}
+                  <tr class="cursor-pointer {selectedClaimId === claim.id ? 'active' : ''}"
+                      onclick={() => { selectedClaimId = claim.id; }}
+                      onkeydown={(e) => handleRowKeydown(e, claim.id)}
+                      tabindex="0"
+                      aria-selected={selectedClaimId === claim.id}>
+                    <td>
+                      <div class="badge {claim.cnf_status_badge_class}">
+                        {claim.cnf_status_display}
+                      </div>
+                    </td>
+                    <td>
+                      <div class="font-bold">
+                        {claim.title}
+                        {#if claim.company}
+                          <span class="text-base-content/60 font-normal"> — </span>
+                          <a 
+                            href={`/companies/${claim.company.id}`}
+                            class="link link-primary hover:link-primary-focus"
+                            onclick={(e) => e.stopPropagation()}
+                          >{claim.company.name}</a>
+                        {/if}
+                      </div>
+                    </td>
+                    <td>
+                      {#if claim.end_date}
+                        {#key claim.end_date}
+                          {#await Promise.resolve(computeSixMonthsAfter(claim.end_date)) then calcDeadline}
+                            {#if calcDeadline}
+                              <div class="text-sm {isOverdue(calcDeadline) ? 'text-error font-bold' : isDueSoon(calcDeadline) ? 'text-warning font-bold' : ''}">{formatDateSixDigits(calcDeadline)}</div>
+                            {:else}
+                              <div class="text-sm opacity-50">—</div>
+                            {/if}
+                          {/await}
+                        {/key}
+                      {:else}
+                        <div class="text-sm opacity-50">—</div>
+                      {/if}
+                    </td>
+                    <td class="text-center w-8"></td>
+                    <td class="text-center w-8"></td>
+                    <td class="text-center w-8"></td>
+                    <td class="text-center w-8"></td>
+                    <td class="text-center w-8"></td>
+                    <td class="text-center w-8"></td>
+                    <td class="text-center w-8"></td>
+                    
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </div>
+        {:else}
+          <div class="text-center py-12">
+            <div class="text-base-content/50 mb-4">
+              <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+              </svg>
+              <h3 class="text-lg font-medium text-base-content mb-2">
+                {search.trim() ? 'No R&D claims found' : 'No R&D claims yet'}
+              </h3>
+              <p class="text-base-content/70 mb-6">
+                {search.trim() 
+                  ? `No R&D claims match "${search}". Try adjusting your search terms.`
+                  : 'Get started by creating your first R&D claim'
+                }
+              </p>
+            </div>
+          </div>
+        {/if}
+      </div>
+
+      <!-- Detail: Selected Claim -->
+      <div class="lg:col-span-5">
+        <div class="bg-base-100 rounded-lg shadow border border-base-300 p-4 h-full">
+          {#if selectedClaim}
+            <div class="flex items-start justify-between">
+              <div>
+                <h2 class="text-xl font-semibold text-base-content">{selectedClaim.title}</h2>
+                {#if selectedClaim.company}
+                  <div class="text-base-content/70 mt-1">
+                    Company: 
+                    <a 
+                      href={`/companies/${selectedClaim.company.id}`} 
+                      class="link link-primary hover:link-primary-focus"
+                    >
+                      {selectedClaim.company.name}
+                    </a>
+                  </div>
+                {/if}
+              </div>
+              <div class="badge {selectedClaim.cnf_status_badge_class}">{selectedClaim.cnf_status_display}</div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="space-y-3">
+              <div>
+                <span class="text-sm text-base-content/70">CNF Deadline</span>
+                {#if selectedClaim.end_date}
+                  {#key selectedClaim.end_date}
+                    {#await Promise.resolve(computeSixMonthsAfter(selectedClaim.end_date)) then calcDeadline}
+                      <div class="text-sm {isOverdue(calcDeadline) ? 'text-error font-bold' : isDueSoon(calcDeadline) ? 'text-warning font-bold' : ''}">
+                        {calcDeadline ? formatDateSixDigits(calcDeadline) : '—'}
+                      </div>
+                    {/await}
+                  {/key}
+                {:else}
+                  <div class="text-sm opacity-50">—</div>
+                {/if}
+              </div>
+            </div>
+
+            <div class="mt-6 flex gap-2">
+              <button 
+                class="btn btn-sm btn-outline"
+                onclick={() => router.visit(`/rnd_claims/${selectedClaim.id}`)}
+              >
+                View
+              </button>
+              <button 
+                class="btn btn-sm btn-primary"
+                onclick={() => router.visit(`/rnd_claims/${selectedClaim.id}/edit`)}
+              >
+                Edit
+              </button>
+            </div>
+          {:else}
+            <div class="h-full flex items-center justify-center text-base-content/60 py-12">
+              <div class="text-center">
+                <div class="mb-2 font-medium">Select a claim to view details</div>
+                <div class="text-sm">Choose a row from the list on the left.</div>
+              </div>
+            </div>
+          {/if}
+        </div>
+      </div>
     </div>
     
     <!-- Pagination Controls -->
@@ -328,3 +386,5 @@
     {/if}
   </div>
 </Layout>
+
+
