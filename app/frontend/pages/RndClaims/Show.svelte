@@ -20,7 +20,6 @@
     'paid'
   ];
   
-  let activeTab = $state('overview');
   let currentStage = $state(rnd_claim.stage || 'upcoming');
   let stageLoading = $state(false);
   let showAddProject = $state(false);
@@ -185,36 +184,12 @@
     </div>
     {/key}
     
-    <!-- Tabs -->
-    <div class="bg-base-100 rounded-lg shadow border border-base-300 mb-6">
-      <div class="tabs tabs-boxed p-2">
-        <button 
-          class="tab {activeTab === 'overview' ? 'tab-active' : ''}"
-          onclick={() => activeTab = 'overview'}
-        >
-          Overview
-        </button>
-        <button 
-          class="tab {activeTab === 'checklist' ? 'tab-active' : ''}"
-          onclick={() => activeTab = 'checklist'}
-        >
-          Checklist
-        </button>
-        <button 
-          class="tab {activeTab === 'projects' ? 'tab-active' : ''}"
-          onclick={() => activeTab = 'projects'}
-        >
-          Projects
-        </button>
-        
-      </div>
-    </div>
+    
   </div>
 
-  <!-- Tab Content -->
+  <!-- Content -->
     <div class="bg-base-100 rounded-lg shadow border border-base-300 p-6">
-      {#if activeTab === 'overview'}
-        <div class="space-y-6">
+      <div class="space-y-6">
           <!-- Project Overview -->
           <div>
             <h3 class="text-lg font-semibold text-base-content mb-4">Project Overview</h3>
@@ -256,190 +231,188 @@
               </div>
             </div>
           </div>
-        </div>
-      {:else if activeTab === 'checklist'}
-        <div>
-          <h3 class="text-lg font-semibold text-base-content mb-4">R&D Claim Checklist</h3>
-          <Checklist sections={[
-            {
-              title: 'General (CSM)',
-              items: [
-                { title: 'Kick off completed' },
-                { title: 'Tax account access established' },
-                { title: 'AML check completed' },
-                { title: 'Letter of authority signed' }
-              ]
-            },
-            {
-              title: 'Financials (FC)',
-              items: [
-                { title: 'Org structure compiled and confirmed by client' },
-                { title: 'Financial information received' },
-                { title: 'Pipedrive updated with latest claim details' }
-              ]
-            },
-            {
-              title: 'Technicals (TC)',
-              items: [
-                { title: 'Project list completed' },
-                { title: 'Technical narrative completed' }
-              ]
-            },
-            {
-              title: 'Finalising and filing (FC)',
-              items: [
-                { title: 'Apportionments completed' },
-                { title: 'Calculations done' },
-                { title: 'Claim report compiled' },
-                { title: 'Signoff statements compiled' },
-                { title: 'Amended tax docs created (Delete if N/A)' },
-                { title: 'Ready for verification?' },
-                { title: 'Claim verified' },
-                { title: 'Claim finalised' },
-                { title: 'AIF submitted' },
-                { title: 'Submission pack sent to client for signoff' },
-                { title: 'Claim filed' }
-              ]
-            }
-          ]} />
-        </div>
-      {:else if activeTab === 'projects'}
-        <div>
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-base-content">Projects</h3>
-            {#if can_add_projects}
-              <Button variant="primary" onclick={() => showAddProject = !showAddProject}>
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                Add Project
-              </Button>
+       
+          <div>
+            <h3 class="text-lg font-semibold text-base-content mb-4">R&D Claim Checklist</h3>
+            <Checklist sections={[
+              {
+                title: 'General (CSM)',
+                items: [
+                  { title: 'Kick off completed' },
+                  { title: 'Tax account access established' },
+                  { title: 'AML check completed' },
+                  { title: 'Letter of authority signed' }
+                ]
+              },
+              {
+                title: 'Financials (FC)',
+                items: [
+                  { title: 'Org structure compiled and confirmed by client' },
+                  { title: 'Financial information received' },
+                  { title: 'Pipedrive updated with latest claim details' }
+                ]
+              },
+              {
+                title: 'Technicals (TC)',
+                items: [
+                  { title: 'Project list completed' },
+                  { title: 'Technical narrative completed' }
+                ]
+              },
+              {
+                title: 'Finalising and filing (FC)',
+                items: [
+                  { title: 'Apportionments completed' },
+                  { title: 'Calculations done' },
+                  { title: 'Claim report compiled' },
+                  { title: 'Signoff statements compiled' },
+                  { title: 'Amended tax docs created (Delete if N/A)' },
+                  { title: 'Ready for verification?' },
+                  { title: 'Claim verified' },
+                  { title: 'Claim finalised' },
+                  { title: 'AIF submitted' },
+                  { title: 'Submission pack sent to client for signoff' },
+                  { title: 'Claim filed' }
+                ]
+              }
+            ]} />
+          </div>
+         
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-semibold text-base-content">Projects</h3>
+              {#if can_add_projects}
+                <Button variant="primary" onclick={() => showAddProject = !showAddProject}>
+                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                  </svg>
+                  Add Project
+                </Button>
+              {/if}
+            </div>
+            
+            {#if showAddProject}
+              <div class="bg-base-200 rounded-lg p-4 mb-6">
+                <h4 class="font-medium text-base-content mb-4">Add New Project</h4>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">Project Name</span>
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="Enter project name..."
+                      bind:value={newProject.name}
+                    />
+                  </div>
+                  
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">Qualification Status</span>
+                    </label>
+                    <Select
+                      bind:value={newProject.qualification_status}
+                      options={[
+                        { value: 'qualified', label: 'Qualified' },
+                        { value: 'disqualified', label: 'Disqualified' }
+                      ]}
+                    />
+                  </div>
+                  
+                  <div class="form-control">
+                    <label class="label">
+                      <span class="label-text">Narrative Status</span>
+                    </label>
+                    <Select
+                      bind:value={newProject.narrative_status}
+                      options={[
+                        { value: 'skip', label: 'Skip' },
+                        { value: 'drafting', label: 'Drafting' },
+                        { value: 'drafted', label: 'Drafted' },
+                        { value: 'signed_off', label: 'Signed Off' }
+                      ]}
+                    />
+                  </div>
+                </div>
+                
+                <div class="flex justify-end space-x-2 mt-4">
+                  <Button variant="outline" onclick={() => showAddProject = false}>
+                    Cancel
+                  </Button>
+                  <Button variant="primary" onclick={handleAddProject} disabled={loading || !newProject.name.trim()}>
+                    {#if loading}
+                      <span class="loading loading-spinner loading-sm"></span>
+                      Adding...
+                    {:else}
+                      Add Project
+                    {/if}
+                  </Button>
+                </div>
+              </div>
+            {/if}
+            
+            {#if projects && projects.length > 0}
+              <div class="overflow-x-auto">
+                <table class="table table-zebra w-full">
+                  <thead>
+                    <tr>
+                      <th>Project Name</th>
+                      <th>Qualification Status</th>
+                      <th>Narrative Status</th>
+                      <th>Created</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {#each projects as project}
+                      <tr>
+                        <td>
+                          <div class="font-medium">{project.name}</div>
+                        </td>
+                        <td>
+                          <div class={`badge ${project.qualification_status === 'qualified' ? 'badge-success' : 'badge-error'}`}>
+                            {project.qualification_status_display}
+                          </div>
+                        </td>
+                        <td>
+                          <div class={`badge ${
+                            project.narrative_status === 'skip' ? 'badge-neutral' :
+                            project.narrative_status === 'drafting' ? 'badge-warning' :
+                            project.narrative_status === 'drafted' ? 'badge-info' :
+                            'badge-success'
+                          }`}>
+                            {project.narrative_status_display}
+                          </div>
+                        </td>
+                        <td class="text-sm text-base-content/70">{project.created_at}</td>
+                        <td>
+                          {#if can_add_projects}
+                            <button
+                              onclick={() => deleteProject(project.id)}
+                              class="btn btn-ghost btn-sm text-error"
+                            >
+                              Delete
+                            </button>
+                          {/if}
+                        </td>
+                      </tr>
+                    {/each}
+                  </tbody>
+                </table>
+              </div>
+            {:else}
+              <div class="text-center py-8">
+                <div class="text-base-content/50">
+                  <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                  </svg>
+                  <h4 class="text-lg font-medium text-base-content mb-2">No projects yet</h4>
+                  <p class="text-base-content/70">Add projects to track individual R&D initiatives for this claim.</p>
+                </div>
+              </div>
             {/if}
           </div>
-          
-          {#if showAddProject}
-            <div class="bg-base-200 rounded-lg p-4 mb-6">
-              <h4 class="font-medium text-base-content mb-4">Add New Project</h4>
-              
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text">Project Name</span>
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="Enter project name..."
-                    bind:value={newProject.name}
-                  />
-                </div>
-                
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text">Qualification Status</span>
-                  </label>
-                  <Select
-                    bind:value={newProject.qualification_status}
-                    options={[
-                      { value: 'qualified', label: 'Qualified' },
-                      { value: 'disqualified', label: 'Disqualified' }
-                    ]}
-                  />
-                </div>
-                
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text">Narrative Status</span>
-                  </label>
-                  <Select
-                    bind:value={newProject.narrative_status}
-                    options={[
-                      { value: 'skip', label: 'Skip' },
-                      { value: 'drafting', label: 'Drafting' },
-                      { value: 'drafted', label: 'Drafted' },
-                      { value: 'signed_off', label: 'Signed Off' }
-                    ]}
-                  />
-                </div>
-              </div>
-              
-              <div class="flex justify-end space-x-2 mt-4">
-                <Button variant="outline" onclick={() => showAddProject = false}>
-                  Cancel
-                </Button>
-                <Button variant="primary" onclick={handleAddProject} disabled={loading || !newProject.name.trim()}>
-                  {#if loading}
-                    <span class="loading loading-spinner loading-sm"></span>
-                    Adding...
-                  {:else}
-                    Add Project
-                  {/if}
-                </Button>
-              </div>
-            </div>
-          {/if}
-          
-          {#if projects && projects.length > 0}
-            <div class="overflow-x-auto">
-              <table class="table table-zebra w-full">
-                <thead>
-                  <tr>
-                    <th>Project Name</th>
-                    <th>Qualification Status</th>
-                    <th>Narrative Status</th>
-                    <th>Created</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {#each projects as project}
-                    <tr>
-                      <td>
-                        <div class="font-medium">{project.name}</div>
-                      </td>
-                      <td>
-                        <div class={`badge ${project.qualification_status === 'qualified' ? 'badge-success' : 'badge-error'}`}>
-                          {project.qualification_status_display}
-                        </div>
-                      </td>
-                      <td>
-                        <div class={`badge ${
-                          project.narrative_status === 'skip' ? 'badge-neutral' :
-                          project.narrative_status === 'drafting' ? 'badge-warning' :
-                          project.narrative_status === 'drafted' ? 'badge-info' :
-                          'badge-success'
-                        }`}>
-                          {project.narrative_status_display}
-                        </div>
-                      </td>
-                      <td class="text-sm text-base-content/70">{project.created_at}</td>
-                      <td>
-                        {#if can_add_projects}
-                          <button
-                            onclick={() => deleteProject(project.id)}
-                            class="btn btn-ghost btn-sm text-error"
-                          >
-                            Delete
-                          </button>
-                        {/if}
-                      </td>
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
-            </div>
-          {:else}
-            <div class="text-center py-8">
-              <div class="text-base-content/50">
-                <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                </svg>
-                <h4 class="text-lg font-medium text-base-content mb-2">No projects yet</h4>
-                <p class="text-base-content/70">Add projects to track individual R&D initiatives for this claim.</p>
-              </div>
-            </div>
-          {/if}
-        </div>
-      
-      {/if}
+      </div>
     </div>
 </Layout> 
