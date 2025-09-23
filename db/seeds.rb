@@ -507,10 +507,16 @@ if User.exists?(1)
   puts "Created #{created_claims.length} R&D claims"
   puts "Total R&D claims: #{RndClaim.count}"
   
-  # Create CNF emails for all R&D claims with demo status distribution
-  puts "\nCreating CNF emails with demo status distribution..."
+  # Create CNF emails for all R&D claims with realistic monthly timeline
+  puts "\nCreating CNF emails with monthly timeline..."
   
   RndClaim.includes(:cnf_emails).find_each do |claim|
+    next unless claim.end_date # Skip claims without end dates
+    
+    # Calculate the CNF deadline (6 months after end_date)
+    end_date = claim.end_date.is_a?(String) ? Date.parse(claim.end_date) : claim.end_date
+    cnf_deadline = end_date + 6.months
+    
     # Create emails for all slots if they don't exist
     %w[1 2 3 4 5 6 FS].each do |slot|
       CnfEmail.find_or_create_by(rnd_claim: claim, email_slot: slot) do |email|
@@ -522,8 +528,37 @@ if User.exists?(1)
                        else 'initial'
                        end
         
+        # Calculate when this email should be sent based on monthly schedule
+        # Email 1: immediately after period end
+        # Email 2: 1 month after period end
+        # Email 3: 2 months after period end
+        # etc.
+        email_send_date = case slot
+                         when '1' then end_date + 1.day
+                         when '2' then end_date + 1.month + 1.day
+                         when '3' then end_date + 2.months + 1.day
+                         when '4' then end_date + 3.months + 1.day
+                         when '5' then end_date + 4.months + 1.day
+                         when '6' then end_date + 5.months + 1.day
+                         when 'FS' then cnf_deadline - 2.weeks # Final reminder 2 weeks before deadline
+                         else end_date + 1.day
+                         end
+        
+        # Determine status based on current date vs send date
+        today = Date.current
+        if email_send_date <= today
+          # Email should have been sent already
+          email.status = 'sent'
+          email.sent_at = email_send_date.to_time
+        elsif email_send_date <= today + 1.week
+          # Email is due soon
+          email.status = 'to_be_sent'
+        else
+          # Email is not due yet
+          email.status = 'to_be_sent'
+        end
+        
         email.template_type = template_type
-        email.status = 'to_be_sent' # Default status
         email.recipient_email = CnfEmail.generate_recipient_email(claim)
         email.subject = CnfEmail.generate_subject(claim, template_type)
         email.body = CnfEmail.generate_body(claim, template_type)
@@ -531,22 +566,19 @@ if User.exists?(1)
     end
   end
   
-  # Apply demo status distribution to first 20 claims
-  demo_claims = RndClaim.includes(:cnf_emails).limit(20)
+  # Apply some demo status variations to make it more realistic
+  demo_claims = RndClaim.includes(:cnf_emails).limit(15)
   
   demo_claims.each_with_index do |claim, claim_index|
     emails = claim.cnf_emails.order(:email_slot)
     
+    # Randomly skip some emails to make it more realistic
     emails.each_with_index do |email, email_index|
-      # Create a pattern of different statuses
-      case (claim_index + email_index) % 4
-      when 0
-        email.update!(status: 'sent', sent_at: 1.week.ago)
-      when 1
-        email.update!(status: 'to_be_sent')
-      when 2
+      # 10% chance to skip an email
+      if rand < 0.1
         email.update!(status: 'skipped')
-      when 3
+      elsif email.status == 'sent' && rand < 0.2
+        # 20% chance to mark as "to_be_skipped" for already sent emails (simulating a change of mind)
         email.update!(status: 'to_be_skipped')
       end
     end

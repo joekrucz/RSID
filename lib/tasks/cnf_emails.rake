@@ -74,4 +74,54 @@ namespace :cnf_emails do
     puts "  SKIPPED: #{CnfEmail.skipped.count}"
     puts "  TO BE SKIPPED: #{CnfEmail.to_be_skipped.count}"
   end
+
+  desc "Update CNF emails with realistic monthly timeline based on claim end dates"
+  task update_monthly_timeline: :environment do
+    puts "Updating CNF emails with monthly timeline..."
+    
+    RndClaim.includes(:cnf_emails).find_each do |claim|
+      next unless claim.end_date
+      
+      # Calculate the CNF deadline (6 months after end_date)
+      end_date = claim.end_date.is_a?(String) ? Date.parse(claim.end_date) : claim.end_date
+      cnf_deadline = end_date + 6.months
+      
+      # Update each email slot with realistic send dates
+      %w[1 2 3 4 5 6 FS].each do |slot|
+        email = claim.cnf_emails.find_by(email_slot: slot)
+        next unless email
+        
+        # Calculate when this email should be sent based on monthly schedule
+        email_send_date = case slot
+                         when '1' then end_date + 1.day
+                         when '2' then end_date + 1.month + 1.day
+                         when '3' then end_date + 2.months + 1.day
+                         when '4' then end_date + 3.months + 1.day
+                         when '5' then end_date + 4.months + 1.day
+                         when '6' then end_date + 5.months + 1.day
+                         when 'FS' then cnf_deadline - 2.weeks
+                         else end_date + 1.day
+                         end
+        
+        # Determine status based on current date vs send date
+        today = Date.current
+        if email_send_date <= today
+          # Email should have been sent already
+          email.update!(status: 'sent', sent_at: email_send_date.to_time)
+        else
+          # Email is not due yet
+          email.update!(status: 'to_be_sent', sent_at: nil)
+        end
+        
+        puts "Updated #{claim.title} - Email #{slot}: #{email.status} (due: #{email_send_date})"
+      end
+    end
+    
+    puts "Monthly timeline update completed!"
+    puts "Status distribution:"
+    puts "  SENT: #{CnfEmail.sent.count}"
+    puts "  TO BE SENT: #{CnfEmail.to_be_sent.count}"
+    puts "  SKIPPED: #{CnfEmail.skipped.count}"
+    puts "  TO BE SKIPPED: #{CnfEmail.to_be_skipped.count}"
+  end
 end

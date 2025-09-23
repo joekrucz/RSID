@@ -288,25 +288,25 @@
           <h1 class="text-2xl font-bold text-base-content">CNF Communications</h1>
         </div>
         <div class="flex-1 sm:max-w-md">
-          <div class="join w-full">
-            <input
-              type="text"
-              bind:value={search}
-              oninput={handleSearch}
-              placeholder="Search R&D claims..."
+            <div class="join w-full">
+              <input
+                type="text"
+                bind:value={search}
+                oninput={handleSearch}
+                placeholder="Search R&D claims..."
               class="input input-bordered join-item w-full"
-            />
-            {#if search}
-              <button 
-                class="btn btn-outline join-item"
-                onclick={() => { search = ''; handleSearch(); }}
-                aria-label="Clear search"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            {/if}
+              />
+              {#if search}
+                <button 
+                  class="btn btn-outline join-item"
+                  onclick={() => { search = ''; handleSearch(); }}
+                  aria-label="Clear search"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              {/if}
           </div>
         </div>
       </div>
@@ -319,7 +319,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
       <!-- Master: Claims List -->
       <div class="lg:col-span-5 bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden flex flex-col">
-        {#if filteredClaims.length > 0}
+      {#if filteredClaims.length > 0}
           <div class="overflow-x-auto overflow-y-auto max-h-[70vh] flex-1">
             <table class="table table-zebra w-full table-compact table-fixed">
               <thead class="sticky top-0 z-10 bg-base-100">
@@ -337,10 +337,10 @@
                   <th class="w-7 text-center px-1">5</th>
                   <th class="w-7 text-center px-1">6</th>
                   <th class="w-7 text-center px-1">FS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {#each filteredClaims as claim}
+              </tr>
+            </thead>
+            <tbody>
+              {#each filteredClaims as claim}
                   {@const email1 = getCnfEmailForSlot(claim, '1')}
                   {@const email2 = getCnfEmailForSlot(claim, '2')}
                   {@const email3 = getCnfEmailForSlot(claim, '3')}
@@ -365,7 +365,7 @@
                       <div class="font-bold text-sm truncate max-w-[10rem]" title={(claim.company ? `${claim.company.name} ${claim.title}` : claim.title)}>
                         {#if claim.company}
                           {claim.company.name} {claim.title}
-                        {:else}
+                    {:else}
                           {claim.title}
                         {/if}
                       </div>
@@ -381,10 +381,10 @@
                             {/if}
                           {/await}
                         {/key}
-                      {:else}
-                        <div class="text-sm opacity-50">—</div>
-                      {/if}
-                    </td>
+                    {:else}
+                      <div class="text-sm opacity-50">—</div>
+                    {/if}
+                  </td>
                     <td class="text-center w-7 px-1">
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 1"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '1' }; }}
@@ -433,28 +433,28 @@
                         title={emailFS ? `${emailFS.status_display} - ${emailFS.template_type}` : 'TO BE SENT - Urgent'}>
                         {emailFS?.icon_display || '📤'}
                       </button>
-                    </td>
+                  </td>
                     
-                  </tr>
-                {/each}
-              </tbody>
-            </table>
-          </div>
-        {:else}
-          <div class="text-center py-12">
-            <div class="text-base-content/50 mb-4">
-              <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-              </svg>
-              <h3 class="text-lg font-medium text-base-content mb-2">
-                {search.trim() ? 'No R&D claims found' : 'No R&D claims yet'}
-              </h3>
-              <p class="text-base-content/70 mb-6">
-                {search.trim() 
-                  ? `No R&D claims match "${search}". Try adjusting your search terms.`
-                  : 'Get started by creating your first R&D claim'
-                }
-              </p>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {:else}
+        <div class="text-center py-12">
+          <div class="text-base-content/50 mb-4">
+            <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-base-content mb-2">
+              {search.trim() ? 'No R&D claims found' : 'No R&D claims yet'}
+            </h3>
+            <p class="text-base-content/70 mb-6">
+              {search.trim() 
+                ? `No R&D claims match "${search}". Try adjusting your search terms.`
+                : 'Get started by creating your first R&D claim'
+              }
+            </p>
             </div>
           </div>
         {/if}
@@ -471,7 +471,7 @@
                 <div class="p-3 rounded-t-lg {selectedCnfEmail?.status === 'sent' ? 'bg-success text-success-content' : 
                                                selectedCnfEmail?.status === 'to_be_sent' ? 'bg-info text-info-content' :
                                                selectedCnfEmail?.status === 'skipped' ? 'bg-warning text-warning-content' :
-                                               selectedCnfEmail?.status === 'to_be_skipped' ? 'bg-neutral text-neutral-content' :
+                                               selectedCnfEmail?.status === 'to_be_skipped' ? 'bg-warning text-warning-content' :
                                                'bg-info text-info-content'}">
                   <div class="flex items-center justify-between">
                     <div>
@@ -483,7 +483,7 @@
                     <button class="btn btn-ghost btn-sm {selectedCnfEmail?.status === 'sent' ? 'text-success-content hover:bg-success-content/20' :
                                                        selectedCnfEmail?.status === 'to_be_sent' ? 'text-info-content hover:bg-info-content/20' :
                                                        selectedCnfEmail?.status === 'skipped' ? 'text-warning-content hover:bg-warning-content/20' :
-                                                       selectedCnfEmail?.status === 'to_be_skipped' ? 'text-neutral-content hover:bg-neutral-content/20' :
+                                                       selectedCnfEmail?.status === 'to_be_skipped' ? 'text-warning-content hover:bg-warning-content/20' :
                                                        'text-info-content hover:bg-info-content/20'}" 
                             onclick={() => selectedEmailSlot = null} 
                             aria-label="Close email">
@@ -603,10 +603,10 @@
                       <div class="pt-2">
                         Best regards,<br>
                         <strong>The GrantTree Team</strong>
-                      </div>
-                    {/if}
-                  </div>
-
+        </div>
+      {/if}
+    </div>
+    
                   <!-- Action Button -->
                   <div class="flex justify-end pt-4">
                     <button class="btn btn-neutral" onclick={markEmailAsSent}>
@@ -642,6 +642,38 @@
             <div class="divider"></div>
 
             <div class="space-y-3">
+              <h3 class="text-lg font-semibold text-base-content">CNF Check</h3>
+              
+              <!-- CNF Check Table -->
+              <div class="overflow-x-auto">
+                <table class="table table-zebra w-full table-compact">
+                  <thead>
+                    <tr>
+                      <th class="w-1/3">Previous claims</th>
+                      <th class="w-1/3">Status</th>
+                      <th class="w-1/3">Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="text-sm">Claim 1</td>
+                      <td class="text-sm">—</td>
+                      <td class="text-sm">—</td>
+                    </tr>
+                    <tr>
+                      <td class="text-sm">Claim 2</td>
+                      <td class="text-sm">—</td>
+                      <td class="text-sm">—</td>
+                    </tr>
+                    <tr>
+                      <td class="text-sm">Claim 3</td>
+                      <td class="text-sm">—</td>
+                      <td class="text-sm">—</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
               <div>
                 <span class="text-sm text-base-content/70">CNF Status</span>
                 <select 
@@ -672,21 +704,15 @@
                   <div class="text-sm opacity-50">—</div>
                 {/if}
               </div>
-            </div>
-
+        </div>
+        
             <div class="mt-6 flex gap-2">
-              <button 
-                class="btn btn-sm btn-outline"
+          <button 
+            class="btn btn-sm btn-outline"
                 onclick={() => router.visit(`/rnd_claims/${selectedClaim.id}`)}
-              >
-                View
-              </button>
-              <button 
-                class="btn btn-sm btn-primary"
-                onclick={() => router.visit(`/rnd_claims/${selectedClaim.id}/edit`)}
-              >
-                Edit
-              </button>
+          >
+                View claim
+          </button>
             </div>
             </div>
           {:else}
@@ -695,7 +721,7 @@
                 <div class="mb-2 font-medium">Select a claim to view details</div>
                 <div class="text-sm">Choose a row from the list on the left.</div>
               </div>
-            </div>
+          </div>
           {/if}
         </div>
       </div>
