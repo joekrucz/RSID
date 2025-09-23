@@ -37,6 +37,14 @@
   let currentStage = $state(rnd_claim.stage || 'upcoming');
   let stageLoading = $state(false);
   const idxCurrent = $derived(stages.indexOf(currentStage));
+  // Track when each stage was selected (ISO strings)
+  let stageSelectedAt = $state({});
+  // Initialize currently active stage selection date if not present
+  $effect(() => {
+    if (currentStage && !stageSelectedAt[currentStage]) {
+      stageSelectedAt[currentStage] = new Date().toISOString();
+    }
+  });
   let currentGroup = $state(groupForStage(currentStage));
   let userSetGroup = $state(false);
   const currentGroupIdx = $derived(groupIndexForStage(currentStage));
@@ -78,6 +86,8 @@
     .then(data => {
       if (data.success) {
         currentStage = targetStage;
+        // Record selection timestamp (to nearest day via display formatting)
+        stageSelectedAt[targetStage] = new Date().toISOString();
         toast.success(data.message || 'Stage updated successfully!');
         // Reload the page to get updated data
         router.reload();
@@ -122,6 +132,16 @@
         return 'Paid';
       default:
         return stage.replaceAll('_', ' ');
+    }
+  }
+
+  function formatSelectedDateLabel(iso) {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch (_) {
+      return '';
     }
   }
   
@@ -204,7 +224,7 @@
                 : 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%)')}
             <div class="flex-1 min-w-0 flex flex-col items-stretch" style={`flex:${g.keys.length} 1 0%`}>
               <div class="text-xs text-base-content/60 text-center mb-1 h-4">{gi === 1 ? 'Planned: 2nd May - 10th May' : ''}</div>
-              <button
+            <button
                 class={`relative justify-center items-center gap-2 px-5 py-2 text-sm transition-colors ${bgClass} ${gi > 0 ? 'border-l border-base-300' : ''} outline-none focus:outline-none focus:ring-0 ${!isLast ? 'z-10' : ''}`}
                 onclick={() => setGroup(g.label)}
                 aria-current={isActive ? 'page' : undefined}
@@ -214,8 +234,8 @@
                   {#if isGroupCompleteLabel(g.label)}
                     <svg class="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                  {/if}
+              </svg>
+            {/if}
                 </span>
                 <span>{g.label}</span>
               </button>
@@ -245,16 +265,21 @@
               : (isLast
                 ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 12px 50%)'
                 : 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%)')}
-            <button
-              class={`relative flex-1 min-w-0 justify-center items-center gap-2 px-3 py-1 text-xs transition-colors ${bgClass} ${si > 0 ? 'border-l border-base-300' : ''} outline-none focus:outline-none focus:ring-0 ${!isLast ? 'z-10' : ''}`}
-              onclick={() => handleStageChange(s)}
-              aria-current={isActive ? 'page' : undefined}
-              style={`clip-path:${clipPath}; border-top-left-radius:${isFirst ? '0.5rem' : '0'}; border-bottom-left-radius:${isFirst ? '0.5rem' : '0'}; border-top-right-radius:${isLast ? '0.5rem' : '0'}; border-bottom-right-radius:${isLast ? '0.5rem' : '0'};`}
-              title={formatStageLabel(s)}
-            >
-              <span class="sr-only">{formatStageLabel(s)}</span>
-              {formatStageLabel(s)}
-            </button>
+            <div class="flex-1 min-w-0 flex flex-col items-stretch">
+              <button
+                class={`relative flex-1 justify-center items-center gap-2 px-3 py-1 text-xs transition-colors ${bgClass} ${si > 0 ? 'border-l border-base-300' : ''} outline-none focus:outline-none focus:ring-0 ${!isLast ? 'z-10' : ''}`}
+                onclick={() => handleStageChange(s)}
+                aria-current={isActive ? 'page' : undefined}
+                style={`clip-path:${clipPath}; border-top-left-radius:${isFirst ? '0.5rem' : '0'}; border-bottom-left-radius:${isFirst ? '0.5rem' : '0'}; border-top-right-radius:${isLast ? '0.5rem' : '0'}; border-bottom-right-radius:${isLast ? '0.5rem' : '0'};`}
+                title={formatStageLabel(s)}
+              >
+                <span class="sr-only">{formatStageLabel(s)}</span>
+                {formatStageLabel(s)}
+              </button>
+              <div class="text-[11px] leading-tight text-base-content/60 text-center mt-1 h-4">
+                {si === idxCurrent && stageSelectedAt[s] ? `Selected: ${formatSelectedDateLabel(stageSelectedAt[s])}` : ''}
+              </div>
+            </div>
         {/each}
         </div>
       </div>
