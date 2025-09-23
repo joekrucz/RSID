@@ -7,7 +7,7 @@
   import Select from '../../components/forms/Select.svelte';
   import Checklist from '../../components/Checklist.svelte';
   
-  let { user, rnd_claim, expenditures, projects = [], can_edit, can_add_expenditures, can_add_projects } = $props();
+  let { user, rnd_claim, projects = [], can_edit, can_add_projects } = $props();
   
   const stages = [
     'upcoming',
@@ -23,13 +23,6 @@
   let activeTab = $state('overview');
   let currentStage = $state(rnd_claim.stage || 'upcoming');
   let stageLoading = $state(false);
-  let showAddExpenditure = $state(false);
-  let newExpenditure = $state({
-    expenditure_type: '',
-    amount: '',
-    description: '',
-    date: ''
-  });
   let showAddProject = $state(false);
   let newProject = $state({
     name: '',
@@ -86,35 +79,7 @@
     router.visit('/rnd_claims');
   }
   
-  function handleAddExpenditure() {
-    loading = true;
-    
-    router.post(`/rnd_claims/${rnd_claim.id}/rnd_claim_expenditures`, newExpenditure, {
-      onSuccess: () => {
-        toast.success('Expenditure added successfully!');
-        showAddExpenditure = false;
-        newExpenditure = { expenditure_type: '', amount: '', description: '', date: '' };
-        loading = false;
-      },
-      onError: () => {
-        toast.error('Failed to add expenditure. Please check the form and try again.');
-        loading = false;
-      }
-    });
-  }
   
-  function deleteExpenditure(expenditureId) {
-    if (confirm('Are you sure you want to delete this expenditure? This action cannot be undone.')) {
-      router.delete(`/rnd_claims/${rnd_claim.id}/rnd_claim_expenditures/${expenditureId}`, {
-        onSuccess: () => {
-          toast.success('Expenditure deleted successfully!');
-        },
-        onError: () => {
-          toast.error('Failed to delete expenditure.');
-        }
-      });
-    }
-  }
   
   function handleAddProject() {
     loading = true;
@@ -151,31 +116,7 @@
   }
   
   
-  function getExpenditureTypeDisplayName(type) {
-    return type.replace(/\b\w/g, l => l.toUpperCase());
-  }
   
-  function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-GB', {
-      style: 'currency',
-      currency: 'GBP'
-    }).format(amount || 0);
-  }
-  
-  function calculateTotalQualifyingAmount() {
-    return expenditures.reduce((total, exp) => total + exp.qualifying_amount, 0);
-  }
-  
-  function calculateExpenditureByType() {
-    const byType = {};
-    expenditures.forEach(exp => {
-      if (!byType[exp.expenditure_type]) {
-        byType[exp.expenditure_type] = 0;
-      }
-      byType[exp.expenditure_type] += exp.amount;
-    });
-    return byType;
-  }
 </script>
 
 <svelte:head>
@@ -265,18 +206,7 @@
         >
           Projects
         </button>
-        <button 
-          class="tab {activeTab === 'narrative' ? 'tab-active' : ''}"
-          onclick={() => activeTab = 'narrative'}
-        >
-          Narrative
-        </button>
-        <button 
-          class="tab {activeTab === 'expenditure' ? 'tab-active' : ''}"
-          onclick={() => activeTab = 'expenditure'}
-        >
-          Expenditure
-        </button>
+        
       </div>
     </div>
   </div>
@@ -509,161 +439,7 @@
             </div>
           {/if}
         </div>
-      {:else if activeTab === 'narrative'}
-        <div class="text-center py-12">
-          <div class="text-base-content/50">
-            <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            <h3 class="text-lg font-medium text-base-content mb-2">Narrative</h3>
-            <p class="text-base-content/70">Narrative functionality coming soon.</p>
-          </div>
-        </div>
-      {:else if activeTab === 'expenditure'}
-        <div>
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold text-base-content">Expenditures</h3>
-            {#if can_add_expenditures}
-              <Button variant="primary" onclick={() => showAddExpenditure = !showAddExpenditure}>
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                Add Expenditure
-              </Button>
-            {/if}
-          </div>
-          
-          {#if showAddExpenditure}
-            <div class="bg-base-200 rounded-lg p-4 mb-6">
-              <h4 class="font-medium text-base-content mb-4">Add New Expenditure</h4>
-              
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text">Type</span>
-                  </label>
-                  <Select
-                    bind:value={newExpenditure.expenditure_type}
-                    options={[
-                      { value: '', label: 'Select type...' },
-                      { value: 'staff', label: 'Staff' },
-                      { value: 'materials', label: 'Materials' },
-                      { value: 'subcontractors', label: 'Subcontractors' },
-                      { value: 'software', label: 'Software' },
-                      { value: 'equipment', label: 'Equipment' },
-                      { value: 'utilities', label: 'Utilities' }
-                    ]}
-                  />
-                </div>
-                
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text">Amount (£)</span>
-                  </label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    bind:value={newExpenditure.amount}
-                  />
-                </div>
-                
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text">Date</span>
-                  </label>
-                  <Input
-                    type="date"
-                    bind:value={newExpenditure.date}
-                  />
-                </div>
-                
-                <div class="form-control">
-                  <label class="label">
-                    <span class="label-text">Description</span>
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="Description of the expenditure..."
-                    bind:value={newExpenditure.description}
-                  />
-                </div>
-              </div>
-              
-              <div class="flex justify-end space-x-2 mt-4">
-                <Button variant="outline" onclick={() => showAddExpenditure = false}>
-                  Cancel
-                </Button>
-                <Button variant="primary" onclick={handleAddExpenditure} disabled={loading}>
-                  {#if loading}
-                    <span class="loading loading-spinner loading-sm"></span>
-                    Adding...
-                  {:else}
-                    Add Expenditure
-                  {/if}
-                </Button>
-              </div>
-            </div>
-          {/if}
-          
-          {#if expenditures && expenditures.length > 0}
-            <div class="overflow-x-auto">
-              <table class="table table-zebra w-full">
-                <thead>
-                  <tr>
-                    <th>Type</th>
-                    <th>Description</th>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Qualifying</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {#each expenditures as expenditure}
-                    <tr>
-                      <td>
-                        <div class="badge badge-outline">
-                          {getExpenditureTypeDisplayName(expenditure.expenditure_type)}
-                        </div>
-                      </td>
-                      <td>{expenditure.description}</td>
-                      <td>{expenditure.date}</td>
-                      <td class="font-medium">{expenditure.formatted_amount}</td>
-                      <td>
-                        <div class="font-medium">{expenditure.formatted_qualifying_amount}</div>
-                        {#if expenditure.is_qualifying}
-                          <div class="text-xs text-success">Qualifying</div>
-                        {/if}
-                      </td>
-                      <td>
-                        {#if can_add_expenditures}
-                          <button
-                            onclick={() => deleteExpenditure(expenditure.id)}
-                            class="btn btn-ghost btn-sm text-error"
-                          >
-                            Delete
-                          </button>
-                        {/if}
-                      </td>
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
-            </div>
-          {:else}
-            <div class="text-center py-8">
-              <div class="text-base-content/50">
-                <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                </svg>
-                <h4 class="text-lg font-medium text-base-content mb-2">No expenditures yet</h4>
-                <p class="text-base-content/70">Add expenditures to track R&D costs for this project.</p>
-              </div>
-            </div>
-          {/if}
-        </div>
+      
       {/if}
     </div>
 </Layout> 

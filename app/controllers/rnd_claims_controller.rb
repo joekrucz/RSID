@@ -72,10 +72,8 @@ class RndClaimsController < ApplicationController
     render inertia: 'RndClaims/Show', props: {
       user: user_props,
       rnd_claim: PropsBuilderService.rnd_claim_props(@rnd_claim),
-      expenditures: @rnd_claim.rnd_claim_expenditures.map { |exp| rnd_claim_expenditure_props(exp) },
       projects: @rnd_claim.rnd_claim_projects.map { |project| rnd_claim_project_props(project) },
       can_edit: can_edit_claim?(@rnd_claim),
-      can_add_expenditures: @current_user.employee?,
       can_add_projects: @current_user.employee?
     }
   end
