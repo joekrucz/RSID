@@ -506,6 +506,58 @@ if User.exists?(1)
   
   puts "Created #{created_claims.length} R&D claims"
   puts "Total R&D claims: #{RndClaim.count}"
+  
+  # Create CNF emails for all R&D claims with demo status distribution
+  puts "\nCreating CNF emails with demo status distribution..."
+  
+  RndClaim.includes(:cnf_emails).find_each do |claim|
+    # Create emails for all slots if they don't exist
+    %w[1 2 3 4 5 6 FS].each do |slot|
+      CnfEmail.find_or_create_by(rnd_claim: claim, email_slot: slot) do |email|
+        # Determine template type based on slot
+        template_type = case slot
+                       when '1' then 'initial'
+                       when '2', '3', '4', '5' then 'monthly'
+                       when '6', 'FS' then 'urgent'
+                       else 'initial'
+                       end
+        
+        email.template_type = template_type
+        email.status = 'to_be_sent' # Default status
+        email.recipient_email = CnfEmail.generate_recipient_email(claim)
+        email.subject = CnfEmail.generate_subject(claim, template_type)
+        email.body = CnfEmail.generate_body(claim, template_type)
+      end
+    end
+  end
+  
+  # Apply demo status distribution to first 20 claims
+  demo_claims = RndClaim.includes(:cnf_emails).limit(20)
+  
+  demo_claims.each_with_index do |claim, claim_index|
+    emails = claim.cnf_emails.order(:email_slot)
+    
+    emails.each_with_index do |email, email_index|
+      # Create a pattern of different statuses
+      case (claim_index + email_index) % 4
+      when 0
+        email.update!(status: 'sent', sent_at: 1.week.ago)
+      when 1
+        email.update!(status: 'to_be_sent')
+      when 2
+        email.update!(status: 'skipped')
+      when 3
+        email.update!(status: 'to_be_skipped')
+      end
+    end
+  end
+  
+  puts "Created CNF emails for all R&D claims"
+  puts "Status distribution:"
+  puts "  SENT: #{CnfEmail.sent.count}"
+  puts "  TO BE SENT: #{CnfEmail.to_be_sent.count}"
+  puts "  SKIPPED: #{CnfEmail.skipped.count}"
+  puts "  TO BE SKIPPED: #{CnfEmail.to_be_skipped.count}"
 else
   puts 'No user with id=1 found. Skipping additional demo data.'
 end
