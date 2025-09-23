@@ -12,6 +12,10 @@
   function formatStageName(stage) {
     return stage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
+  
+  function isPreDeliveryStage(stage) {
+    return stage === 'upcoming' || stage === 'readying_for_delivery';
+  }
 
   function formatDate(value) {
     if (!value) return '';
@@ -32,16 +36,129 @@
     }
   }
   
-  function handleDelete(claimId) {
-    if (confirm('Are you sure you want to delete this R&D claim? This action cannot be undone.')) {
-      router.delete(`/rnd_claims/${claimId}`, {
-        onSuccess: () => {
-          toast.success('R&D claim deleted successfully!');
-        },
-        onError: () => {
-          toast.error('Failed to delete R&D claim.');
-        }
-      });
+  // delete action removed from card footer
+  
+  // Dual-scrollbar (top and bottom) syncing
+  let topScrollEl;
+  let bottomScrollEl;
+  let topSpacerEl;
+  let customTrackEl;
+  let isDraggingThumb = false;
+  let dragStartX = 0;
+  let dragStartScrollLeft = 0;
+  let customTrackWidth = 0;
+  let customThumbWidth = $state(0);
+  let customThumbLeft = $state(0);
+  let customScrollPercent = $state(0);
+  let contentScrollWidth = 0;
+  const allStages = [
+    'upcoming',
+    'readying_for_delivery',
+    'in_progress',
+    'finalised',
+    'filed_awaiting_hmrc',
+    'claim_processed',
+    'client_invoiced',
+    'paid'
+  ];
+  function syncFromTop() {
+    if (bottomScrollEl && topScrollEl) bottomScrollEl.scrollLeft = topScrollEl.scrollLeft;
+    updateCustomScrollbar();
+  }
+  function syncFromBottom() {
+    if (bottomScrollEl && topScrollEl) topScrollEl.scrollLeft = bottomScrollEl.scrollLeft;
+    updateCustomScrollbar();
+  }
+  $effect(() => {
+    // Prefer actual content width when available
+    if (bottomScrollEl && bottomScrollEl.scrollWidth) {
+      contentScrollWidth = bottomScrollEl.scrollWidth;
+      if (topSpacerEl) topSpacerEl.style.width = `${contentScrollWidth}px`;
+      updateCustomScrollbar();
+      return;
+    }
+    // Fallback: approximate based on visible stage columns
+    try {
+      const cols = allStages.reduce((acc, s) => acc + (pipeline_data && pipeline_data[s] ? 1 : 0), 0);
+      const colWidth = 320; // ~w-80
+      const gap = 24; // space-x-6 ~= 1.5rem
+      contentScrollWidth = Math.max(colWidth, cols * colWidth + Math.max(0, cols - 1) * gap);
+      if (topSpacerEl) topSpacerEl.style.width = `${contentScrollWidth}px`;
+    } catch (_) {}
+    updateCustomScrollbar();
+  });
+
+  function updateCustomScrollbar() {
+    if (!bottomScrollEl || !customTrackEl) return;
+    const contentWidth = bottomScrollEl.scrollWidth;
+    const viewportWidth = bottomScrollEl.clientWidth;
+    customTrackWidth = customTrackEl.clientWidth;
+    if (contentWidth <= 0 || viewportWidth <= 0) {
+      customThumbWidth = 0;
+      customThumbLeft = 0;
+      customScrollPercent = 0;
+      return;
+    }
+    const ratio = viewportWidth / contentWidth;
+    customThumbWidth = Math.max(30, customTrackWidth * ratio);
+    const maxThumbLeft = Math.max(0, customTrackWidth - customThumbWidth);
+    const scrollRatio = bottomScrollEl.scrollLeft / (contentWidth - viewportWidth || 1);
+    customThumbLeft = Math.min(maxThumbLeft, Math.max(0, scrollRatio * maxThumbLeft));
+    customScrollPercent = Math.round(scrollRatio * 100);
+  }
+
+  function onThumbMouseDown(event) {
+    isDraggingThumb = true;
+    dragStartX = event.clientX;
+    dragStartScrollLeft = bottomScrollEl?.scrollLeft || 0;
+    document.addEventListener('mousemove', onThumbMouseMove);
+    document.addEventListener('mouseup', onThumbMouseUp);
+    event.preventDefault();
+  }
+  function onThumbMouseMove(event) {
+    if (!isDraggingThumb || !bottomScrollEl || !customTrackEl) return;
+    const contentWidth = bottomScrollEl.scrollWidth;
+    const viewportWidth = bottomScrollEl.clientWidth;
+    const deltaX = event.clientX - dragStartX;
+    const maxThumbLeft = Math.max(0, customTrackEl.clientWidth - customThumbWidth);
+    const contentScrollable = Math.max(1, contentWidth - viewportWidth);
+    const scrollPerPx = contentScrollable / Math.max(1, maxThumbLeft);
+    bottomScrollEl.scrollLeft = Math.min(contentScrollable, Math.max(0, dragStartScrollLeft + deltaX * scrollPerPx));
+    syncFromBottom();
+  }
+  function onThumbMouseUp() {
+    isDraggingThumb = false;
+    document.removeEventListener('mousemove', onThumbMouseMove);
+    document.removeEventListener('mouseup', onThumbMouseUp);
+  }
+  function onTrackClick(event) {
+    if (!customTrackEl || !bottomScrollEl) return;
+    const rect = customTrackEl.getBoundingClientRect();
+    const clickX = event.clientX - rect.left;
+    const targetLeft = clickX - customThumbWidth / 2;
+    const maxThumbLeft = Math.max(0, customTrackEl.clientWidth - customThumbWidth);
+    const clampedLeft = Math.min(maxThumbLeft, Math.max(0, targetLeft));
+    const contentWidth = bottomScrollEl.scrollWidth;
+    const viewportWidth = bottomScrollEl.clientWidth;
+    const contentScrollable = Math.max(1, contentWidth - viewportWidth);
+    const scrollRatio = clampedLeft / Math.max(1, maxThumbLeft);
+    bottomScrollEl.scrollLeft = scrollRatio * contentScrollable;
+    syncFromBottom();
+  }
+  function onTrackKeyDown(event) {
+    if (!bottomScrollEl) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      onTrackClick(event);
+      event.preventDefault();
+    } else if (event.key === 'ArrowLeft') {
+      bottomScrollEl.scrollLeft = Math.max(0, bottomScrollEl.scrollLeft - bottomScrollEl.clientWidth * 0.9);
+      syncFromBottom();
+      event.preventDefault();
+    } else if (event.key === 'ArrowRight') {
+      const maxScroll = Math.max(0, bottomScrollEl.scrollWidth - bottomScrollEl.clientWidth);
+      bottomScrollEl.scrollLeft = Math.min(maxScroll, bottomScrollEl.scrollLeft + bottomScrollEl.clientWidth * 0.9);
+      syncFromBottom();
+      event.preventDefault();
     }
   }
   
@@ -143,30 +260,291 @@
   }
 </script>
 
+<style>
+  /* Ensure the top scrollbar is visibly rendered across browsers */
+  .top-scroll { scrollbar-width: thin; scrollbar-color: #94a3b8 #e5e7eb; }
+  .top-scroll::-webkit-scrollbar { height: 8px; }
+  .top-scroll::-webkit-scrollbar-track { background: #e5e7eb; border-radius: 4px; }
+  .top-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+  .top-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
+  /* Avoid collapsing height on some engines */
+  .top-scroll > div { min-height: 2px; }
+  
+</style>
+
 <div class="bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden">
   <div class="p-6">
-    <div class="flex space-x-6 overflow-x-auto pb-4 snap-x snap-mandatory">
-      {#each Object.entries(pipeline_data) as [stage, data]}
-        <div class="flex-shrink-0 w-80 snap-start">
-          <div class="bg-base-200 rounded-lg p-4 min-h-96 border border-base-300 {getDropZoneClass(stage)}"
+    <!-- Top custom scrollbar (same as Grant Applications) -->
+    <div class="mb-2 pl-1 pr-1">
+      <div 
+        class="custom-scrollbar-track" 
+        bind:this={customTrackEl} 
+        onclick={onTrackClick}
+        role="scrollbar"
+        aria-label="Pipeline horizontal scroll"
+        aria-orientation="horizontal"
+        aria-controls="rnd-pipeline-scroll-content"
+        aria-valuenow={customScrollPercent}
+        tabindex="0"
+        onkeydown={onTrackKeyDown}
+      >
+        <div 
+          class="custom-scrollbar-thumb" 
+          style={`left:${customThumbLeft}px;width:${customThumbWidth}px`} 
+          onmousedown={onThumbMouseDown}
+          role="slider"
+          aria-label="Scroll position"
+          aria-orientation="horizontal"
+          aria-valuenow={customScrollPercent}
+          tabindex="0"
+        ></div>
+      </div>
+    </div>
+    <div id="rnd-pipeline-scroll-content" class="pipeline-scroll flex space-x-6 overflow-x-auto overflow-y-hidden pb-4 snap-x snap-mandatory" bind:this={bottomScrollEl} onscroll={syncFromBottom}>
+      {#if pipeline_data && (pipeline_data['upcoming'] || pipeline_data['readying_for_delivery'])}
+            <div class="flex-shrink-0 snap-start">
+              <div class="rounded-lg p-4 min-h-96 bg-gray-100 border border-gray-400 text-base-content">
+            <div class="flex space-x-6">
+              {#if pipeline_data['upcoming']}
+                <div class="flex-shrink-0 w-80">
+                  <div class="rounded-lg p-4 min-h-96 bg-gray-50 border border-gray-200 {getDropZoneClass('upcoming')} text-base-content"
+                       role="region"
+                       aria-label="Drop zone for {formatStageName('upcoming')}"
+                       ondragover={(e) => handleDragOver(e, 'upcoming')}
+                       ondragleave={handleDragLeave}
+                       ondrop={(e) => handleDrop(e, 'upcoming')}>
+                    <div class="flex items-center justify-between mb-3">
+                      <h3 class="font-semibold text-base-content text-sm">{formatStageName('upcoming')}</h3>
+                      <div class="flex items-center gap-2">
+                        <div class="text-gray-700 font-extrabold">{pipeline_data['upcoming'].count}</div>
+                        <div class="text-xs text-base-content/60">{formatCurrencyGBP(pipeline_data['upcoming'].total_value)}</div>
+                      </div>
+                    </div>
+                    <div class="space-y-3">
+                      {#each pipeline_data['upcoming'].claims as claim}
+                        <div class="bg-base-100 rounded-lg p-4 shadow-sm border border-base-300 hover:shadow-md transition-shadow cursor-move focus:outline-none focus:ring-2 focus:ring-primary/40"
+                             role="button"
+                             tabindex="0"
+                             draggable="true"
+                             ondragstart={(e) => handleDragStart(e, claim, 'upcoming')}
+                             ondragend={handleDragEnd}
+                             onclick={() => { if (!hasDragged) { router.visit(`/rnd_claims/${claim.id}`); } }}
+                             onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.visit(`/rnd_claims/${claim.id}`); } }}>
+                          <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-start space-x-2 flex-1">
+                              <div class="text-base-content/30 mt-1 cursor-move" title="Drag to move">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                              </div>
+                              <h4 class="font-medium text-sm text-base-content line-clamp-2 flex-1">{claim.title}</h4>
+                            </div>
+                          </div>
+                          {#if claim.company}
+                            <div class="text-xs text-base-content/70 mb-2">
+                              <a href={`/companies/${claim.company.id}`} class="text-black hover:underline">{claim.company.name}</a>
+                            </div>
+                          {/if}
+                            <div class="text-xs text-base-content/60 text-right">{formatCurrencyGBP(claim.total_expenditure)}</div>
+                        </div>
+                      {/each}
+                      {#if pipeline_data['upcoming'].count === 0}
+                        <div class="text-center py-8 text-base-content/50">
+                          <svg class="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                          <p class="text-sm">No claims</p>
+                        </div>
+                      {/if}
+                    </div>
+                  </div>
+                </div>
+              {/if}
+              {#if pipeline_data['readying_for_delivery']}
+                <div class="flex-shrink-0 w-80">
+                      <div class="rounded-lg p-4 min-h-96 bg-gray-50 border border-gray-200 {getDropZoneClass('readying_for_delivery')} text-base-content"
+                       role="region"
+                       aria-label="Drop zone for {formatStageName('readying_for_delivery')}"
+                       ondragover={(e) => handleDragOver(e, 'readying_for_delivery')}
+                       ondragleave={handleDragLeave}
+                       ondrop={(e) => handleDrop(e, 'readying_for_delivery')}>
+                    <div class="flex items-center justify-between mb-3">
+                      <h3 class="font-semibold text-base-content text-sm">{formatStageName('readying_for_delivery')}</h3>
+                          <div class="flex items-center gap-2">
+                            <div class="text-gray-700 font-extrabold">{pipeline_data['readying_for_delivery'].count}</div>
+                            <div class="text-xs text-base-content/60">{formatCurrencyGBP(pipeline_data['readying_for_delivery'].total_value)}</div>
+                          </div>
+                    </div>
+                    <div class="space-y-3">
+                      {#each pipeline_data['readying_for_delivery'].claims as claim}
+                        <div class="bg-base-100 rounded-lg p-4 shadow-sm border border-base-300 hover:shadow-md transition-shadow cursor-move focus:outline-none focus:ring-2 focus:ring-primary/40"
+                             role="button"
+                             tabindex="0"
+                             draggable="true"
+                             ondragstart={(e) => handleDragStart(e, claim, 'readying_for_delivery')}
+                             ondragend={handleDragEnd}
+                             onclick={() => { if (!hasDragged) { router.visit(`/rnd_claims/${claim.id}`); } }}
+                             onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.visit(`/rnd_claims/${claim.id}`); } }}>
+                          <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-start space-x-2 flex-1">
+                              <div class="text-base-content/30 mt-1 cursor-move" title="Drag to move">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                              </div>
+                              <h4 class="font-medium text-sm text-base-content line-clamp-2 flex-1">{claim.title}</h4>
+                            </div>
+                          </div>
+                          {#if claim.company}
+                            <div class="text-xs text-base-content/70 mb-2">
+                              <a href={`/companies/${claim.company.id}`} class="text-black hover:underline">{claim.company.name}</a>
+                            </div>
+                          {/if}
+                              <div class="text-xs text-base-content/60 text-right">{formatCurrencyGBP(claim.total_expenditure)}</div>
+                        </div>
+                      {/each}
+                      {#if pipeline_data['readying_for_delivery'].count === 0}
+                        <div class="text-center py-8 text-base-content/50">
+                          <svg class="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                          <p class="text-sm">No claims</p>
+                        </div>
+                      {/if}
+                    </div>
+                  </div>
+                </div>
+              {/if}
+            </div>
+          </div>
+        </div>
+      {/if}
+      <!-- In-delivery combined wrapper (in_progress + finalised) -->
+      {#if pipeline_data && (pipeline_data['in_progress'] || pipeline_data['finalised'])}
+        <div class="flex-shrink-0 snap-start">
+          <div class="rounded-lg p-4 min-h-96 bg-blue-100 border border-blue-400 text-blue-900">
+            <div class="flex space-x-6">
+              {#if pipeline_data['in_progress']}
+                <div class="flex-shrink-0 w-80">
+                  <div class="rounded-lg p-4 min-h-96 bg-blue-50 border border-blue-100 {getDropZoneClass('in_progress')} text-base-content"
+                       role="region"
+                       aria-label="Drop zone for {formatStageName('in_progress')}"
+                       ondragover={(e) => handleDragOver(e, 'in_progress')}
+                       ondragleave={handleDragLeave}
+                       ondrop={(e) => handleDrop(e, 'in_progress')}>
+                    <div class="flex items-center justify-between mb-3">
+                      <h3 class="font-semibold text-base-content text-sm">{formatStageName('in_progress')}</h3>
+                      <div class="flex items-center gap-2">
+                        <div class="text-blue-700 font-extrabold">{pipeline_data['in_progress'].count}</div>
+                        <div class="text-xs text-base-content/60">{formatCurrencyGBP(pipeline_data['in_progress'].total_value)}</div>
+                      </div>
+                    </div>
+                    <div class="space-y-3">
+                      {#each pipeline_data['in_progress'].claims as claim}
+                        <div class="bg-base-100 rounded-lg p-4 shadow-sm border border-base-300 hover:shadow-md transition-shadow cursor-move focus:outline-none focus:ring-2 focus:ring-primary/40"
+                             role="button"
+                             tabindex="0"
+                             draggable="true"
+                             ondragstart={(e) => handleDragStart(e, claim, 'in_progress')}
+                             ondragend={handleDragEnd}
+                             onclick={() => { if (!hasDragged) { router.visit(`/rnd_claims/${claim.id}`); } }}
+                             onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.visit(`/rnd_claims/${claim.id}`); } }}>
+                          <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-start space-x-2 flex-1">
+                              <div class="text-base-content/30 mt-1 cursor-move" title="Drag to move">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                              </div>
+                              <h4 class="font-medium text-sm text-base-content line-clamp-2 flex-1">{claim.title}</h4>
+                            </div>
+                          </div>
+                          {#if claim.company}
+                            <div class="text-xs text-base-content/70 mb-2">
+                              <a href={`/companies/${claim.company.id}`} class="text-black hover:underline">{claim.company.name}</a>
+                            </div>
+                          {/if}
+                          <div class="text-xs text-base-content/60 text-right">{formatCurrencyGBP(claim.total_expenditure)}</div>
+                        </div>
+                      {/each}
+                      {#if pipeline_data['in_progress'].count === 0}
+                        <div class="text-center py-8 text-base-content/50">
+                          <svg class="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                          <p class="text-sm">No claims</p>
+                        </div>
+                      {/if}
+                    </div>
+                  </div>
+                </div>
+              {/if}
+              {#if pipeline_data['finalised']}
+                <div class="flex-shrink-0 w-80">
+                  <div class="rounded-lg p-4 min-h-96 bg-blue-50 border border-blue-100 {getDropZoneClass('finalised')} text-base-content"
+                       role="region"
+                       aria-label="Drop zone for {formatStageName('finalised')}"
+                       ondragover={(e) => handleDragOver(e, 'finalised')}
+                       ondragleave={handleDragLeave}
+                       ondrop={(e) => handleDrop(e, 'finalised')}>
+                    <div class="flex items-center justify-between mb-3">
+                      <h3 class="font-semibold text-base-content text-sm">{formatStageName('finalised')}</h3>
+                      <div class="flex items-center gap-2">
+                        <div class="text-blue-700 font-extrabold">{pipeline_data['finalised'].count}</div>
+                        <div class="text-xs text-base-content/60">{formatCurrencyGBP(pipeline_data['finalised'].total_value)}</div>
+                      </div>
+                    </div>
+                    <div class="space-y-3">
+                      {#each pipeline_data['finalised'].claims as claim}
+                        <div class="bg-base-100 rounded-lg p-4 shadow-sm border border-base-300 hover:shadow-md transition-shadow cursor-move focus:outline-none focus:ring-2 focus:ring-primary/40"
+                             role="button"
+                             tabindex="0"
+                             draggable="true"
+                             ondragstart={(e) => handleDragStart(e, claim, 'finalised')}
+                             ondragend={handleDragEnd}
+                             onclick={() => { if (!hasDragged) { router.visit(`/rnd_claims/${claim.id}`); } }}
+                             onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); router.visit(`/rnd_claims/${claim.id}`); } }}>
+                          <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-start space-x-2 flex-1">
+                              <div class="text-base-content/30 mt-1 cursor-move" title="Drag to move">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+                              </div>
+                              <h4 class="font-medium text-sm text-base-content line-clamp-2 flex-1">{claim.title}</h4>
+                            </div>
+                          </div>
+                          {#if claim.company}
+                            <div class="text-xs text-base-content/70 mb-2">
+                              <a href={`/companies/${claim.company.id}`} class="text-black hover:underline">{claim.company.name}</a>
+                            </div>
+                          {/if}
+                          <div class="text-xs text-base-content/60 text-right">{formatCurrencyGBP(claim.total_expenditure)}</div>
+                        </div>
+                      {/each}
+                      {#if pipeline_data['finalised'].count === 0}
+                        <div class="text-center py-8 text-base-content/50">
+                          <svg class="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                          <p class="text-sm">No claims</p>
+                        </div>
+                      {/if}
+                    </div>
+                  </div>
+                </div>
+              {/if}
+            </div>
+          </div>
+        </div>
+      {/if}
+      {#if pipeline_data && (pipeline_data['filed_awaiting_hmrc'] || pipeline_data['claim_processed'] || pipeline_data['client_invoiced'] || pipeline_data['paid'])}
+        <div class="flex-shrink-0 snap-start">
+          <div class="rounded-lg p-4 min-h-96 bg-purple-100 border border-purple-400 text-purple-900">
+            <div class="flex space-x-6">
+              {#each ['filed_awaiting_hmrc','claim_processed','client_invoiced','paid'] as stage}
+                {#if pipeline_data[stage]}
+        <div class="flex-shrink-0 w-80">
+                    <div class="rounded-lg p-4 min-h-96 bg-purple-50 border border-purple-100 {getDropZoneClass(stage)} text-base-content"
                role="region"
                aria-label="Drop zone for {formatStageName(stage)}"
                ondragover={(e) => handleDragOver(e, stage)}
                ondragleave={handleDragLeave}
                ondrop={(e) => handleDrop(e, stage)}>
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="font-semibold text-base-content text-sm">
-                {formatStageName(stage)}
-              </h3>
-              <div class="flex items-center gap-2">
-                <div class="badge badge-neutral">{data.count}</div>
-                <div class="text-xs text-base-content/60">{formatCurrencyGBP(data.total_value)}</div>
-              </div>
+                      <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-semibold text-base-content text-sm">{formatStageName(stage)}</h3>
+                        <div class="flex items-center gap-2">
+                          <div class="text-purple-700 font-extrabold">{pipeline_data[stage].count}</div>
+                          <div class="text-xs text-base-content/60">{formatCurrencyGBP(pipeline_data[stage].total_value)}</div>
+                        </div>
             </div>
-            
             <div class="space-y-3">
-              {#each data.claims as claim}
-                <div class="bg-base-100 rounded-lg p-4 shadow-sm border border-base-300 hover:shadow-md transition-shadow cursor-move focus:outline-none focus:ring-2 focus:ring-primary/40"
+                        {#each pipeline_data[stage].claims as claim}
+                          <div class="bg-base-100 rounded-lg p-4 shadow-sm border border-base-300 hover:shadow-md transition-shadow cursor-move focus:outline-none focus:ring-2 focus:ring-primary/40"
                      role="button"
                      tabindex="0"
                      draggable="true"
@@ -181,65 +559,18 @@
                           <path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
                         </svg>
                       </div>
-                      <h4 class="font-medium text-sm text-base-content line-clamp-2 flex-1">
-                        {claim.title}
-                      </h4>
-                    </div>
-                    <div class="badge {getStageBadgeClass(claim.stage)} badge-xs">
-                      {formatStageName(claim.stage)}
+                                <h4 class="font-medium text-sm text-base-content line-clamp-2 flex-1">{claim.title}</h4>
                     </div>
                   </div>
-                  
                   {#if claim.company}
                     <div class="text-xs text-base-content/70 mb-2">
-                      <a href={`/companies/${claim.company.id}`} class="text-black hover:underline">
-                        {claim.company.name}
-                      </a>
+                                <a href={`/companies/${claim.company.id}`} class="text-black hover:underline">{claim.company.name}</a>
                     </div>
                   {/if}
-                  
-                  <div class="text-xs text-base-content/50 mb-2 line-clamp-2">
-                    {claim.qualifying_activities}
-                  </div>
-                  
-                  <div class="flex items-center justify-between text-xs text-base-content/60">
-                    <span>{formatDate(claim.start_date)} - {formatDate(claim.end_date)}</span>
-                    <span>{formatCurrencyGBP(claim.total_expenditure)}</span>
-                  </div>
-                  
-                  <div class="flex items-center justify-between mt-3 pt-2 border-t border-base-300">
-                    <div class="text-xs text-base-content/50">
-                      {formatDate(claim.created_at)}
-                    </div>
-                    <div class="flex space-x-1">
-                      <button 
-                        class="btn btn-xs btn-ghost"
-                        onclick={(e) => { e.stopPropagation(); router.visit(`/rnd_claims/${claim.id}/edit`); }}
-                        onmousedown={(e) => e.stopPropagation()}
-                        title="Edit"
-                        aria-label="Edit {claim.title}"
-                      >
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                        </svg>
-                      </button>
-                      <button 
-                        class="btn btn-xs btn-ghost text-error"
-                        onclick={(e) => { e.stopPropagation(); handleDelete(claim.id); }}
-                        onmousedown={(e) => e.stopPropagation()}
-                        title="Delete"
-                        aria-label="Delete {claim.title}"
-                      >
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
+                            <div class="text-xs text-base-content/60 text-right">{formatCurrencyGBP(claim.total_expenditure)}</div>
                 </div>
               {/each}
-              
-              {#if data.count === 0}
+                        {#if pipeline_data[stage].count === 0}
                 <div class="text-center py-8 text-base-content/50">
                   <svg class="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -250,7 +581,12 @@
             </div>
           </div>
         </div>
+                {/if}
       {/each}
+            </div>
+          </div>
+        </div>
+      {/if}
     </div>
   </div>
 </div>

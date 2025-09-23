@@ -395,8 +395,10 @@
         </div>
       {/if}
     {:else}
-      <!-- Pipeline View -->
-      <RndClaimsPipelineView pipeline_data={filteredPipelineData} />
+      <!-- Pipeline View (full-bleed) -->
+      <div class="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]">
+        <RndClaimsPipelineView pipeline_data={filteredPipelineData} />
+      </div>
     {/if}
   </div>
 </Layout>
