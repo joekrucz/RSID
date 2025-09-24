@@ -396,7 +396,7 @@
                   {@const email5 = getCnfEmailForSlot(claim, '5')}
                   {@const email6 = getCnfEmailForSlot(claim, '6')}
                   {@const emailFS = getCnfEmailForSlot(claim, 'FS')}
-                  <tr class="{(selectedClaimId === claim.id || selectedEmailSlot?.claimId === claim.id) ? 'active bg-primary/10 border-l-4 border-primary font-semibold' : ''}"
+                  <tr class="{(selectedClaimId === claim.id || selectedEmailSlot?.claimId === claim.id) ? 'active bg-primary/10 border-l-4 border-primary font-semibold' : ''} {(claim.cnf_status === 'cnf_exempt' || claim.cnf_status === 'cnf_submitted') ? 'bg-green-50' : ''} {(claim.cnf_deadline && new Date(claim.cnf_deadline) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && claim.cnf_status !== 'cnf_exempt' && claim.cnf_status !== 'cnf_submitted') ? 'bg-orange-50' : ''}"
                       aria-selected={selectedClaimId === claim.id}>
                     <td
                       class="cursor-pointer px-1 w-[5.5rem]"

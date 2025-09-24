@@ -571,6 +571,11 @@ if User.exists?(1)
           email.status = 'to_be_sent'
         end
         
+        # If claim is submitted or exempt, mark unsent emails as to_be_skipped
+        if (claim.cnf_status == 'cnf_submitted' || claim.cnf_status == 'cnf_exempt') && email.status != 'sent'
+          email.status = 'to_be_skipped'
+        end
+        
         email.template_type = template_type
         email.recipient_email = CnfEmail.generate_recipient_email(claim)
         email.subject = CnfEmail.generate_subject(claim, template_type)
