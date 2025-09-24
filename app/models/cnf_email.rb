@@ -54,11 +54,11 @@ class CnfEmail < ApplicationRecord
   
   def icon_display
     case status
-    when 'sent' then '✅'
-    when 'to_be_sent' then '📤'
-    when 'skipped' then '⏭️'
-    when 'to_be_skipped' then '⏸️'
-    else '📁'
+    when 'sent' then '📂'
+    when 'to_be_sent' then '✉️'
+    when 'skipped' then '~'
+    when 'to_be_skipped' then '[~]'
+    else '✉️'
     end
   end
   

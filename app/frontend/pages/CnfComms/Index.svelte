@@ -266,11 +266,11 @@
 
   function getIconDisplay(status) {
     switch(status) {
-      case 'sent': return '✅';
-      case 'to_be_sent': return '📤';
-      case 'skipped': return '⏭️';
-      case 'to_be_skipped': return '⏸️';
-      default: return '📁';
+      case 'sent': return '📂';
+      case 'to_be_sent': return '✉️';
+      case 'skipped': return '~';
+      case 'to_be_skipped': return '[~]';
+      default: return '✉️';
     }
   }
 </script>
@@ -375,7 +375,7 @@
                         {#key claim.end_date}
                           {#await Promise.resolve(computeSixMonthsAfter(claim.end_date)) then calcDeadline}
                             {#if calcDeadline}
-                              <div class="text-sm {isOverdue(calcDeadline) ? 'text-error font-bold' : isDueSoon(calcDeadline) ? 'text-warning font-bold' : ''}">{formatDateSixDigits(calcDeadline)}</div>
+                              <div class="text-sm">{formatDateSixDigits(calcDeadline)}</div>
                             {:else}
                               <div class="text-sm opacity-50">—</div>
                             {/if}
@@ -389,49 +389,49 @@
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 1"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '1' }; }}
                         title={email1 ? `${email1.status_display} - ${email1.template_type}` : 'TO BE SENT - Initial'}>
-                        {email1?.icon_display || '📤'}
+                        {email1?.icon_display || '✉️'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 2"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '2' }; }}
                         title={email2 ? `${email2.status_display} - ${email2.template_type}` : 'TO BE SENT - Monthly'}>
-                        {email2?.icon_display || '📤'}
+                        {email2?.icon_display || '✉️'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 3"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '3' }; }}
                         title={email3 ? `${email3.status_display} - ${email3.template_type}` : 'TO BE SENT - Monthly'}>
-                        {email3?.icon_display || '📤'}
+                        {email3?.icon_display || '✉️'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 4"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '4' }; }}
                         title={email4 ? `${email4.status_display} - ${email4.template_type}` : 'TO BE SENT - Monthly'}>
-                        {email4?.icon_display || '📤'}
+                        {email4?.icon_display || '✉️'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 5"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '5' }; }}
                         title={email5 ? `${email5.status_display} - ${email5.template_type}` : 'TO BE SENT - Monthly'}>
-                        {email5?.icon_display || '📤'}
+                        {email5?.icon_display || '✉️'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email 6"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '6' }; }}
                         title={email6 ? `${email6.status_display} - ${email6.template_type}` : 'TO BE SENT - Urgent'}>
-                        {email6?.icon_display || '📤'}
+                        {email6?.icon_display || '✉️'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
                       <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg" aria-label="Open CNF email FS"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: 'FS' }; }}
                         title={emailFS ? `${emailFS.status_display} - ${emailFS.template_type}` : 'TO BE SENT - Urgent'}>
-                        {emailFS?.icon_display || '📤'}
+                        {emailFS?.icon_display || '✉️'}
                       </button>
                   </td>
                     
@@ -695,7 +695,7 @@
                 {#if selectedClaim.end_date}
                   {#key selectedClaim.end_date}
                     {#await Promise.resolve(computeSixMonthsAfter(selectedClaim.end_date)) then calcDeadline}
-                      <div class="text-sm {isOverdue(calcDeadline) ? 'text-error font-bold' : isDueSoon(calcDeadline) ? 'text-warning font-bold' : ''}">
+                      <div class="text-sm">
                         {calcDeadline ? formatDateSixDigits(calcDeadline) : '—'}
                       </div>
                     {/await}
