@@ -3,6 +3,7 @@ class RndClaim < ApplicationRecord
   has_many :rnd_claim_expenditures, dependent: :destroy
   has_many :rnd_claim_projects, dependent: :destroy
   has_many :cnf_emails, dependent: :destroy
+  has_many :rnd_checklist_items, dependent: :destroy
   
   
   # Validations

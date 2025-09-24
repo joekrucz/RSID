@@ -172,11 +172,25 @@
       const oldStatus = claim.cnf_status;
       const oldStatusDisplay = claim.cnf_status_display;
       const oldStatusBadgeClass = claim.cnf_status_badge_class;
+      const oldCnfEmails = claim.cnf_emails ? [...claim.cnf_emails] : [];
       
       // Update immediately
       claim.cnf_status = newStatus;
       claim.cnf_status_display = getStatusDisplay(newStatus);
       claim.cnf_status_badge_class = getStatusBadgeClass(newStatus);
+      
+      // If changing to submitted, exempt, or not claiming, mark unsent emails as to_be_skipped
+      if (['cnf_submitted', 'cnf_exempt', 'not_claiming'].includes(newStatus)) {
+        if (claim.cnf_emails) {
+          claim.cnf_emails.forEach(email => {
+            if (email.status !== 'sent') {
+              email.status = 'to_be_skipped';
+              email.status_display = 'TO BE SKIPPED';
+              email.icon_display = '[~]';
+            }
+          });
+        }
+      }
     }
     
     try {
@@ -199,6 +213,7 @@
           claim.cnf_status = oldStatus;
           claim.cnf_status_display = oldStatusDisplay;
           claim.cnf_status_badge_class = oldStatusBadgeClass;
+          claim.cnf_emails = oldCnfEmails;
         }
         console.error('Failed to update CNF status');
       }
@@ -208,6 +223,7 @@
         claim.cnf_status = oldStatus;
         claim.cnf_status_display = oldStatusDisplay;
         claim.cnf_status_badge_class = oldStatusBadgeClass;
+        claim.cnf_emails = oldCnfEmails;
       }
       console.error('Error updating CNF status:', error);
     }

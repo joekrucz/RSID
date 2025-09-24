@@ -6,8 +6,12 @@
   import Input from '../../components/forms/Input.svelte';
   import Select from '../../components/forms/Select.svelte';
   import Checklist from '../../components/Checklist.svelte';
+  import ChecklistTaskDetail from '../../components/ChecklistTaskDetail.svelte';
   
-  let { user, rnd_claim, can_edit } = $props();
+  let { user, rnd_claim, can_edit, checklist_items = [] } = $props();
+  
+  // Checklist state management
+  let checklistRef;
   
   const stages = [
     'upcoming',
@@ -121,13 +125,13 @@
       case 'upcoming':
         return 'Upcoming';
       case 'readying_for_delivery':
-        return 'Readying for delivery';
+        return 'Readying';
       case 'in_progress':
         return 'In progress';
       case 'finalised':
         return 'Finalised';
       case 'filed_awaiting_hmrc':
-        return 'Filed (awaiting HMRC)';
+        return 'Filed';
       case 'claim_processed':
         return 'Claim processed';
       case 'client_invoiced':
@@ -143,7 +147,7 @@
     if (!iso) return '';
     try {
       const d = new Date(iso);
-      return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
     } catch (_) {
       return '';
     }
@@ -251,9 +255,9 @@
             {@const isPreDeliveryStage = s === 'upcoming' || s === 'readying_for_delivery'}
             {@const isCompletedOrActive = si <= idxCurrent}
             {@const bgClass = isInDeliveryStage
-              ? (isCompletedOrActive ? 'bg-blue-500 text-white font-semibold' : 'bg-blue-100 text-blue-700')
+              ? (isCompletedOrActive ? 'bg-blue-500 text-white font-semibold' : 'bg-gray-100 text-gray-700')
               : (isPostDeliveryStage
-                  ? (isCompletedOrActive ? 'bg-purple-600 text-white font-semibold' : 'bg-purple-100 text-purple-700')
+                  ? (isCompletedOrActive ? 'bg-purple-600 text-white font-semibold' : 'bg-gray-100 text-gray-700')
                   : (isPreDeliveryStage
                       ? (isCompletedOrActive ? 'bg-gray-700 text-white font-semibold' : 'bg-gray-100 text-gray-700')
                       : (isCompletedOrActive ? 'bg-gray-200 text-gray-900 font-semibold' : 'bg-gray-100 text-gray-700')))}
@@ -274,7 +278,7 @@
                 {formatStageLabel(s)}
               </button>
               <div class="text-[11px] leading-tight text-base-content/60 text-center mt-1 h-4">
-                {si === idxCurrent && stageSelectedAt[s] ? `Selected: ${formatSelectedDateLabel(stageSelectedAt[s])}` : ''}
+                {si === idxCurrent && stageSelectedAt[s] ? formatSelectedDateLabel(stageSelectedAt[s]) : ''}
               </div>
             </div>
         {/each}
@@ -294,6 +298,8 @@
       <section class="bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:sticky lg:top-40" role="region" aria-label="R&D Master List">
         <div class="text-base-content/90 text-sm">
           <Checklist
+            bind:this={checklistRef}
+            persistedItems={checklist_items}
             sections={[
               { title: 'General (CSM)', items: [
                 { title: 'Kick off completed' },
@@ -336,10 +342,41 @@
 
       <!-- Detail Pane -->
       <section class="bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:col-span-2" role="region" aria-label="R&D Detail View">
-        <div class="text-base-content/80 text-sm">
-          <h3 class="text-lg font-semibold mb-2">Task Specific Content</h3>
-          <p class="text-base-content/70">{selectedItemTitle ? selectedItemTitle : 'Select a task from the list to view details.'}</p>
-        </div>
+        <ChecklistTaskDetail 
+          grantApplicationId={rnd_claim.id} 
+          sectionTitle={selectedSectionTitle} 
+          itemTitle={selectedItemTitle} 
+          persistedItems={checklist_items} 
+          on:change={(e) => {
+            const { field, value, sectionTitle, itemTitle } = e.detail || {};
+            const sec = sectionTitle || selectedSectionTitle;
+            const tit = itemTitle || selectedItemTitle;
+            if (!sec || !tit) return;
+            // Optimistically update checklist_items array so detail rehydrates without refresh
+            const idx = checklist_items.findIndex(ci => ci.section === sec && ci.title === tit);
+            if (idx >= 0) {
+              const updated = { ...checklist_items[idx], [field]: value };
+              if (field === 'checked') {
+                updated.completed_at = value ? new Date().toISOString() : null;
+              }
+              checklist_items[idx] = updated;
+              // Force reactivity so child $effect sees new props
+              checklist_items = [...checklist_items];
+            } else {
+              // If item doesn't exist, create it
+              const newItem = {
+                section: sec,
+                title: tit,
+                [field]: value,
+                completed_at: field === 'checked' && value ? new Date().toISOString() : null
+              };
+              checklist_items = [...checklist_items, newItem];
+            }
+            if (field === 'checked') {
+              checklistRef?.setCheckedByTitle(sec, tit, value);
+            }
+          }} 
+        />
       </section>
         </div>
     </div>

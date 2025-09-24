@@ -221,33 +221,27 @@
     }
   }
 
-  function toggleChecked(sectionIdx, itemIdx, value) {
-    console.log('toggleChecked called:', { sectionIdx, itemIdx, value });
-    const frontendSectionTitle = sections[sectionIdx]?.title;
-    const backendSectionTitle = sectionMapping[frontendSectionTitle] || frontendSectionTitle;
-    const itemTitle = localSections[sectionIdx]?.items?.[itemIdx]?.title;
-    const k = keyFor(sectionIdx, itemIdx);
-    
-    // Update the state directly and force reactivity
-    checkedByKey[k] = !!value;
-    // Force reactivity by creating a new object reference
-    checkedByKey = { ...checkedByKey };
-    console.log('Updated checkedByKey:', checkedByKey);
-    
-    // Emit progress after state update
-    emitProgress();
-    // Inform parent so it can optimistically update persisted items
-    dispatch('change', { field: 'checked', value: !!value, sectionTitle: frontendSectionTitle, itemTitle });
-    persistChecked(backendSectionTitle, itemTitle, !!value);
-  }
-
   // Expose method for parent to set checked by title
   export function setCheckedByTitle(sectionTitle, itemTitle, value) {
     const sIdx = sections.findIndex((s) => s.title === sectionTitle);
     if (sIdx === -1) return;
     const iIdx = (sections[sIdx]?.items || []).findIndex((i) => i.title === itemTitle);
     if (iIdx === -1) return;
-    toggleChecked(sIdx, iIdx, value);
+    
+    const frontendSectionTitle = sections[sIdx]?.title;
+    const backendSectionTitle = sectionMapping[frontendSectionTitle] || frontendSectionTitle;
+    const k = keyFor(sIdx, iIdx);
+    
+    // Update the state directly and force reactivity
+    checkedByKey[k] = !!value;
+    // Force reactivity by creating a new object reference
+    checkedByKey = { ...checkedByKey };
+    
+    // Emit progress after state update
+    emitProgress();
+    // Inform parent so it can optimistically update persisted items
+    dispatch('change', { field: 'checked', value: !!value, sectionTitle: frontendSectionTitle, itemTitle });
+    persistChecked(backendSectionTitle, itemTitle, !!value);
   }
 </script>
 
@@ -283,13 +277,13 @@
           <button class={`w-full text-left px-4 py-3 cursor-pointer ${isSelected ? `bg-success/20 ring-1 ring-success/30 text-base-content ${isLast ? 'rounded-b-lg' : ''}` : 'hover:bg-base-200 rounded'}`} onclick={() => selectItem(sIdx, iIdx)}>
             <div class="flex items-start justify-between gap-4">
               <div class="flex items-start gap-2">
-                <input type="checkbox" class="checkbox checkbox-sm checkbox-success mt-0.5"
-                  checked={!!checkedByKey[k]}
-                  onchange={(e) => {
-                    e.stopPropagation();
-                    toggleChecked(sIdx, iIdx, e.currentTarget.checked);
-                  }}
-                  aria-label={`Mark ${item.title} as ${checkedByKey[k] ? 'incomplete' : 'complete'}`} />
+                {#if checkedByKey[k]}
+                  <div class="flex-shrink-0 mt-0.5">
+                    <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                  </div>
+                {/if}
                 <div class="font-medium text-sm">{item.title}</div>
               </div>
               

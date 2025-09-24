@@ -136,7 +136,14 @@
         }
       }
       const backendSectionTitle = sectionMapping[sectionTitle] || sectionTitle;
-      await fetch(`/grant_applications/${grantApplicationId}/grant_checklist_items/upsert`, {
+      
+      // Determine if this is for R&D claims or Grant Applications based on the URL
+      const isRndClaim = window.location.pathname.includes('/rnd_claims/');
+      const endpoint = isRndClaim 
+        ? `/rnd_claims/${grantApplicationId}/rnd_checklist_items/upsert`
+        : `/grant_applications/${grantApplicationId}/grant_checklist_items/upsert`;
+      
+      await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -305,7 +312,16 @@
     <div class="text-base-content/70">Select a checklist item to view details.</div>
   {:else}
     <div class="mb-4 flex items-center justify-between gap-3">
-      <h3 class="text-2xl font-semibold text-base-content">{itemTitle}</h3>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 p-2 border border-gray-300 rounded bg-gray-50">
+          <input type="checkbox" class="checkbox checkbox-md checkbox-success" style="width: 20px; height: 20px;"
+            checked={checked}
+            onchange={(e) => save({ checked: e.currentTarget.checked })}
+            aria-label={`Mark ${itemTitle} as ${checked ? 'incomplete' : 'complete'}`} />
+          <span class="text-sm font-medium text-gray-700">Complete</span>
+        </div>
+        <h3 class="text-2xl font-semibold text-base-content">{itemTitle}</h3>
+      </div>
         <div class="flex items-center gap-4">
           <label class="flex items-center gap-2 text-sm">
             <span>Due</span>

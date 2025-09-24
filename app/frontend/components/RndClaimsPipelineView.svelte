@@ -10,7 +10,14 @@
   let hasDragged = $state(false);
   
   function formatStageName(stage) {
-    return stage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    switch (stage) {
+      case 'readying_for_delivery':
+        return 'Readying';
+      case 'filed_awaiting_hmrc':
+        return 'Filed';
+      default:
+        return stage.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
   }
   
   function isPreDeliveryStage(stage) {

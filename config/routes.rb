@@ -104,6 +104,13 @@ Rails.application.routes.draw do
     
     # Nested projects
     resources :rnd_claim_projects, only: [:index, :show, :new, :create, :edit, :update, :destroy]
+    
+    # Nested checklist items
+    resources :rnd_checklist_items, only: [] do
+      collection do
+        post :upsert
+      end
+    end
   end
   
   # Messages

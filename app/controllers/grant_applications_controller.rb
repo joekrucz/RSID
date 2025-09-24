@@ -81,6 +81,7 @@ class GrantApplicationsController < ApplicationController
     @grant_application = @current_user.grant_applications.find(params[:id])
   end
   
+  
   def grant_application_params
     params.require(:grant_application).permit(:title, :description, :stage, :company_id, :grant_competition_id, :qualification_cost_pence)
   end

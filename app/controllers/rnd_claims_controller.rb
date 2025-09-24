@@ -69,10 +69,14 @@ class RndClaimsController < ApplicationController
       return
     end
     
+    # Ensure checklist items exist for this R&D claim
+    ensure_checklist_items_exist
+    
     render inertia: 'RndClaims/Show', props: {
       user: user_props,
       rnd_claim: PropsBuilderService.rnd_claim_props(@rnd_claim),
       projects: @rnd_claim.rnd_claim_projects.map { |project| rnd_claim_project_props(project) },
+      checklist_items: @rnd_claim.rnd_checklist_items.order(:section, :title).map { |i| rnd_checklist_item_props(i) },
       can_edit: can_edit_claim?(@rnd_claim),
       can_add_projects: @current_user.employee?
     }
@@ -129,6 +133,11 @@ class RndClaimsController < ApplicationController
     end
     
     if @rnd_claim.update(rnd_claim_params)
+      # If CNF status changed to submitted, exempt, or not claiming, mark unsent emails as to_be_skipped
+      if ['cnf_submitted', 'cnf_exempt', 'not_claiming'].include?(@rnd_claim.cnf_status)
+        @rnd_claim.cnf_emails.where.not(status: 'sent').update_all(status: 'to_be_skipped')
+      end
+      
       # TODO: Create notification for claim updates when user-company association is established
       # if @current_user.employee? && @rnd_claim.company
       #   Notification.create_for_user(
@@ -244,6 +253,75 @@ class RndClaimsController < ApplicationController
       narrative_status_display: project.narrative_status_display,
       created_at: project.created_at.strftime('%d/%m/%Y %H:%M'),
       updated_at: project.updated_at.strftime('%d/%m/%Y %H:%M')
+    }
+  end
+
+  def ensure_checklist_items_exist
+    return if @rnd_claim.rnd_checklist_items.any?
+    
+    # Create default checklist items for R&D claims
+    section_items = {
+      'General (CSM)' => [
+        'Kick off completed',
+        'AML check completed',
+        'Letter of authority signed'
+      ],
+      'Financials (FC)' => [
+        'Tax account access established',
+        'Org structure compiled and confirmed by client',
+        'Financial information received',
+        'Pipedrive updated with latest claim details'
+      ],
+      'Technicals (TC)' => [
+        'Project list completed',
+        'Technical narrative completed'
+      ],
+      'Finalising and filing (FC)' => [
+        'Apportionments completed',
+        'Calculations done',
+        'Claim report compiled',
+        'Signoff statements compiled',
+        'Amended tax docs created (Delete if N/A)',
+        'Ready for verification?',
+        'Claim verified',
+        'Claim finalised',
+        'AIF submitted',
+        'Submission pack sent to client for signoff',
+        'Claim filed'
+      ]
+    }
+    
+    section_items.each do |section, items|
+      items.each do |title|
+        @rnd_claim.rnd_checklist_items.find_or_create_by(
+          section: section,
+          title: title
+        )
+      end
+    end
+  end
+
+  def rnd_checklist_item_props(item)
+    {
+      id: item.id,
+      section: item.section,
+      title: item.title,
+      due_date: item.due_date&.strftime('%Y-%m-%d'),
+      checked: item.checked,
+      technical_qualifier: item.technical_qualifier,
+      no_technical_qualifier: item.no_technical_qualifier,
+      contract_link: item.contract_link,
+      review_delivered_on: item.review_delivered_on&.strftime('%Y-%m-%d'),
+      invoice_sent_on: item.invoice_sent_on&.strftime('%Y-%m-%d'),
+      invoice_paid_on: item.invoice_paid_on&.strftime('%Y-%m-%d'),
+      resourced_subcontractor: item.resourced_subcontractor,
+      delivery_folder_link: item.delivery_folder_link,
+      slack_channel_name: item.slack_channel_name,
+      resub_due: item.resub_due,
+      eligibility_check_cost_pence: item.eligibility_check_cost_pence,
+      deal_outcome: item.deal_outcome,
+      completed_at: item.completed_at&.iso8601,
+      notes: item.notes
     }
   end
 end 

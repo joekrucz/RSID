@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_24_211159) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_24_225951) do
   create_table "clients", force: :cascade do |t|
     t.string "name"
     t.string "email"
@@ -171,6 +171,32 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_24_211159) do
     t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
+  create_table "rnd_checklist_items", force: :cascade do |t|
+    t.integer "rnd_claim_id", null: false
+    t.string "section", null: false
+    t.string "title", null: false
+    t.date "due_date"
+    t.boolean "checked", default: false
+    t.string "technical_qualifier"
+    t.boolean "no_technical_qualifier", default: false
+    t.string "contract_link"
+    t.date "review_delivered_on"
+    t.date "invoice_sent_on"
+    t.date "invoice_paid_on"
+    t.string "resourced_subcontractor"
+    t.string "delivery_folder_link"
+    t.string "slack_channel_name"
+    t.string "resub_due"
+    t.integer "eligibility_check_cost_pence", default: 0
+    t.string "deal_outcome"
+    t.datetime "completed_at"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["rnd_claim_id", "section", "title"], name: "idx_on_rnd_claim_id_section_title_1b099afe8c", unique: true
+    t.index ["rnd_claim_id"], name: "index_rnd_checklist_items_on_rnd_claim_id"
+  end
+
   create_table "rnd_claim_expenditures", force: :cascade do |t|
     t.integer "rnd_claim_id", null: false
     t.integer "expenditure_type"
@@ -256,6 +282,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_24_211159) do
   add_foreign_key "messages", "users", column: "recipient_id"
   add_foreign_key "messages", "users", column: "sender_id"
   add_foreign_key "notifications", "users"
+  add_foreign_key "rnd_checklist_items", "rnd_claims"
   add_foreign_key "rnd_claim_expenditures", "rnd_claims"
   add_foreign_key "rnd_claim_projects", "rnd_claims"
   add_foreign_key "rnd_claims", "companies"
