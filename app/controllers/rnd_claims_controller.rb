@@ -129,18 +129,27 @@ class RndClaimsController < ApplicationController
     end
     
     if @rnd_claim.update(rnd_claim_params)
-      # Create notification for claim updates
-      if @current_user.employee? && @rnd_claim.user
-        Notification.create_for_user(
-          @rnd_claim.user,
-          :claim_updated,
-          "R&D Claim Updated",
-          "Your R&D claim '#{@rnd_claim.title}' has been updated.",
-          @rnd_claim
-        )
-      end
+      # TODO: Create notification for claim updates when user-company association is established
+      # if @current_user.employee? && @rnd_claim.company
+      #   Notification.create_for_user(
+      #     @rnd_claim.company,
+      #     :claim_updated,
+      #     "R&D Claim Updated",
+      #     "Your R&D claim '#{@rnd_claim.title}' has been updated.",
+      #     @rnd_claim
+      #   )
+      # end
       
-      redirect_to rnd_claims_path, notice: "R&D Claim '#{@rnd_claim.title}' updated successfully!"
+      if request.xhr? || request.format.json?
+        render json: { 
+          success: true, 
+          message: "R&D Claim '#{@rnd_claim.title}' updated successfully!",
+          cnf_status: @rnd_claim.cnf_status,
+          cnf_status_display: @rnd_claim.cnf_status_display
+        }
+      else
+        redirect_to rnd_claims_path, notice: "R&D Claim '#{@rnd_claim.title}' updated successfully!"
+      end
     else
       render inertia: 'RndClaims/Edit', props: {
         user: user_props,

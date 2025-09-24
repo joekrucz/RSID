@@ -165,25 +165,52 @@
     return `${dd}/${mm}/${yy}`; // DD/MM/YY
   }
 
-  function updateCnfStatus(claimId, newStatus) {
-    router.patch(`/rnd_claims/${claimId}`, {
-      rnd_claim: {
-        cnf_status: newStatus
-      }
-    }, {
-      preserveState: true,
-      preserveScroll: true,
-      onSuccess: () => {
-        // Update the local state to reflect the change
-        const claim = filteredClaims.find(c => c.id === claimId);
+  async function updateCnfStatus(claimId, newStatus) {
+    // Optimistically update the UI immediately
+    const claim = filteredClaims.find(c => c.id === claimId);
+    if (claim) {
+      const oldStatus = claim.cnf_status;
+      const oldStatusDisplay = claim.cnf_status_display;
+      const oldStatusBadgeClass = claim.cnf_status_badge_class;
+      
+      // Update immediately
+      claim.cnf_status = newStatus;
+      claim.cnf_status_display = getStatusDisplay(newStatus);
+      claim.cnf_status_badge_class = getStatusBadgeClass(newStatus);
+    }
+    
+    try {
+      const response = await fetch(`/rnd_claims/${claimId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          rnd_claim: {
+            cnf_status: newStatus
+          }
+        })
+      });
+      
+      if (!response.ok) {
+        // Revert on error
         if (claim) {
-          claim.cnf_status = newStatus;
-          // Update display values
-          claim.cnf_status_display = getStatusDisplay(newStatus);
-          claim.cnf_status_badge_class = getStatusBadgeClass(newStatus);
+          claim.cnf_status = oldStatus;
+          claim.cnf_status_display = oldStatusDisplay;
+          claim.cnf_status_badge_class = oldStatusBadgeClass;
         }
+        console.error('Failed to update CNF status');
       }
-    });
+    } catch (error) {
+      // Revert on error
+      if (claim) {
+        claim.cnf_status = oldStatus;
+        claim.cnf_status_display = oldStatusDisplay;
+        claim.cnf_status_badge_class = oldStatusBadgeClass;
+      }
+      console.error('Error updating CNF status:', error);
+    }
   }
 
   function getStatusDisplay(status) {
@@ -405,7 +432,7 @@
                       role="button"
                       tabindex="0"
                     >
-                      <div class="text-sm truncate max-w-full overflow-hidden {(claim.cnf_status === 'cnf_submitted' || claim.cnf_status === 'cnf_exempt') ? 'text-green-600' : ''}" title={claim.cnf_status_display}>
+                      <div class="text-sm truncate max-w-full overflow-hidden {(claim.cnf_status === 'cnf_submitted' || claim.cnf_status === 'cnf_exempt') ? 'text-green-600 font-bold' : ''}" title={claim.cnf_status_display}>
                         {claim.cnf_status_display}
                       </div>
                     </td>
@@ -524,7 +551,7 @@
                   <div class="flex items-center justify-between">
                     <div>
                       <h2 class="text-lg font-semibold">
-                        {selectedClaimForEmail?.company?.name || 'Company'} - {selectedClaimForEmail?.title || 'Claim'} - {selectedCnfEmail?.email_slot === 'FS' ? 'Final' : selectedCnfEmail?.email_slot ? `${selectedCnfEmail.email_slot}${selectedCnfEmail.email_slot === '1' ? 'st' : selectedCnfEmail.email_slot === '2' ? 'nd' : selectedCnfEmail.email_slot === '3' ? 'rd' : 'th'} Email` : 'Email'}
+                        {selectedClaimForEmail?.company?.name || 'Company'} - {selectedClaimForEmail?.title || 'Claim'} - {selectedCnfEmail?.email_slot === 'FS' ? 'Failsafe' : selectedCnfEmail?.email_slot ? `${selectedCnfEmail.email_slot}${selectedCnfEmail.email_slot === '1' ? 'st' : selectedCnfEmail.email_slot === '2' ? 'nd' : selectedCnfEmail.email_slot === '3' ? 'rd' : 'th'} Email` : 'Email'}
                       </h2>
                       <div class="flex items-center space-x-4 text-sm opacity-90">
                         <span>{selectedCnfEmail?.status_display || 'TO BE SENT'}</span>
@@ -681,22 +708,41 @@
             {/key}
           {:else if selectedClaim}
             <div class="p-4">
-              <div class="flex items-start justify-between">
               <div>
-                <h2 class="text-xl font-semibold text-base-content">{selectedClaim.title}</h2>
-                {#if selectedClaim.company}
-                  <div class="text-base-content/70 mt-1">
-                    Company: 
-                    <a 
-                      href={`/companies/${selectedClaim.company.id}`} 
-                      class="link link-primary hover:link-primary-focus"
-                    >
-                      {selectedClaim.company.name}
-                    </a>
-                  </div>
-                {/if}
+                <h2 class="text-xl font-semibold text-base-content">
+                  <a 
+                    href={`/rnd_claims/${selectedClaim.id}`}
+                    class="hover:underline cursor-pointer"
+                  >
+                    {#if selectedClaim.company}
+                      {selectedClaim.company.name} {selectedClaim.title}
+                    {:else}
+                      {selectedClaim.title}
+                    {/if}
+                  </a>
+                </h2>
               </div>
-              <div class="badge badge-neutral">{selectedClaim.cnf_status_display}</div>
+
+            <div class="divider"></div>
+
+            <div class="space-y-3">
+              <h3 class="text-lg font-semibold text-base-content">CNF Status</h3>
+              
+              <div>
+                <select 
+                  class="select select-bordered select-sm w-full"
+                  bind:value={selectedClaim.cnf_status}
+                  onchange={() => updateCnfStatus(selectedClaim.id, selectedClaim.cnf_status)}
+                >
+                  <option value="not_claiming">Not claiming</option>
+                  <option value="cnf_needed">Needed</option>
+                  <option value="cnf_exemption_possible">Exemption Possible</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="cnf_submitted">Submitted</option>
+                  <option value="cnf_exempt">Exempt</option>
+                  <option value="cnf_missed">Missed</option>
+                </select>
+              </div>
             </div>
 
             <div class="divider"></div>
@@ -741,23 +787,6 @@
                   </tbody>
                 </table>
               </div>
-              
-              <div>
-                <span class="text-sm text-base-content/70">CNF Status</span>
-                <select 
-                  class="select select-bordered select-sm w-full mt-1"
-                  bind:value={selectedClaim.cnf_status}
-                  onchange={() => updateCnfStatus(selectedClaim.id, selectedClaim.cnf_status)}
-                >
-                  <option value="not_claiming">Not claiming</option>
-                  <option value="cnf_needed">Needed</option>
-                  <option value="cnf_exemption_possible">Exemption Possible</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="cnf_submitted">Submitted</option>
-                  <option value="cnf_exempt">Exempt</option>
-                  <option value="cnf_missed">Missed</option>
-                </select>
-              </div>
               <div>
                 <span class="text-sm text-base-content/70">CNF Deadline</span>
                 {#if selectedClaim.end_date}
@@ -782,14 +811,6 @@
               </div>
         </div>
         
-            <div class="mt-6 flex gap-2">
-          <button 
-            class="btn btn-sm btn-outline"
-                onclick={() => router.visit(`/rnd_claims/${selectedClaim.id}`)}
-          >
-                View claim
-          </button>
-            </div>
             </div>
           {:else}
             <div class="h-full flex items-center justify-center text-base-content/60 py-12 p-4">
