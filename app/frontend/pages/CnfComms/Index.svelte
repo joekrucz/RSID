@@ -321,7 +321,7 @@
       <div class="lg:col-span-5 bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden flex flex-col">
       {#if filteredClaims.length > 0}
           <div class="overflow-x-auto overflow-y-auto max-h-[70vh] flex-1">
-            <table class="table table-zebra w-full table-compact table-fixed">
+            <table class="table w-full table-compact table-fixed">
               <thead class="sticky top-0 z-10 bg-base-100">
                 <tr>
                   <th rowspan="2" class="px-1 w-[5.5rem]">CNF Status</th>
@@ -476,9 +476,21 @@
                   <div class="flex items-center justify-between">
                     <div>
                       <h2 class="text-lg font-semibold">
-                        {selectedClaimForEmail?.company?.name || 'Company'} - {selectedClaimForEmail?.title || 'Claim'}
+                        {selectedClaimForEmail?.company?.name || 'Company'} - {selectedClaimForEmail?.title || 'Claim'} - {selectedCnfEmail?.email_slot === 'FS' ? 'Final' : selectedCnfEmail?.email_slot ? `${selectedCnfEmail.email_slot}${selectedCnfEmail.email_slot === '1' ? 'st' : selectedCnfEmail.email_slot === '2' ? 'nd' : selectedCnfEmail.email_slot === '3' ? 'rd' : 'th'} Email` : 'Email'}
                       </h2>
-                      <div class="text-sm opacity-90">{selectedCnfEmail?.status_display || 'TO BE SENT'}</div>
+                      <div class="flex items-center space-x-4 text-sm opacity-90">
+                        <span>{selectedCnfEmail?.status_display || 'TO BE SENT'}</span>
+                        <span>•</span>
+                        <span>
+                          {#if selectedCnfEmail?.sent_at}
+                            {new Date(selectedCnfEmail.sent_at).toLocaleDateString()}
+                          {:else if selectedCnfEmail?.status === 'to_be_sent' || selectedCnfEmail?.status === 'to_be_skipped'}
+                            {new Date(selectedCnfEmail.expected_send_date || selectedCnfEmail.sent_at).toLocaleDateString()}
+                          {:else}
+                            Not sent
+                          {/if}
+                        </span>
+                      </div>
                     </div>
                     <button class="btn btn-ghost btn-sm {selectedCnfEmail?.status === 'sent' ? 'text-success-content hover:bg-success-content/20' :
                                                        selectedCnfEmail?.status === 'to_be_sent' ? 'text-info-content hover:bg-info-content/20' :
@@ -496,10 +508,6 @@
                 <div class="flex-1 bg-base-100 p-4 space-y-4">
                   <!-- Email Metadata -->
                   <div class="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span class="font-medium text-base-content/70">Sent:</span>
-                      <span class="ml-2">{selectedCnfEmail?.sent_at || 'Not sent'}</span>
-                    </div>
                     <div>
                       <span class="font-medium text-base-content/70">From:</span>
                       <span class="ml-2">{selectedCnfEmail?.sender_email || 'customersuccess@granttree.co.uk'}</span>
@@ -523,15 +531,6 @@
                     </div>
                   </div>
 
-                  <!-- Template Selector -->
-                  <div class="flex items-center justify-end">
-                    <label for="template-select" class="text-sm font-medium text-base-content/70 mr-2">Template:</label>
-                    <select id="template-select" class="select select-bordered select-sm w-40" bind:value={emailTemplate}>
-                      <option value="initial">Initial</option>
-                      <option value="monthly">Monthly reminder</option>
-                      <option value="urgent">Urgent deadline</option>
-                    </select>
-                  </div>
 
                   <!-- Email Body -->
                   <div class="bg-base-200 p-4 rounded-lg space-y-3 text-sm">

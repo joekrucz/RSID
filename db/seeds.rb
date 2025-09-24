@@ -490,13 +490,23 @@ if User.exists?(1)
       "Algorithm development and optimization"
     ].sample(rand(2..3)).join(", ")
     
-    # CNF status and deadline
-    cnf_statuses = ['not_claiming', 'cnf_needed', 'cnf_exemption_possible', 'in_progress', 'cnf_submitted', 'cnf_exempt', 'cnf_missed']
+    # CNF status and deadline - ensure no future deadlines have "missed" status
+    cnf_deadline = end_date + 6.months
+    today = Date.current
+    
+    if cnf_deadline > today
+      # Future deadline - can't be missed yet
+      cnf_statuses = ['not_claiming', 'cnf_needed', 'cnf_exemption_possible', 'in_progress', 'cnf_submitted', 'cnf_exempt']
+    else
+      # Past or current deadline - can be any status
+      cnf_statuses = ['not_claiming', 'cnf_needed', 'cnf_exemption_possible', 'in_progress', 'cnf_submitted', 'cnf_exempt', 'cnf_missed']
+    end
+    
     claim.cnf_status = cnf_statuses.sample
     
-    # CNF deadline should be after the project end date
+    # CNF deadline should be 6 months after the project end date
     if claim.cnf_status != 'not_claiming'
-      claim.cnf_deadline = end_date + rand(1..90).days
+      claim.cnf_deadline = cnf_deadline
     else
       claim.cnf_deadline = nil
     end
@@ -531,19 +541,20 @@ if User.exists?(1)
                        end
         
         # Calculate when this email should be sent based on monthly schedule
-        # Email 1: immediately after period end
-        # Email 2: 1 month after period end
-        # Email 3: 2 months after period end
+        # Emails 1-6: sent on the 1st of the month following their respective period end months
+        # Email 1: 1st of month after period end
+        # Email 2: 1st of month 2 months after period end
+        # Email 3: 1st of month 3 months after period end
         # etc.
         email_send_date = case slot
-                         when '1' then end_date + 1.day
-                         when '2' then end_date + 1.month + 1.day
-                         when '3' then end_date + 2.months + 1.day
-                         when '4' then end_date + 3.months + 1.day
-                         when '5' then end_date + 4.months + 1.day
-                         when '6' then end_date + 5.months + 1.day
+                         when '1' then (end_date + 1.month).beginning_of_month
+                         when '2' then (end_date + 2.months).beginning_of_month
+                         when '3' then (end_date + 3.months).beginning_of_month
+                         when '4' then (end_date + 4.months).beginning_of_month
+                         when '5' then (end_date + 5.months).beginning_of_month
+                         when '6' then (end_date + 6.months).beginning_of_month
                          when 'FS' then cnf_deadline - 2.weeks # Final reminder 2 weeks before deadline
-                         else end_date + 1.day
+                         else (end_date + 1.month).beginning_of_month
                          end
         
         # Determine status based on current date vs send date
@@ -551,7 +562,7 @@ if User.exists?(1)
         if email_send_date <= today
           # Email should have been sent already
           email.status = 'sent'
-          email.sent_at = email_send_date.to_time
+          email.sent_at = email_send_date.beginning_of_day
         elsif email_send_date <= today + 1.week
           # Email is due soon
           email.status = 'to_be_sent'

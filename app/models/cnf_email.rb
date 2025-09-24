@@ -62,6 +62,24 @@ class CnfEmail < ApplicationRecord
     end
   end
   
+  def expected_send_date
+    return nil unless rnd_claim&.end_date
+    
+    end_date = rnd_claim.end_date.is_a?(String) ? Date.parse(rnd_claim.end_date) : rnd_claim.end_date
+    cnf_deadline = end_date + 6.months
+    
+    case email_slot
+    when '1' then (end_date + 1.month).beginning_of_month
+    when '2' then (end_date + 2.months).beginning_of_month
+    when '3' then (end_date + 3.months).beginning_of_month
+    when '4' then (end_date + 4.months).beginning_of_month
+    when '5' then (end_date + 5.months).beginning_of_month
+    when '6' then (end_date + 6.months).beginning_of_month
+    when 'FS' then cnf_deadline - 2.weeks
+    else (end_date + 1.month).beginning_of_month
+    end
+  end
+  
   # Class methods
   def self.create_for_claim(claim, email_slot, template_type = nil)
     # Determine template type based on slot if not provided

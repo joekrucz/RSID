@@ -13,10 +13,11 @@ class CnfCommsController < ApplicationController
     # Get R&D claims with CNF information
     all_claims = get_accessible_rnd_claims.includes(:company, :cnf_emails)
 
+    # Only show claims with past or current period ends (no future end dates)
     # Include: not missed (deadline >= today) and missed within last 2 months
     # CNF deadline = end_date + 6 months -> include when end_date >= today - 8 months, or end_date is NULL
     include_from = Date.current - 8.months
-    all_claims = all_claims.where("rnd_claims.end_date IS NULL OR rnd_claims.end_date >= ?", include_from)
+    all_claims = all_claims.where("rnd_claims.end_date IS NULL OR (rnd_claims.end_date >= ? AND rnd_claims.end_date <= ?)", include_from, Date.current)
     
     # Apply search if needed
     if search.present?

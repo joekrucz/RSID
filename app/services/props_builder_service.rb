@@ -57,6 +57,7 @@ class PropsBuilderService
       status_badge_class: email.status_badge_class,
       icon_display: email.icon_display,
       sent_at: email.sent_at&.strftime("%Y-%m-%d %H:%M"),
+      expected_send_date: email.expected_send_date&.strftime("%Y-%m-%d"),
       subject: email.subject,
       body: email.body,
       recipient_email: email.recipient_email,
