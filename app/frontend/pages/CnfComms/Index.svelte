@@ -396,7 +396,7 @@
                   {@const email5 = getCnfEmailForSlot(claim, '5')}
                   {@const email6 = getCnfEmailForSlot(claim, '6')}
                   {@const emailFS = getCnfEmailForSlot(claim, 'FS')}
-                  <tr class="{(selectedClaimId === claim.id || selectedEmailSlot?.claimId === claim.id) ? 'active bg-primary/10 border-l-4 border-primary font-semibold' : ''} {(claim.cnf_status === 'cnf_exempt' || claim.cnf_status === 'cnf_submitted') ? 'bg-green-50' : ''} {(claim.cnf_deadline && new Date(claim.cnf_deadline) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && claim.cnf_status !== 'cnf_exempt' && claim.cnf_status !== 'cnf_submitted') ? 'bg-orange-50' : ''}"
+                  <tr class="{(claim.cnf_status === 'cnf_exempt' || claim.cnf_status === 'cnf_submitted') ? 'bg-green-50' : ''} {(claim.cnf_deadline && new Date(claim.cnf_deadline) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && claim.cnf_status !== 'cnf_exempt' && claim.cnf_status !== 'cnf_submitted') ? 'bg-orange-50' : ''}"
                       aria-selected={selectedClaimId === claim.id}>
                     <td
                       class="cursor-pointer px-1 w-[5.5rem]"
@@ -405,11 +405,11 @@
                       role="button"
                       tabindex="0"
                     >
-                      <div class="text-sm truncate max-w-full overflow-hidden" title={claim.cnf_status_display}>
+                      <div class="text-sm truncate max-w-full overflow-hidden {(claim.cnf_status === 'cnf_submitted' || claim.cnf_status === 'cnf_exempt') ? 'text-green-600' : ''}" title={claim.cnf_status_display}>
                         {claim.cnf_status_display}
                       </div>
                     </td>
-                    <td class="px-1 whitespace-nowrap w-[10rem] {selectedClaimId === claim.id && !selectedEmailSlot ? 'bg-primary/20 rounded-sm' : ''}">
+                    <td class="px-1 whitespace-nowrap w-[10rem]">
                       <div class="font-bold text-sm truncate max-w-[10rem]" title={(claim.company ? `${claim.company.name} ${claim.title}` : claim.title)}>
                         {#if claim.company}
                           {claim.company.name} {claim.title}
@@ -434,49 +434,49 @@
                     {/if}
                   </td>
                     <td class="text-center w-7 px-1">
-                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg {selectedEmailSlot?.claimId === claim.id && selectedEmailSlot?.slot === '1' ? 'bg-primary/30 text-primary-content ring ring-primary ring-offset-1 rounded' : ''}" aria-label="Open CNF email 1"
+                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg {selectedEmailSlot?.claimId === claim.id && selectedEmailSlot?.slot === '1' ? 'bg-gray-300' : ''}" aria-label="Open CNF email 1"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '1' }; }}
                         title={email1 ? `${email1.status_display} - ${email1.template_type}` : 'TO BE SENT - Initial'}>
                         {email1?.icon_display || '✉️'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
-                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg {selectedEmailSlot?.claimId === claim.id && selectedEmailSlot?.slot === '2' ? 'bg-primary/30 text-primary-content ring ring-primary ring-offset-1 rounded' : ''}" aria-label="Open CNF email 2"
+                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg {selectedEmailSlot?.claimId === claim.id && selectedEmailSlot?.slot === '2' ? 'bg-gray-300' : ''}" aria-label="Open CNF email 2"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '2' }; }}
                         title={email2 ? `${email2.status_display} - ${email2.template_type}` : 'TO BE SENT - Monthly'}>
                         {email2?.icon_display || '✉️'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
-                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg {selectedEmailSlot?.claimId === claim.id && selectedEmailSlot?.slot === '3' ? 'bg-primary/30 text-primary-content ring ring-primary ring-offset-1 rounded' : ''}" aria-label="Open CNF email 3"
+                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg {selectedEmailSlot?.claimId === claim.id && selectedEmailSlot?.slot === '3' ? 'bg-gray-300' : ''}" aria-label="Open CNF email 3"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '3' }; }}
                         title={email3 ? `${email3.status_display} - ${email3.template_type}` : 'TO BE SENT - Monthly'}>
                         {email3?.icon_display || '✉️'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
-                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg {selectedEmailSlot?.claimId === claim.id && selectedEmailSlot?.slot === '4' ? 'bg-primary/30 text-primary-content ring ring-primary ring-offset-1 rounded' : ''}" aria-label="Open CNF email 4"
+                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg {selectedEmailSlot?.claimId === claim.id && selectedEmailSlot?.slot === '4' ? 'bg-gray-300' : ''}" aria-label="Open CNF email 4"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '4' }; }}
                         title={email4 ? `${email4.status_display} - ${email4.template_type}` : 'TO BE SENT - Monthly'}>
                         {email4?.icon_display || '✉️'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
-                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg {selectedEmailSlot?.claimId === claim.id && selectedEmailSlot?.slot === '5' ? 'bg-primary/30 text-primary-content ring ring-primary ring-offset-1 rounded' : ''}" aria-label="Open CNF email 5"
+                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg {selectedEmailSlot?.claimId === claim.id && selectedEmailSlot?.slot === '5' ? 'bg-gray-300' : ''}" aria-label="Open CNF email 5"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '5' }; }}
                         title={email5 ? `${email5.status_display} - ${email5.template_type}` : 'TO BE SENT - Monthly'}>
                         {email5?.icon_display || '✉️'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
-                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg {selectedEmailSlot?.claimId === claim.id && selectedEmailSlot?.slot === '6' ? 'bg-primary/30 text-primary-content ring ring-primary ring-offset-1 rounded' : ''}" aria-label="Open CNF email 6"
+                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg {selectedEmailSlot?.claimId === claim.id && selectedEmailSlot?.slot === '6' ? 'bg-gray-300' : ''}" aria-label="Open CNF email 6"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: '6' }; }}
                         title={email6 ? `${email6.status_display} - ${email6.template_type}` : 'TO BE SENT - Urgent'}>
                         {email6?.icon_display || '✉️'}
                       </button>
                     </td>
                     <td class="text-center w-7 px-1">
-                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg {selectedEmailSlot?.claimId === claim.id && selectedEmailSlot?.slot === 'FS' ? 'bg-primary/30 text-primary-content ring ring-primary ring-offset-1 rounded' : ''}" aria-label="Open CNF email FS"
+                      <button class="btn btn-ghost btn-xs p-0 min-h-0 h-6 w-6 leading-none text-lg {selectedEmailSlot?.claimId === claim.id && selectedEmailSlot?.slot === 'FS' ? 'bg-gray-300' : ''}" aria-label="Open CNF email FS"
                         onclick={(e) => { e.stopPropagation?.(); selectedClaimId = null; selectedEmailSlot = { claimId: claim.id, slot: 'FS' }; }}
                         title={emailFS ? `${emailFS.status_display} - ${emailFS.template_type}` : 'TO BE SENT - Urgent'}>
                         {emailFS?.icon_display || '✉️'}
@@ -510,7 +510,7 @@
 
       <!-- Detail: Selected Claim -->
       <div class="lg:col-span-7">
-        <div class="bg-base-100 rounded-lg shadow border border-base-300 h-full overflow-hidden">
+        <div class="bg-base-100 rounded-lg shadow border border-base-300 h-full overflow-hidden {selectedClaimId && !selectedEmailSlot ? 'bg-gray-100' : ''}">
           {#if selectedEmailSlot}
             {#key `${selectedEmailSlot.claimId}-${selectedEmailSlot.slot}`}
               {@const selectedClaimForEmail = filteredClaims.find(c => c.id === selectedEmailSlot.claimId)}
@@ -709,9 +709,11 @@
                 <table class="table table-zebra w-full table-compact">
                   <thead>
                     <tr>
-                      <th class="w-1/3">Previous claims</th>
-                      <th class="w-1/3">Status</th>
-                      <th class="w-1/3">Notes</th>
+                      <th class="w-1/5">Previous claim</th>
+                      <th class="w-1/5">Filed on</th>
+                      <th class="w-1/5">Accepted?</th>
+                      <th class="w-1/5">Type</th>
+                      <th class="w-1/5">Period start</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -719,14 +721,20 @@
                       <td class="text-sm">Claim 1</td>
                       <td class="text-sm">—</td>
                       <td class="text-sm">—</td>
+                      <td class="text-sm">—</td>
+                      <td class="text-sm">—</td>
                     </tr>
                     <tr>
                       <td class="text-sm">Claim 2</td>
                       <td class="text-sm">—</td>
                       <td class="text-sm">—</td>
+                      <td class="text-sm">—</td>
+                      <td class="text-sm">—</td>
                     </tr>
                     <tr>
                       <td class="text-sm">Claim 3</td>
+                      <td class="text-sm">—</td>
+                      <td class="text-sm">—</td>
                       <td class="text-sm">—</td>
                       <td class="text-sm">—</td>
                     </tr>
