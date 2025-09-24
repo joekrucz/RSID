@@ -447,58 +447,60 @@ if User.exists?(1)
   # Create R&D Claims for each company
   puts "\nCreating R&D Claims for each company..."
   
-  fiscal_years = ['FY22', 'FY23', 'FY24']
   created_claims = []
   
+  # Ensure demo data only has period ends in 2024 or 2025 and covers every month
+  # Create a balanced distribution across all 24 months (12 months each year)
+  # Use a more balanced approach to ensure good coverage
+  months_2024_2025 = []
+  # Add 2024 months
+  (1..12).each { |m| months_2024_2025 << [2024, m] }
+  # Add 2025 months  
+  (1..12).each { |m| months_2024_2025 << [2025, m] }
+  # Duplicate the array to ensure we have enough months for 125 companies
+  months_2024_2025 = (months_2024_2025 * 6) # 6 cycles = 144 months, more than 125
+  
   Company.all.each_with_index do |company, index|
-    fiscal_year = fiscal_years[index % fiscal_years.length]
-    
-    # Create start and end dates based on fiscal year
-    case fiscal_year
-    when 'FY22'
-      start_date = Date.new(2022, 4, 1)  # April 1, 2022
-      end_date = Date.new(2023, 3, 31)   # March 31, 2023
-    when 'FY23'
-      start_date = Date.new(2023, 4, 1)  # April 1, 2023
-      end_date = Date.new(2024, 3, 31)   # March 31, 2024
-    when 'FY24'
-      start_date = Date.new(2024, 4, 1)  # April 1, 2024
-      end_date = Date.new(2025, 3, 31)   # March 31, 2025
-    end
+    year, month = months_2024_2025[index % months_2024_2025.length]
+    end_date = Date.new(year, month, -1) # last day of the month
+    # Set start_date to approximately one year before end_date to ensure ordering correctness
+    start_date = end_date - 364
     
     # Title based on period end date: abbreviated month + FY (e.g., "Mar FY23")
     claim_title = "#{end_date.strftime('%b')} FY#{end_date.strftime('%y')}"
 
-    claim = RndClaim.find_or_create_by!(company: company) do |c|
-      c.title = claim_title
-      c.start_date = start_date
-      c.end_date = end_date
-      # Use the same rich distribution in all environments so prod matches local demo look
-      c.stage = ['upcoming', 'readying_for_delivery', 'in_progress', 'finalised', 'filed_awaiting_hmrc', 'claim_processed', 'client_invoiced', 'paid'].sample
-      c.qualifying_activities = [
-        "Software development and testing",
-        "Prototype development and validation",
-        "Technical research and analysis",
-        "Process improvement and optimization",
-        "Innovation and product development"
-      ].sample(rand(2..4)).join(", ")
-      c.technical_challenges = [
-        "Scalability and performance optimization",
-        "Integration with existing systems",
-        "Data security and compliance requirements",
-        "User experience and interface design",
-        "Algorithm development and optimization"
-      ].sample(rand(2..3)).join(", ")
-      
-      # CNF status and deadline
-      cnf_statuses = ['not_claiming', 'cnf_needed', 'cnf_exemption_possible', 'in_progress', 'cnf_submitted', 'cnf_exempt', 'cnf_missed']
-      c.cnf_status = cnf_statuses.sample
-      
-      # CNF deadline should be after the project end date
-      if c.cnf_status != 'not_claiming'
-        c.cnf_deadline = end_date + rand(1..90).days
-      end
+    claim = RndClaim.find_or_initialize_by(company: company)
+    claim.start_date = start_date
+    claim.end_date = end_date
+    claim.title = claim_title
+    # Use the same rich distribution in all environments so prod matches local demo look
+    claim.stage = ['upcoming', 'readying_for_delivery', 'in_progress', 'finalised', 'filed_awaiting_hmrc', 'claim_processed', 'client_invoiced', 'paid'].sample
+    claim.qualifying_activities = [
+      "Software development and testing",
+      "Prototype development and validation",
+      "Technical research and analysis",
+      "Process improvement and optimization",
+      "Innovation and product development"
+    ].sample(rand(2..4)).join(", ")
+    claim.technical_challenges = [
+      "Scalability and performance optimization",
+      "Integration with existing systems",
+      "Data security and compliance requirements",
+      "User experience and interface design",
+      "Algorithm development and optimization"
+    ].sample(rand(2..3)).join(", ")
+    
+    # CNF status and deadline
+    cnf_statuses = ['not_claiming', 'cnf_needed', 'cnf_exemption_possible', 'in_progress', 'cnf_submitted', 'cnf_exempt', 'cnf_missed']
+    claim.cnf_status = cnf_statuses.sample
+    
+    # CNF deadline should be after the project end date
+    if claim.cnf_status != 'not_claiming'
+      claim.cnf_deadline = end_date + rand(1..90).days
+    else
+      claim.cnf_deadline = nil
     end
+    claim.save!
     
     created_claims << claim
     puts "Created/Ensured R&D Claim: #{claim_title} for #{company.name}"
@@ -565,6 +567,23 @@ if User.exists?(1)
       end
     end
   end
+
+  # Populate cnf_submission_date for submitted claims (within 6 months from period end)
+  puts "\nSetting CNF submission dates for submitted claims..."
+  RndClaim.find_each do |claim|
+    next unless claim.end_date
+    next unless claim.cnf_status == 'cnf_submitted'
+
+    period_end = claim.end_date.is_a?(String) ? Date.parse(claim.end_date) : claim.end_date
+    latest_allowed = period_end + 6.months
+    # Choose a submission date between 1 day and 6 months after end_date
+    submission_date = period_end + rand(1..(6 * 30)).days
+    submission_date = [submission_date, latest_allowed].min
+
+    claim.update_column(:cnf_submission_date, submission_date)
+  end
+  submitted_with_dates = RndClaim.where.not(cnf_submission_date: nil).count
+  puts "Set cnf_submission_date for #{submitted_with_dates} submitted claims"
   
   # Apply some demo status variations to make it more realistic
   demo_claims = RndClaim.includes(:cnf_emails).limit(15)

@@ -12,6 +12,11 @@ class CnfCommsController < ApplicationController
     
     # Get R&D claims with CNF information
     all_claims = get_accessible_rnd_claims.includes(:company, :cnf_emails)
+
+    # Include: not missed (deadline >= today) and missed within last 2 months
+    # CNF deadline = end_date + 6 months -> include when end_date >= today - 8 months, or end_date is NULL
+    include_from = Date.current - 8.months
+    all_claims = all_claims.where("rnd_claims.end_date IS NULL OR rnd_claims.end_date >= ?", include_from)
     
     # Apply search if needed
     if search.present?
@@ -21,11 +26,15 @@ class CnfCommsController < ApplicationController
       )
     end
     
+    # Order by CNF deadline (6 months after end_date) -> equivalent to ordering by end_date
+    # Place records without end_date at the end
+    all_claims = all_claims.order(Arel.sql("rnd_claims.end_date IS NULL, rnd_claims.end_date ASC"))
+
     # Calculate total count for pagination
     total_count = all_claims.count
     
-    # Get paginated claims for list view
-    paginated_claims = all_claims.limit(per_page).offset((page - 1) * per_page)
+    # Show all claims in master view (no pagination)
+    paginated_claims = all_claims
     
     render inertia: 'CnfComms/Index', props: {
       user: user_props,
@@ -35,12 +44,12 @@ class CnfCommsController < ApplicationController
         per_page: per_page
       },
       pagination: {
-        current_page: page,
-        total_pages: (total_count.to_f / per_page).ceil,
-        per_page: per_page,
+        current_page: 1,
+        total_pages: 1,
+        per_page: total_count,
         total_count: total_count,
-        has_next_page: (page * per_page) < total_count,
-        has_prev_page: page > 1
+        has_next_page: false,
+        has_prev_page: false
       }
     }
   end

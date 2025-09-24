@@ -14,7 +14,7 @@ class RndClaimsController < ApplicationController
     
     # Get all claims for pipeline data (not paginated)
     all_claims = RndClaim.includes(:company, :rnd_claim_expenditures)
-                        .order(created_at: :desc)
+                        .order(Arel.sql("rnd_claims.end_date IS NULL, rnd_claims.end_date DESC, rnd_claims.created_at DESC"))
     
     # Apply search to all claims
     if search.present?
