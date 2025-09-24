@@ -497,12 +497,17 @@ if User.exists?(1)
     if cnf_deadline > today
       # Future deadline - can't be missed yet
       cnf_statuses = ['not_claiming', 'cnf_needed', 'cnf_exemption_possible', 'in_progress', 'cnf_submitted', 'cnf_exempt']
+      claim.cnf_status = cnf_statuses.sample
     else
-      # Past or current deadline - can be any status
+      # Past or current deadline - if not exempt or submitted, mark as missed
       cnf_statuses = ['not_claiming', 'cnf_needed', 'cnf_exemption_possible', 'in_progress', 'cnf_submitted', 'cnf_exempt', 'cnf_missed']
+      claim.cnf_status = cnf_statuses.sample
+      
+      # If deadline has passed and not exempt/submitted, force to missed
+      if claim.cnf_status != 'cnf_exempt' && claim.cnf_status != 'cnf_submitted' && claim.cnf_status != 'not_claiming'
+        claim.cnf_status = 'cnf_missed'
+      end
     end
-    
-    claim.cnf_status = cnf_statuses.sample
     
     # CNF deadline should be 6 months after the project end date
     if claim.cnf_status != 'not_claiming'
@@ -571,8 +576,8 @@ if User.exists?(1)
           email.status = 'to_be_sent'
         end
         
-        # If claim is submitted or exempt, mark unsent emails as to_be_skipped
-        if (claim.cnf_status == 'cnf_submitted' || claim.cnf_status == 'cnf_exempt') && email.status != 'sent'
+        # If claim is submitted, exempt, or not claiming, mark unsent emails as to_be_skipped
+        if (claim.cnf_status == 'cnf_submitted' || claim.cnf_status == 'cnf_exempt' || claim.cnf_status == 'not_claiming') && email.status != 'sent'
           email.status = 'to_be_skipped'
         end
         

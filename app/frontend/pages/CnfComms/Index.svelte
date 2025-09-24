@@ -423,7 +423,7 @@
                   {@const email5 = getCnfEmailForSlot(claim, '5')}
                   {@const email6 = getCnfEmailForSlot(claim, '6')}
                   {@const emailFS = getCnfEmailForSlot(claim, 'FS')}
-                  <tr class="{(claim.cnf_status === 'cnf_exempt' || claim.cnf_status === 'cnf_submitted') ? 'bg-green-50' : ''} {(claim.cnf_deadline && new Date(claim.cnf_deadline) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && claim.cnf_status !== 'cnf_exempt' && claim.cnf_status !== 'cnf_submitted') ? 'bg-orange-50' : ''}"
+                  <tr class="{(claim.cnf_status === 'cnf_exempt' || claim.cnf_status === 'cnf_submitted' || claim.cnf_status === 'not_claiming') ? 'bg-green-50' : ''} {(claim.cnf_deadline && new Date(claim.cnf_deadline) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) && claim.cnf_status !== 'cnf_exempt' && claim.cnf_status !== 'cnf_submitted' && claim.cnf_status !== 'not_claiming') ? 'bg-orange-50' : ''}"
                       aria-selected={selectedClaimId === claim.id}>
                     <td
                       class="cursor-pointer px-1 w-[5.5rem]"
@@ -432,7 +432,7 @@
                       role="button"
                       tabindex="0"
                     >
-                      <div class="text-sm truncate max-w-full overflow-hidden {(claim.cnf_status === 'cnf_submitted' || claim.cnf_status === 'cnf_exempt') ? 'text-green-600 font-bold' : ''}" title={claim.cnf_status_display}>
+                      <div class="text-sm truncate max-w-full overflow-hidden {(claim.cnf_status === 'cnf_submitted' || claim.cnf_status === 'cnf_exempt' || claim.cnf_status === 'not_claiming') ? 'text-green-600 font-bold' : ''}" title={claim.cnf_status_display}>
                         {claim.cnf_status_display}
                       </div>
                     </td>
@@ -755,16 +755,18 @@
                 <table class="table table-zebra w-full table-compact">
                   <thead>
                     <tr>
-                      <th class="w-1/5">Previous claim</th>
-                      <th class="w-1/5">Filed on</th>
-                      <th class="w-1/5">Accepted?</th>
-                      <th class="w-1/5">Type</th>
-                      <th class="w-1/5">Period start</th>
+                      <th class="w-1/6">Previous claim</th>
+                      <th class="w-1/6">Filed on</th>
+                      <th class="w-1/6">Accepted?</th>
+                      <th class="w-1/6">Type</th>
+                      <th class="w-1/6">Period start</th>
+                      <th class="w-1/6">Result</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
                       <td class="text-sm">Claim 1</td>
+                      <td class="text-sm">—</td>
                       <td class="text-sm">—</td>
                       <td class="text-sm">—</td>
                       <td class="text-sm">—</td>
@@ -776,9 +778,11 @@
                       <td class="text-sm">—</td>
                       <td class="text-sm">—</td>
                       <td class="text-sm">—</td>
+                      <td class="text-sm">—</td>
                     </tr>
                     <tr>
                       <td class="text-sm">Claim 3</td>
+                      <td class="text-sm">—</td>
                       <td class="text-sm">—</td>
                       <td class="text-sm">—</td>
                       <td class="text-sm">—</td>
