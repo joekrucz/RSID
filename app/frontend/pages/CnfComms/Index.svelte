@@ -263,6 +263,54 @@
     });
   }
 
+  async function toggleEmailSkipStatus(emailId) {
+    if (!selectedCnfEmail || selectedCnfEmail.id !== emailId) return;
+    
+    let newStatus;
+    if (selectedCnfEmail.status === 'to_be_sent') {
+      newStatus = 'to_be_skipped';
+    } else if (selectedCnfEmail.status === 'to_be_skipped') {
+      newStatus = 'to_be_sent';
+    } else {
+      return; // Only toggle between to_be_sent and to_be_skipped
+    }
+    
+    try {
+      const response = await fetch(`/cnf_emails/${selectedCnfEmail.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+          cnf_email: {
+            status: newStatus
+          }
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          // Update the local state
+          selectedCnfEmail.status = newStatus;
+          selectedCnfEmail.status_display = getStatusDisplay(newStatus);
+          selectedCnfEmail.icon_display = getIconDisplay(newStatus);
+          
+          // Update the claim's email list
+          const claim = filteredClaims.find(c => c.id === selectedEmailSlot.claimId);
+          if (claim && claim.cnf_emails) {
+            const emailIndex = claim.cnf_emails.findIndex(email => email.id === selectedCnfEmail.id);
+            if (emailIndex !== -1) {
+              claim.cnf_emails[emailIndex] = { ...selectedCnfEmail };
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling email skip status:', error);
+    }
+  }
 
   function getIconDisplay(status) {
     switch(status) {
@@ -322,7 +370,7 @@
       {#if filteredClaims.length > 0}
           <div class="overflow-x-auto overflow-y-auto max-h-[70vh] flex-1">
             <table class="table w-full table-compact table-fixed">
-              <thead class="sticky top-0 z-10 bg-base-100">
+              <thead class="sticky top-0 z-10 bg-gray-700 text-white">
                 <tr>
                   <th rowspan="2" class="px-1 w-[5.5rem]">CNF Status</th>
                   <th rowspan="2" class="px-1 w-[10rem]">Name</th>
@@ -469,10 +517,10 @@
               <div class="h-full flex flex-col">
                 <!-- Email Header -->
                 <div class="p-3 rounded-t-lg {selectedCnfEmail?.status === 'sent' ? 'bg-success text-success-content' : 
-                                               selectedCnfEmail?.status === 'to_be_sent' ? 'bg-info text-info-content' :
-                                               selectedCnfEmail?.status === 'skipped' ? 'bg-warning text-warning-content' :
+                                               selectedCnfEmail?.status === 'to_be_sent' ? 'bg-warning text-warning-content' :
+                                               selectedCnfEmail?.status === 'skipped' ? 'bg-success text-success-content' :
                                                selectedCnfEmail?.status === 'to_be_skipped' ? 'bg-warning text-warning-content' :
-                                               'bg-info text-info-content'}">
+                                               'bg-warning text-warning-content'}">
                   <div class="flex items-center justify-between">
                     <div>
                       <h2 class="text-lg font-semibold">
@@ -481,22 +529,35 @@
                       <div class="flex items-center space-x-4 text-sm opacity-90">
                         <span>{selectedCnfEmail?.status_display || 'TO BE SENT'}</span>
                         <span>•</span>
-                        <span>
-                          {#if selectedCnfEmail?.sent_at}
-                            {new Date(selectedCnfEmail.sent_at).toLocaleDateString()}
-                          {:else if selectedCnfEmail?.status === 'to_be_sent' || selectedCnfEmail?.status === 'to_be_skipped'}
-                            {new Date(selectedCnfEmail.expected_send_date || selectedCnfEmail.sent_at).toLocaleDateString()}
-                          {:else}
-                            Not sent
+                        <div class="flex items-center space-x-2">
+                          <span>
+                            {#if selectedCnfEmail?.sent_at}
+                              {new Date(selectedCnfEmail.sent_at).toLocaleDateString()}
+                            {:else if selectedCnfEmail?.status === 'to_be_sent' || selectedCnfEmail?.status === 'to_be_skipped'}
+                              {new Date(selectedCnfEmail.expected_send_date || selectedCnfEmail.sent_at).toLocaleDateString()}
+                            {:else}
+                              Not sent
+                            {/if}
+                          </span>
+                          {#if selectedCnfEmail && !selectedCnfEmail.sent_at}
+                            <label class="flex items-center space-x-1 cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                class="checkbox checkbox-xs"
+                                checked={selectedCnfEmail?.status === 'to_be_skipped'}
+                                onchange={() => toggleEmailSkipStatus(selectedCnfEmail.id)}
+                              />
+                              <span class="text-xs">Skip</span>
+                            </label>
                           {/if}
-                        </span>
+                        </div>
                       </div>
                     </div>
                     <button class="btn btn-ghost btn-sm {selectedCnfEmail?.status === 'sent' ? 'text-success-content hover:bg-success-content/20' :
-                                                       selectedCnfEmail?.status === 'to_be_sent' ? 'text-info-content hover:bg-info-content/20' :
-                                                       selectedCnfEmail?.status === 'skipped' ? 'text-warning-content hover:bg-warning-content/20' :
+                                                       selectedCnfEmail?.status === 'to_be_sent' ? 'text-warning-content hover:bg-warning-content/20' :
+                                                       selectedCnfEmail?.status === 'skipped' ? 'text-success-content hover:bg-success-content/20' :
                                                        selectedCnfEmail?.status === 'to_be_skipped' ? 'text-warning-content hover:bg-warning-content/20' :
-                                                       'text-info-content hover:bg-info-content/20'}" 
+                                                       'text-warning-content hover:bg-warning-content/20'}" 
                             onclick={() => selectedEmailSlot = null} 
                             aria-label="Close email">
                       ✕
