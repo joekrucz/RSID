@@ -13,8 +13,9 @@ class SessionsController < ApplicationController
       Rails.logger.info "Session after login: #{session.to_hash}"
       Rails.logger.info "Session ID: #{session.id}"
       
-      # Use Inertia redirect to dashboard
-      redirect_to dashboard_path
+      # Friendly forwarding: redirect to intended URL if present
+      forwarding_url = session.delete(:forwarding_url)
+      redirect_to(forwarding_url.presence || dashboard_path)
     else
       Rails.logger.info "Login failed for email: #{params[:email]}"
       # Return the same page with error props

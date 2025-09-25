@@ -39,6 +39,14 @@ class ApplicationController < ActionController::Base
   def require_login
     unless @current_user
       log_user_action("login_required_failed")
+      # Store intended URL to support friendly forwarding after login
+      begin
+        if request.get?
+          session[:forwarding_url] = request.fullpath
+        end
+      rescue StandardError
+        # no-op
+      end
       redirect_to login_sessions_path, alert: "Please log in to access this page."
       return
     end
