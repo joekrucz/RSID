@@ -329,11 +329,7 @@
           </label>
         <div class="text-sm whitespace-nowrap {checked ? 'text-success' : 'text-base-content/70'}">
         {#if checked}
-          {#if completedAt}
-            Completed on {formatDateTime(completedAt)}
-          {:else}
-            Completed
-          {/if}
+          Completed
         {:else}
           Not completed
         {/if}
