@@ -10,41 +10,44 @@
     selectedItemTitle = '',
     checklist_items = [],
     visibleSectionIndicesForGroup = () => [],
+    showTabs = true,
   } = $props();
 
   // The component just renders tabs + checklist and forwards events upward
 </script>
 
-<div class="bg-white rounded-lg border border-base-300 shadow-sm p-3 mb-3 relative">
-  <div class="flex w-full select-none">
-    {#each stageGroups as g, gi}
-      {@const isActive = currentGroup === g.label}
-      {@const bgClass = isActive ? 'bg-gray-200 text-gray-900 font-semibold' : 'bg-gray-100 text-gray-700'}
-      {@const isFirst = gi === 0}
-      {@const isLast = gi === stageGroups.length - 1}
-      {@const clipPath = isFirst
-        ? 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%)'
-        : (isLast
-          ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 12px 50%)'
-          : 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%)')}
-      <button
-        class={`relative flex-1 min-w-0 justify-center items-center gap-2 px-5 py-2 text-sm transition-colors ${bgClass} ${gi > 0 ? 'border-l border-base-300' : ''} outline-none focus:outline-none focus:ring-0 ${!isLast ? 'z-10' : ''}`}
-        onclick={() => setCurrentGroup(g.label)}
-        aria-current={isActive ? 'page' : undefined}
-        style={`clip-path:${clipPath}; border-top-left-radius:${isFirst ? '0.5rem' : '0'}; border-bottom-left-radius:${isFirst ? '0.5rem' : '0'}; border-top-right-radius:${isLast ? '0.5rem' : '0'}; border-bottom-right-radius:${isLast ? '0.5rem' : '0'};`}
-      >
-        <span class="inline-flex items-center justify-center w-4 h-4">
-          {#if isGroupComplete(g)}
-            <svg class="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-          {/if}
-        </span>
-        <span>{g.label}</span>
-      </button>
-    {/each}
+{#if showTabs}
+  <div class="bg-white rounded-lg border border-base-300 shadow-sm p-3 mb-3 relative w-full">
+    <div class="flex w-full select-none">
+      {#each stageGroups as g, gi}
+        {@const isActive = currentGroup === g.label}
+        {@const bgClass = isActive ? 'bg-gray-200 text-gray-900 font-semibold' : 'bg-gray-100 text-gray-700'}
+        {@const isFirst = gi === 0}
+        {@const isLast = gi === stageGroups.length - 1}
+        {@const clipPath = isFirst
+          ? 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%)'
+          : (isLast
+            ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 12px 50%)'
+            : 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%)')}
+        <button
+          class={`relative flex-1 min-w-0 justify-center items-center gap-2 px-5 py-2 text-sm transition-colors ${bgClass} ${gi > 0 ? 'border-l border-base-300' : ''} outline-none focus:outline-none focus:ring-0 ${!isLast ? 'z-10' : ''}`}
+          onclick={() => setCurrentGroup(g.label)}
+          aria-current={isActive ? 'page' : undefined}
+          style={`clip-path:${clipPath}; border-top-left-radius:${isFirst ? '0.5rem' : '0'}; border-bottom-left-radius:${isFirst ? '0.5rem' : '0'}; border-top-right-radius:${isLast ? '0.5rem' : '0'}; border-bottom-right-radius:${isLast ? '0.5rem' : '0'};`}
+        >
+          <span class="inline-flex items-center justify-center w-4 h-4">
+            {#if isGroupComplete(g)}
+              <svg class="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            {/if}
+          </span>
+          <span>{g.label}</span>
+        </button>
+      {/each}
+    </div>
   </div>
-</div>
+{/if}
 
 <div class="bg-base-100 rounded-lg border border-base-300 shadow-sm p-4 lg:max-h-[60vh] overflow-y-auto z-0">
   <Checklist

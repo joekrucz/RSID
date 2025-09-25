@@ -48,6 +48,22 @@
   let checklistSectionsCollapsed = $state({});
   const idxCurrent = $derived(stages.indexOf(currentStage));
   let sectionComplete = $state([]);
+  // Track when each stage was selected (ISO strings)
+  let stageSelectedAt = $state({});
+  // Eagerly hydrate from localStorage before first render (so prior dates show immediately)
+  try {
+    const gaId = grant_application?.id;
+    if (typeof window !== 'undefined' && gaId) {
+      const initialKey = `grant:stageDates:${gaId}`;
+      const raw = localStorage.getItem(initialKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          stageSelectedAt = { ...parsed };
+        }
+      }
+    }
+  } catch (_) {}
   const stageGroups = [
     { label: 'Pre-delivery', keys: ['client_acquisition_project_qualification', 'client_invoiced', 'invoice_paid', 'preparing_for_kick_off_aml_resourcing'] },
     { label: 'In delivery', keys: ['kicked_off_in_progress', 'submitted'] },
@@ -60,6 +76,38 @@
   let currentGroup = $state('Pre-delivery');
   let userSetGroup = $state(false);
   $effect(() => { if (!userSetGroup) currentGroup = groupForStage(currentStage); });
+  const currentGroupIdx = $derived(stageGroups.findIndex(g => g.keys.includes(currentStage)));
+  // Initialize currently active stage selection date if not present
+  $effect(() => {
+    if (currentStage && !stageSelectedAt[currentStage]) {
+      stageSelectedAt[currentStage] = new Date().toISOString();
+    }
+  });
+
+  // Persist/load selected dates across refreshes
+  function storageKeyForDates() {
+    try { return grantApplicationId ? `grant:stageDates:${grantApplicationId}` : null; } catch (_) { return null; }
+  }
+  function loadStageDates() {
+    try {
+      const key = storageKeyForDates();
+      if (!key) return;
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          stageSelectedAt = { ...stageSelectedAt, ...parsed };
+        }
+      }
+    } catch (_) {}
+  }
+  function saveStageDates() {
+    try {
+      const key = storageKeyForDates();
+      if (!key) return;
+      localStorage.setItem(key, JSON.stringify(stageSelectedAt));
+    } catch (_) {}
+  }
 
   function isGroupComplete(group) {
     return (group?.keys || []).every((s) => !!sectionComplete[stages.indexOf(s)]);
@@ -90,7 +138,49 @@
     } catch (_) {}
   }
 
+  // Secondary stages row (labels like R&D page request)
+  function formatSecondaryStageLabel(stage) {
+    switch (stage) {
+      case 'client_acquisition_project_qualification':
+        return 'Acquisition';
+      case 'client_invoiced':
+        return 'Invoiced';
+      case 'invoice_paid':
+        return 'Invoice Paid';
+      case 'preparing_for_kick_off_aml_resourcing':
+        return 'Preparing';
+      case 'kicked_off_in_progress':
+        return 'In progress';
+      case 'submitted':
+        return 'Submitted';
+      case 'awaiting_funding_decision':
+        return 'Awaiting';
+      case 'application_successful_or_not_successful':
+        return 'Result';
+      case 'resub_due':
+        return 'Resub Due';
+      case 'success_fee_invoiced':
+        return 'Invoiced';
+      case 'success_fee_paid':
+        return 'Paid';
+      default:
+        return stage.replaceAll('_', ' ');
+    }
+  }
+
+  function formatSelectedDateLabel(iso) {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+    } catch (_) {
+      return '';
+    }
+  }
+
   onMount(() => {
+    // Load any persisted dates for this grant
+    loadStageDates();
     // Preference order: URL param → localStorage → stage-derived default
     try {
       const params = new URLSearchParams(window.location.search);
@@ -128,9 +218,9 @@
   function formatStageLabel(stage) {
     switch (stage) {
       case 'client_acquisition_project_qualification':
-        return 'Client Acquisition';
+        return 'Acquisition';
       case 'client_invoiced':
-        return 'Client invoiced';
+        return 'Invoiced';
       case 'invoice_paid':
         return 'Invoice paid';
       case 'preparing_for_kick_off_aml_resourcing':
@@ -140,15 +230,15 @@
       case 'submitted':
         return 'Submitted';
       case 'awaiting_funding_decision':
-        return 'Awaiting funding decision';
+        return 'Awaiting';
       case 'application_successful_or_not_successful':
         return 'Funding Decision';
       case 'resub_due':
         return 'Resub Due';
       case 'success_fee_invoiced':
-        return 'Success fee invoiced';
+        return 'Invoiced';
       case 'success_fee_paid':
-        return 'Success fee paid';
+        return 'Paid';
       default:
         return stage.replaceAll('_', ' ');
     }
@@ -186,6 +276,12 @@
     .then(data => {
       if (data.success) {
         currentStage = targetStage;
+        // Ensure the top tabs highlight follows the bottom stage
+        userSetGroup = false;
+        currentGroup = groupForStage(targetStage);
+        // Record selection timestamp
+        stageSelectedAt[targetStage] = new Date().toISOString();
+        saveStageDates();
         toast.success(data.message || 'Stage updated successfully!');
         // Reload the page to get updated data
         router.reload();
@@ -283,6 +379,79 @@
           </div>
         </div>
       </div>
+
+      <!-- Moved Pre/In/Post tabs from master view to header area -->
+      <div class="mt-2 w-full">
+        <div class="bg-white rounded-lg border border-base-300 shadow-sm p-3 mb-3 relative w-full">
+          <div class="flex w-full select-none gap-2">
+            {#each stageGroups as g, gi}
+              {@const isActive = currentGroup === g.label}
+              {@const isCompletedOrActiveGroup = gi <= currentGroupIdx}
+              {@const bgClass = gi === 0
+                ? (isCompletedOrActiveGroup ? 'bg-gray-700 text-white font-semibold' : 'bg-gray-100 text-gray-700')
+                : (gi === 1
+                  ? (isCompletedOrActiveGroup ? 'bg-blue-500 text-white font-semibold' : 'bg-gray-100 text-gray-700')
+                  : (isCompletedOrActiveGroup ? 'bg-purple-600 text-white font-semibold' : 'bg-gray-100 text-gray-700'))}
+              <div class="flex-1 min-w-0 flex flex-col items-stretch" style={`flex:${g.keys.length} 1 0%`}>
+                <button
+                  class={`relative justify-center items-center gap-2 px-5 py-2 text-sm transition-colors ${bgClass} ${gi === 1 ? 'rounded-none' : (gi === 0 ? 'rounded-l-lg' : 'rounded-r-lg')} outline-none focus:outline-none focus:ring-0`}
+                  onclick={() => setGroup(g.label)}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <span class="inline-flex items-center justify-center w-4 h-4">
+                    {#if isGroupComplete(g)}
+                      <svg class="w-4 h-4 text-success" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    {/if}
+                  </span>
+                  <span>{g.label}</span>
+                </button>
+              </div>
+            {/each}
+          </div>
+
+          <!-- Secondary row: Grant stages (moved inside same container) -->
+          <div class="flex w-full gap-2 mt-3">
+          {#each stages as s, si}
+            {@const isFirst = si === 0}
+            {@const isLast = si === stages.length - 1}
+            {@const isActive = currentStage === s}
+            {@const isInDeliveryStage = s === 'kicked_off_in_progress' || s === 'submitted'}
+            {@const isPostDeliveryStage = s === 'awaiting_funding_decision' || s === 'application_successful_or_not_successful' || s === 'resub_due' || s === 'success_fee_invoiced' || s === 'success_fee_paid'}
+            {@const isPreDeliveryStage = !isInDeliveryStage && !isPostDeliveryStage}
+            {@const isCompletedOrActive = si <= idxCurrent}
+            {@const bgClass = isInDeliveryStage
+              ? (isCompletedOrActive ? 'bg-blue-500 text-white font-semibold' : 'bg-gray-100 text-gray-700')
+              : (isPostDeliveryStage
+                  ? (isCompletedOrActive ? 'bg-purple-600 text-white font-semibold' : 'bg-gray-100 text-gray-700')
+                  : (isPreDeliveryStage
+                      ? (isCompletedOrActive ? 'bg-gray-700 text-white font-semibold' : 'bg-gray-100 text-gray-700')
+                      : (isCompletedOrActive ? 'bg-gray-200 text-gray-900 font-semibold' : 'bg-gray-100 text-gray-700')))}
+            {@const clipPath = isFirst
+              ? 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%)'
+              : (isLast
+                ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 12px 50%)'
+                : 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%)')}
+            <div class="flex-1 min-w-0 flex flex-col items-stretch">
+              <button
+                class={`relative flex-1 justify-center items-center gap-2 px-3 py-1 text-xs transition-colors ${bgClass} ${si > 0 ? 'border-l border-base-300' : ''} outline-none focus:outline-none focus:ring-0 ${!isLast ? 'z-10' : ''}`}
+                onclick={() => handleStageChange(s)}
+                aria-current={isActive ? 'page' : undefined}
+                style={`clip-path:${clipPath}; border-top-left-radius:${isFirst ? '0.5rem' : '0'}; border-bottom-left-radius:${isFirst ? '0.5rem' : '0'}; border-top-right-radius:${isLast ? '0.5rem' : '0'}; border-bottom-right-radius:${isLast ? '0.5rem' : '0'};`}
+                title={formatSecondaryStageLabel(s)}
+              >
+                <span class="sr-only">{formatSecondaryStageLabel(s)}</span>
+                {formatSecondaryStageLabel(s)}
+              </button>
+              <div class="text-[11px] leading-tight text-base-content/60 text-center mt-1 h-4">
+                {si <= idxCurrent && stageSelectedAt[s] ? formatSelectedDateLabel(stageSelectedAt[s]) : ''}
+              </div>
+            </div>
+          {/each}
+          </div>
+        </div>
+      </div>
       
       <!-- Stage Conflict Warning -->
       {#if stageConflictWarning}
@@ -343,6 +512,7 @@
             {selectedItemTitle}
             {checklist_items}
             {visibleSectionIndicesForGroup}
+            showTabs={false}
             on:select={(e) => { selectedSectionTitle = e.detail.sectionTitle; selectedItemTitle = e.detail.itemTitle; }}
             on:change={(e) => {
               const { field, value, sectionTitle, itemTitle } = e.detail || {};

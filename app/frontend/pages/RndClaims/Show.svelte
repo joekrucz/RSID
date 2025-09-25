@@ -43,12 +43,50 @@
   const idxCurrent = $derived(stages.indexOf(currentStage));
   // Track when each stage was selected (ISO strings)
   let stageSelectedAt = $state({});
+  // Eagerly hydrate from localStorage before first render so prior dates show immediately
+  try {
+    const claimId = rnd_claim?.id;
+    if (typeof window !== 'undefined' && claimId) {
+      const key = `rnd:stageDates:${claimId}`;
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          stageSelectedAt = { ...parsed };
+        }
+      }
+    }
+  } catch (_) {}
   // Initialize currently active stage selection date if not present
   $effect(() => {
     if (currentStage && !stageSelectedAt[currentStage]) {
       stageSelectedAt[currentStage] = new Date().toISOString();
+      // Do not save here to avoid overwriting older persisted dates during initial mount
     }
   });
+  function storageKeyForDates() {
+    try { return rnd_claim?.id ? `rnd:stageDates:${rnd_claim.id}` : null; } catch (_) { return null; }
+  }
+  function loadStageDates() {
+    try {
+      const key = storageKeyForDates();
+      if (!key) return;
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          stageSelectedAt = { ...stageSelectedAt, ...parsed };
+        }
+      }
+    } catch (_) {}
+  }
+  function saveStageDates() {
+    try {
+      const key = storageKeyForDates();
+      if (!key) return;
+      localStorage.setItem(key, JSON.stringify(stageSelectedAt));
+    } catch (_) {}
+  }
   let currentGroup = $state(groupForStage(currentStage));
   let userSetGroup = $state(false);
   const currentGroupIdx = $derived(groupIndexForStage(currentStage));
@@ -81,6 +119,7 @@
   function handleStageChange(targetStage) {
     if (targetStage === currentStage) return;
     stageLoading = true;
+    const previousStage = currentStage;
     
     fetch(`/rnd_claims/${rnd_claim.id}/change_stage`, {
       method: 'PATCH',
@@ -92,10 +131,11 @@
     })
     .then(response => response.json())
     .then(data => {
-      if (data.success) {
+        if (data.success) {
         currentStage = targetStage;
         // Record selection timestamp (to nearest day via display formatting)
         stageSelectedAt[targetStage] = new Date().toISOString();
+        saveStageDates();
         toast.success(data.message || 'Stage updated successfully!');
         // Reload the page to get updated data
         router.reload();
@@ -208,7 +248,7 @@
     {#key currentStage}
     <div class="mt-2 w-full">
       <div class="bg-white rounded-lg border border-base-300 shadow-sm p-3 mb-3 relative">
-        <div class="flex w-full select-none">
+        <div class="flex w-full select-none gap-2">
           {#each stageGroups as g, gi}
             {@const isActive = currentGroup === g.label}
             {@const isCompletedOrActiveGroup = gi <= currentGroupIdx}
@@ -225,18 +265,12 @@
                     : 'bg-gray-100 text-gray-700')}
             {@const isFirst = gi === 0}
             {@const isLast = gi === stageGroups.length - 1}
-            {@const clipPath = isFirst
-              ? 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%)'
-              : (isLast
-                ? 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 12px 50%)'
-                : 'polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%, 12px 50%)')}
             <div class="flex-1 min-w-0 flex flex-col items-stretch" style={`flex:${g.keys.length} 1 0%`}>
               <div class="text-xs text-base-content/60 text-center mb-1 h-4">{gi === 1 ? 'Planned: 2nd May - 10th May' : ''}</div>
             <button
-                class={`relative justify-center items-center gap-2 px-5 py-2 text-sm transition-colors ${bgClass} ${gi > 0 ? 'border-l border-base-300' : ''} outline-none focus:outline-none focus:ring-0 ${!isLast ? 'z-10' : ''}`}
+                class={`relative justify-center items-center gap-2 px-5 py-2 text-sm transition-colors ${bgClass} ${gi === 1 ? 'rounded-none' : (gi === 0 ? 'rounded-l-lg' : 'rounded-r-lg')} outline-none focus:outline-none focus:ring-0`}
                 onclick={() => setGroup(g.label)}
                 aria-current={isActive ? 'page' : undefined}
-                style={`clip-path:${clipPath}; border-top-left-radius:${isFirst ? '0.5rem' : '0'}; border-bottom-left-radius:${isFirst ? '0.5rem' : '0'}; border-top-right-radius:${isLast ? '0.5rem' : '0'}; border-bottom-right-radius:${isLast ? '0.5rem' : '0'};`}
               >
                 <span>{g.label}</span>
               </button>
@@ -278,7 +312,7 @@
                 {formatStageLabel(s)}
               </button>
               <div class="text-[11px] leading-tight text-base-content/60 text-center mt-1 h-4">
-                {si === idxCurrent && stageSelectedAt[s] ? formatSelectedDateLabel(stageSelectedAt[s]) : ''}
+                {si <= idxCurrent && stageSelectedAt[s] ? formatSelectedDateLabel(stageSelectedAt[s]) : ''}
               </div>
             </div>
         {/each}
