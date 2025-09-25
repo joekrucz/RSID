@@ -412,7 +412,7 @@
       <div class="lg:col-span-5 bg-base-100 rounded-lg shadow border border-base-300 overflow-hidden flex flex-col">
       {#if filteredClaims.length > 0}
           <div class="overflow-x-auto overflow-y-auto max-h-[70vh] flex-1">
-            <table class="table w-full table-compact table-fixed">
+            <table class="table w-full table-compact table-fixed border-separate border-spacing-0">
               <thead class="sticky top-0 z-10 bg-gray-700 text-white">
                 <tr>
                   <th rowspan="2" class="px-1 w-[5.5rem]">CNF Status</th>
@@ -420,7 +420,7 @@
                   <th rowspan="2" class="px-1 w-[6rem] text-center">Deadline</th>
                   <th colspan="7" class="text-center">CNF email</th>
                 </tr>
-                <tr>
+                <tr class="bg-gray-700">
                   <th class="w-7 text-center px-1">1</th>
                   <th class="w-7 text-center px-1">2</th>
                   <th class="w-7 text-center px-1">3</th>
