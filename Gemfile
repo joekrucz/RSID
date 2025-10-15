@@ -78,6 +78,6 @@ gem "inertia_rails", "~> 3.10"
 gem "vite_rails", "~> 3.0"
 
 # Security gems
-gem "rack-attack", "~> 6.7"  # Rate limiting
+gem "rack-attack", "~> 6.8"  # Rate limiting
 gem "sanitize", "~> 6.0"     # Input sanitization
 gem "rack-cors", "~> 2.0"    # CORS support
